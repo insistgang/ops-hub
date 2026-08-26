@@ -3,6 +3,7 @@
 ops: Personal Operations Hub CLI & Automation Suite
 Usage:
   ops status                    View overall system status
+  ops dispatch [query]          View device task allocation matrix or route a specific task
   ops sync [--push]             Probe live network, update status.json (and push to GitHub)
   ops career list               List all job applications
   ops career update <comp> ...  Update company application status
@@ -113,7 +114,59 @@ def cmd_status(args):
     c_sleep = "✅" if checks.get("关了") else "⬜"
     print(f"\n{Colors.BOLD}🧠 今日四勾秩序基线:{Colors.ENDC}")
     print(f"   [{c_sun} 起了]   [{c_act} 动了]   [{c_write} 写了]   [{c_sleep} 关了]")
-    print(f"{Colors.DIM}   (快速打卡: ops check 动了 / ops check 写了)\n{Colors.ENDC}")
+    print(f"{Colors.DIM}   (快速打卡: ops check 动了 / 查看分工: ops dispatch)\n{Colors.ENDC}")
+
+def cmd_dispatch(args):
+    alloc_file = DATA_DIR / "device_allocation.json"
+    if not alloc_file.exists():
+        print("未找到 device_allocation.json")
+        return
+    with open(alloc_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    query = (args.query or "").lower().strip()
+
+    if query:
+        print(f"\n{Colors.BOLD}{Colors.CYAN}🔍 任务智能分流诊断: [{args.query}]{Colors.ENDC}\n")
+        if any(k in query for k in ["论文", "写作", "日记", "求职", "简历", "复盘", "思考", "typst", "前端"]):
+            print(f"👉 {Colors.BOLD}{Colors.GREEN}立即留在 MacBook Air (M5){Colors.ENDC} 执行！")
+            print(f"   📌 场景指引: 抱上 Mac 前往图书馆专注完成，断网/静音深潜，禁止多开。")
+        elif any(k in query for k in ["cuda", "训练", "yolo", "大模型", "ollama", "冷备", "备份", "下载", "游戏", "渲染"]):
+            print(f"👉 {Colors.BOLD}{Colors.CYAN}立即派发给 Windows 4070S 性能主机{Colors.ENDC} 执行！")
+            print(f"   📌 快捷登录: {Colors.BOLD}ssh insistgang@100.98.218.25{Colors.ENDC}")
+            print(f"   📌 Ollama API: http://100.98.218.25:11434")
+        elif any(k in query for k in ["jetson", "边缘", "机器人", "ros", "视觉", "传感器", "亚博"]):
+            print(f"👉 {Colors.BOLD}{Colors.GREEN}立即派发给 Jetson 边缘计算硬件{Colors.ENDC} 执行！")
+            print(f"   📌 快捷登录: {Colors.BOLD}ssh jetson@10.8.20.74{Colors.ENDC}")
+        else:
+            print(f"💡 建议规则：思考与文字留在 Mac，算力与批处理丢给 Windows 4070S，端侧感知丢给 Jetson。")
+        print()
+        return
+
+    # Print full matrix
+    print(f"\n{Colors.BOLD}{Colors.CYAN}══════════════════════════════════════════════════════════════════{Colors.ENDC}")
+    print(f"{Colors.BOLD}{Colors.HEADER} 🖥️  三端设备专属任务分工与协作矩阵{Colors.ENDC}")
+    print(f"{Colors.DIM} 原则: {data.get('principle')}{Colors.ENDC}")
+    print(f"{Colors.BOLD}{Colors.CYAN}══════════════════════════════════════════════════════════════════{Colors.ENDC}\n")
+
+    for dev in data.get("devices", []):
+        dev_color = Colors.GREEN if dev["id"] == "mac" else (Colors.CYAN if dev["id"] == "win" else Colors.WARNING)
+        print(f"{dev_color}{Colors.BOLD}【{dev['name']}】{Colors.ENDC} - {dev['hardware']}")
+        print(f"   定位: {dev['role']}")
+        print(f"   {Colors.BOLD}✓ 专属主责任务:{Colors.ENDC}")
+        for t in dev.get("primary_tasks", []):
+            print(f"     • {t}")
+        print(f"   {Colors.FAIL}✕ 设备使用红线:{Colors.ENDC}")
+        for r in dev.get("redlines", []):
+            print(f"     {r}")
+        print()
+
+    print(f"{Colors.BOLD}📋 实际项目双机/三端流转指引表:{Colors.ENDC}\n")
+    for wf in data.get("project_workflows", []):
+        print(f"   📦 {Colors.BOLD}{wf['project']}{Colors.ENDC}")
+        print(f"      💻 Mac 端:     {wf['mac_role']}")
+        print(f"      🖥️  Win 端:     {wf['win_role']}")
+        print(f"      🔗 协同方式:   {Colors.CYAN}{wf['collab_mode']}{Colors.ENDC}\n")
 
 def cmd_sync(args):
     print("🔄 正在执行全量探测与状态刷新...")
@@ -312,6 +365,10 @@ def main():
 
     p_status = subparsers.add_parser("status", help="打印总台全局状态摘要")
 
+    # ops dispatch [query]
+    p_disp = subparsers.add_parser("dispatch", help="查看三端设备任务分工矩阵或查询分流指引")
+    p_disp.add_argument("query", nargs="?", help="任务关键词 (如: 论文, 训练, yolo, 求职, 日记, ollama)")
+
     p_sync = subparsers.add_parser("sync", help="全量探测并刷新状态")
     p_sync.add_argument("--push", action="store_true", help="探测后自动推送至 GitHub")
 
@@ -342,6 +399,8 @@ def main():
 
     if not args.command or args.command == "status":
         cmd_status(args)
+    elif args.command == "dispatch":
+        cmd_dispatch(args)
     elif args.command == "sync":
         cmd_sync(args)
     elif args.command == "career":

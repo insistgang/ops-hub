@@ -2,13 +2,13 @@
   "meta": {
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
-    "version": "1.0.0",
-    "last_synced": "2026-08-26 16:34:15",
+    "version": "1.2.0",
+    "last_synced": "2026-08-26 16:44:38",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub"
   },
   "topology": {
-    "timestamp": "2026-08-26 16:34:15",
+    "timestamp": "2026-08-26 16:44:38",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.36.75",
@@ -16,7 +16,7 @@
       "role": "移动生产力中枢 // 图书馆深度工作主场",
       "battery": "100%",
       "power_state": "AC Power",
-      "load_avg": "2.75 2.52 2.48",
+      "load_avg": "2.83 2.46 2.35",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -30,7 +30,7 @@
       "name": "pc-20240911pzjo",
       "role": "算力后端 // CUDA 训练 // Ollama 本地模型 // 冷备仓库",
       "status": "Online",
-      "latency_ms": 4.4,
+      "latency_ms": 9.2,
       "ollama_port": 11434,
       "ollama_active": false,
       "services": [
@@ -48,7 +48,7 @@
       "role": "边缘感知节点 // 端侧视觉与机器人感知部署",
       "network_type": "局域网 (LAN Only)",
       "status": "Online",
-      "latency_ms": 7.2,
+      "latency_ms": 7.0,
       "ssh_port": 22,
       "ssh_active": true,
       "ssh_cmd": "ssh jetson@10.8.20.74",
@@ -59,7 +59,7 @@
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": 4.4
+    "mesh_latency_ms": 9.2
   },
   "career_summary": {
     "stats": {
@@ -237,6 +237,96 @@
           "写了": true,
           "关了": true
         }
+      }
+    ]
+  },
+  "device_allocation": {
+    "title": "三端异构设备任务分工与协作矩阵",
+    "principle": "避免设备越界内耗，一个地方一种模式，让每一台硬件发挥最大效能。",
+    "devices": [
+      {
+        "id": "mac",
+        "name": "MacBook Air",
+        "hardware": "Apple M5 / 16GB 统一内存 / 10核GPU",
+        "network": "Tailscale: 100.86.36.75 (移动中枢)",
+        "role": "移动生产力中枢 // 深度思考与写作主场",
+        "badge": "思考与输入",
+        "badge_color": "indigo",
+        "primary_tasks": [
+          "论文正文撰写、公式推导、逻辑论证与 Typst 排版",
+          "个人知识库管理与每日复盘（Obsidian 根库、日记、秩序四勾）",
+          "求职全生命周期管控（Career-Copilot 岗位解析、定制简历、投递）",
+          "AI 编程交互与自动化脚本开发（Ops-Hub 总台、轻量前端）",
+          "日常沟通、邮件收发与外出携带"
+        ],
+        "redlines": [
+          "🚫 绝不跑重度 CUDA 训练与大模型微调（避免发热、伤电池、占前台）",
+          "🚫 绝不在宿舍床上开机干活（守住 00:30 宿舍关机线）",
+          "🚫 绝不把大体积数据集与冷数据长期堆在本地（保持 500G+ 充裕空间）"
+        ]
+      },
+      {
+        "id": "win",
+        "name": "Windows 性能主机",
+        "hardware": "i5-12600KF + 32G + RTX 4070 Super (12G显存)",
+        "network": "Tailscale: 100.98.218.25 (常驻后端)",
+        "role": "性能算力后端 // 本地模型服务 // 冷备仓库",
+        "badge": "重算力与存储",
+        "badge_color": "sky",
+        "primary_tasks": [
+          "本地大模型服务（4070S 跑 Ollama Qwen/Llama，供 Mac 局域网免费调用）",
+          "深度学习与重算力训练（PyTorch、YOLOv11 违建模型训练、消融实验重跑）",
+          "项目冷备归档仓库（D盘归档软著、比赛、论文大工程，走 tar 流式传输）",
+          "全天候挂机与常驻服务（24h 不关机后台下载、数据中继）",
+          "游戏娱乐与远程串流（GameViewer 虚拟显示器、串流体验）"
+        ],
+        "redlines": [
+          "🚫 绝不在 Windows 上散乱写日记与做零碎思考（知识真源必须收敛在 Mac）",
+          "🚫 代码类一律走 GitHub 唯一真源（不做双向混乱同步，两台电脑各自 clone）"
+        ]
+      },
+      {
+        "id": "jetson",
+        "name": "NVIDIA Jetson 边缘计算硬件",
+        "hardware": "亚博智能 Yahboom / Tegra aarch64 / JetPack 6",
+        "network": "局域网: 10.8.20.74 (局域网直连)",
+        "role": "端侧感知节点 // 机器人与视觉模型部署",
+        "badge": "边缘感知",
+        "badge_color": "emerald",
+        "primary_tasks": [
+          "端侧视觉与检测模型部署调试（TensorRT 加速、摄像头实时流推流）",
+          "ROS 机器人底盘与传感器通信联合调试",
+          "电赛/工程比赛边缘感知算法真机验证"
+        ],
+        "redlines": [
+          "🚫 仅在同一局域网下访问，脱网时优雅待命，不强依赖常驻"
+        ]
+      }
+    ],
+    "project_workflows": [
+      {
+        "project": "毕业小论文 (违建识别主线 + E-PAS)",
+        "mac_role": "论文正文写作、消融实验图表绘制、文献调研、投递审阅",
+        "win_role": "4070S 显卡跑 YOLOv11 深度训练、大数据集推理与指标评测",
+        "collab_mode": "Mac 编写训练脚本并 push ➔ Windows pull 后 CUDA 训练 ➔ 结果 tar 归档"
+      },
+      {
+        "project": "本地大模型调用 (Ollama 体系)",
+        "mac_role": "发起交互 Prompt、本地知识库 Embedding 检索、AI 工具调用",
+        "win_role": "RTX 4070S 12G 显存常驻加载模型，高吞吐并行生成",
+        "collab_mode": "Mac 通过 Tailscale 内网直接请求 http://100.98.218.25:11434"
+      },
+      {
+        "project": "求职与自适应简历 (Career-Copilot)",
+        "mac_role": "辅导员就业群岗位解析、JD 匹配度诊断、Typst 编译简历、自动邮件代发",
+        "win_role": "不占用算力资源，保持待命",
+        "collab_mode": "Mac 本地独立极速闭环"
+      },
+      {
+        "project": "姐夫电商系统 & Andy小智机器人",
+        "mac_role": "Chrome 插件逻辑编写、Web 管理后台界面调试、小智协议对接",
+        "win_role": "大型 Node/Python 依赖环境常驻测试、完整构建与冷备",
+        "collab_mode": "Git 仓库统一同步"
       }
     ]
   }

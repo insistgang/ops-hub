@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-scripts/collector.py: Aggregates real data from probe, git repos, career records, and memory checks.
+scripts/collector.py: Aggregates real data from probe, git repos, career records, memory checks,
+and device task allocation matrix.
 Saves to data/status.json.
 Supports --push to trigger GitOps auto-commit & push to GitHub.
 """
@@ -29,7 +30,6 @@ def get_git_info(repo_path):
             "branch": "-"
         }
     
-    # Check if target is a git repo, or search immediate subdirs
     target_repo = None
     if (p / ".git").exists():
         target_repo = p
@@ -40,7 +40,6 @@ def get_git_info(repo_path):
                 break
 
     if not target_repo:
-        # Get latest mtime of files in directory as fallback
         try:
             latest_mtime = 0
             for root, _, files in os.walk(p):
@@ -112,8 +111,10 @@ def calculate_days_left(target_date_str):
         return 0
 
 def collect_all():
+    # 1. Network Probe (Tri-Device)
     network_probe = probe.probe_all()
 
+    # 2. Career Records
     career_file = DATA_DIR / "career_records.json"
     career_list = []
     if career_file.exists():
@@ -129,6 +130,7 @@ def collect_all():
         "offer": len([c for c in career_list if "offer" in c.get("status", "").lower() or "录用" in c.get("status", "")])
     }
 
+    # 3. Projects & Exams
     projects_file = DATA_DIR / "projects.json"
     raw_projects = []
     if projects_file.exists():
@@ -148,6 +150,7 @@ def collect_all():
                 entry.update(git_meta)
         enriched_projects.append(entry)
 
+    # 4. Daily Checks
     checks_file = DATA_DIR / "daily_checks.json"
     daily_checks = {
         "date": datetime.now().strftime("%Y-%m-%d"),
@@ -157,6 +160,7 @@ def collect_all():
         with open(checks_file, "r", encoding="utf-8") as f:
             daily_checks = json.load(f)
 
+    # 5. Weight Tracker Challenge
     start_date = date(2026, 8, 24)
     end_date = date(2026, 9, 30)
     today = date.today()
@@ -173,11 +177,19 @@ def collect_all():
         "target": "不找借口 · 真实记录 · 早晚双测 · 责任捆绑 · 顶峰相见"
     }
 
+    # 6. Device Allocation Matrix
+    alloc_file = DATA_DIR / "device_allocation.json"
+    device_allocation = {}
+    if alloc_file.exists():
+        with open(alloc_file, "r", encoding="utf-8") as f:
+            device_allocation = json.load(f)
+
+    # 7. Assemble Snapshot
     status_snapshot = {
         "meta": {
             "title": "Ops-Hub // Personal Operations Console",
             "author": "Leo (insistgang)",
-            "version": "1.0.0",
+            "version": "1.2.0",
             "last_synced": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "sync_mode": "Level 2 Real Probe (Zero Mock)",
             "github_repo": "https://github.com/insistgang/ops-hub"
@@ -189,7 +201,8 @@ def collect_all():
         },
         "projects_and_exams": enriched_projects,
         "weight_challenge": weight_challenge,
-        "daily_checks": daily_checks
+        "daily_checks": daily_checks,
+        "device_allocation": device_allocation
     }
 
     status_file = DATA_DIR / "status.json"
@@ -201,7 +214,7 @@ def collect_all():
 def gitops_push():
     print("🚀 启动 GitOps 自动化提交流水线...")
     try:
-        subprocess.run(["git", "-C", str(BASE_DIR), "add", "data/status.json", "data/daily_checks.json", "data/career_records.json"], check=True)
+        subprocess.run(["git", "-C", str(BASE_DIR), "add", "data/status.json", "data/daily_checks.json", "data/career_records.json", "data/device_allocation.json"], check=True)
         now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
         commit_res = subprocess.run(["git", "-C", str(BASE_DIR), "commit", "-m", f"chore: sync ops status [{now_str}]"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if "nothing to commit" in commit_res.stdout:
@@ -212,13 +225,11 @@ def gitops_push():
         remotes = subprocess.run(["git", "-C", str(BASE_DIR), "remote", "-v"], stdout=subprocess.PIPE, text=True).stdout
         if "origin" in remotes:
             print("📡 正在推送到 GitHub 远端...")
-            push_res = subprocess.run(["git", "-C", str(BASE_DIR), "push", "origin", "main"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
+            push_res = subprocess.run(["git", "-C", str(BASE_DIR), "push", "origin", "main"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=15)
             if push_res.returncode == 0:
                 print("🎉 成功推送到 GitHub 远端！GitHub Pages 即将刷新。")
             else:
-                print(f"⚠️ Git 推送遇到警告（将在下次同步时重试）: {push_res.stderr.strip()}")
-        else:
-            print("ℹ️ 尚未配置 origin 远端，状态已在本地更新。")
+                print(f"⚠️ Git 推送遇到警告: {push_res.stderr.strip()}")
     except Exception as e:
         print(f"⚠️ GitOps 操作提示: {e}")
 

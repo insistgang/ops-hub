@@ -44,6 +44,7 @@ async function loadData() {
     renderProjectsRadar();
     renderMemoryHub();
     renderComputeTopology();
+    renderDeviceAllocation();
   } catch (err) {
     console.error("加载数据失败:", err);
   }
@@ -174,7 +175,6 @@ function renderCareerPipeline() {
     container.appendChild(card);
   });
 
-  // Filter click handlers
   document.querySelectorAll(".career-filter-btn").forEach(btn => {
     btn.onclick = () => {
       document.querySelectorAll(".career-filter-btn").forEach(b => b.classList.remove("bg-indigo-600", "text-white"));
@@ -347,6 +347,130 @@ function renderComputeTopology() {
   document.getElementById("jetson-ip-text").innerText = jetson.ip || "10.8.20.74";
   document.getElementById("jetson-latency-badge").innerText = jetson.latency_ms ? `${jetson.latency_ms} ms` : "局域网待命";
   document.getElementById("jetson-ssh-badge").innerText = jetson.ssh_active ? "22 (Active)" : "22 (Standby)";
+}
+
+function renderDeviceAllocation() {
+  const alloc = globalStatus.device_allocation || {};
+  const devices = alloc.devices || [];
+  const workflows = alloc.project_workflows || [];
+
+  // 1. Render Allocation Cards
+  const allocContainer = document.getElementById("device-allocation-cards");
+  if (!allocContainer) return;
+  allocContainer.innerHTML = "";
+
+  devices.forEach(dev => {
+    const isMac = dev.id === "mac";
+    const isWin = dev.id === "win";
+    const borderClass = isMac ? "border-indigo-800/40" : (isWin ? "border-sky-800/40" : "border-emerald-800/40");
+    const headerColor = isMac ? "text-indigo-400" : (isWin ? "text-sky-400" : "text-emerald-400");
+    const badgeColor = isMac ? "bg-indigo-950 text-indigo-300 border-indigo-800/60" : (isWin ? "bg-sky-950 text-sky-300 border-sky-800/60" : "bg-emerald-950 text-emerald-300 border-emerald-800/60");
+
+    const card = document.createElement("div");
+    card.className = `glass-panel p-5 rounded-2xl border ${borderClass} flex flex-col justify-between`;
+    card.innerHTML = `
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-mono uppercase px-2 py-0.5 rounded border ${badgeColor}">
+            ${dev.badge}
+          </span>
+          <span class="text-xs font-mono text-zinc-400">${dev.network.split(' ')[0]}</span>
+        </div>
+        <h4 class="text-lg font-bold text-white mt-1">${dev.name}</h4>
+        <p class="text-xs text-zinc-400 font-mono mt-0.5">${dev.hardware}</p>
+        <p class="text-xs ${headerColor} font-medium mt-1 mb-3">${dev.role}</p>
+
+        <!-- Primary Tasks -->
+        <div class="mb-4">
+          <div class="text-xs font-bold text-slate-200 mb-1.5 flex items-center gap-1">
+            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>专属主责任务清单</span>
+          </div>
+          <ul class="text-xs text-slate-300 space-y-1.5 bg-zinc-950/50 p-2.5 rounded-xl border border-zinc-800/80">
+            ${dev.primary_tasks.map(t => `<li class="flex items-start gap-1.5"><span class="text-indigo-400 font-bold shrink-0">✓</span><span>${t}</span></li>`).join('')}
+          </ul>
+        </div>
+
+        <!-- Redlines -->
+        <div>
+          <div class="text-xs font-bold text-rose-300 mb-1.5 flex items-center gap-1">
+            <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-rose-400"></i>
+            <span>设备使用绝不越界红线</span>
+          </div>
+          <ul class="text-xs text-rose-200/80 space-y-1 bg-rose-950/20 p-2.5 rounded-xl border border-rose-900/40 font-mono">
+            ${dev.redlines.map(r => `<li class="flex items-start gap-1.5"><span>${r}</span></li>`).join('')}
+          </ul>
+        </div>
+      </div>
+    `;
+    allocContainer.appendChild(card);
+  });
+
+  // 2. Render Workflows Table
+  const wfContainer = document.getElementById("workflows-table-body");
+  if (!wfContainer) return;
+  wfContainer.innerHTML = "";
+
+  workflows.forEach(wf => {
+    const tr = document.createElement("tr");
+    tr.className = "border-b border-zinc-800/60 hover:bg-zinc-900/30 transition-all text-xs";
+    tr.innerHTML = `
+      <td class="py-3 px-4 font-bold text-slate-200 whitespace-nowrap">${wf.project}</td>
+      <td class="py-3 px-4 text-indigo-300 bg-indigo-950/10">${wf.mac_role}</td>
+      <td class="py-3 px-4 text-sky-300 bg-sky-950/10">${wf.win_role}</td>
+      <td class="py-3 px-4 text-zinc-400 font-mono">${wf.collab_mode}</td>
+    `;
+    wfContainer.appendChild(tr);
+  });
+}
+
+function handleTaskRoute(val) {
+  const query = (val || document.getElementById("task-route-input").value).trim().toLowerCase();
+  const resBox = document.getElementById("task-route-result");
+  if (!query) {
+    resBox.classList.add("hidden");
+    return;
+  }
+
+  resBox.classList.remove("hidden");
+  if (query.includes("论文") || query.includes("写作") || query.includes("日记") || query.includes("求职") || query.includes("简历") || query.includes("思考") || query.includes("typst") || query.includes("前端")) {
+    resBox.innerHTML = `
+      <div class="flex items-center gap-3 text-emerald-300">
+        <i data-lucide="laptop" class="w-5 h-5 text-indigo-400 shrink-0"></i>
+        <div>
+          <span class="font-bold text-sm text-white">👉 立即留在 MacBook Air (M5) 执行！</span>
+          <p class="text-xs text-zinc-400 mt-0.5">场景指引：抱上 Mac 前往图书馆专注完成，断网/静音深潜，严禁多开与发散。</p>
+        </div>
+      </div>
+    `;
+  } else if (query.includes("cuda") || query.includes("训练") || query.includes("yolo") || query.includes("大模型") || query.includes("ollama") || query.includes("冷备") || query.includes("备份") || query.includes("下载") || query.includes("游戏") || query.includes("渲染")) {
+    resBox.innerHTML = `
+      <div class="flex items-center gap-3 text-sky-300">
+        <i data-lucide="server" class="w-5 h-5 text-sky-400 shrink-0"></i>
+        <div>
+          <span class="font-bold text-sm text-white">👉 立即派发给 Windows 4070S 性能主机 执行！</span>
+          <p class="text-xs text-zinc-400 mt-0.5">快捷登录：<code class="text-sky-300 bg-zinc-900 px-1.5 py-0.5 rounded cursor-pointer" onclick="copySSH('ssh insistgang@100.98.218.25')">ssh insistgang@100.98.218.25</code> ｜ Ollama: 11434 端口</p>
+        </div>
+      </div>
+    `;
+  } else if (query.includes("jetson") || query.includes("边缘") || query.includes("机器人") || query.includes("ros") || query.includes("视觉") || query.includes("传感器")) {
+    resBox.innerHTML = `
+      <div class="flex items-center gap-3 text-emerald-300">
+        <i data-lucide="bot" class="w-5 h-5 text-emerald-400 shrink-0"></i>
+        <div>
+          <span class="font-bold text-sm text-white">👉 立即派发给 Jetson 边缘计算硬件 执行！</span>
+          <p class="text-xs text-zinc-400 mt-0.5">快捷登录：<code class="text-emerald-300 bg-zinc-900 px-1.5 py-0.5 rounded cursor-pointer" onclick="copySSH('ssh jetson@10.8.20.74')">ssh jetson@10.8.20.74</code> (局域网)</p>
+        </div>
+      </div>
+    `;
+  } else {
+    resBox.innerHTML = `
+      <div class="text-xs text-zinc-300">
+        💡 <span class="font-bold text-white">通用分流口诀：</span>思考/文字/求职留在 Mac（去图书馆），重跑/Ollama/冷备丢给 Win 4070S，端侧感知丢给 Jetson。
+      </div>
+    `;
+  }
+  lucide.createIcons();
 }
 
 function copySSH(cmd) {
