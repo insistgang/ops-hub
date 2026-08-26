@@ -24,7 +24,6 @@ from datetime import datetime
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 
-# Add scripts directory to sys.path
 sys.path.insert(0, str(BASE_DIR / "scripts"))
 import collector
 
@@ -52,6 +51,7 @@ def cmd_status(args):
     topo = data.get("topology", {})
     mac = topo.get("mac", {})
     win = topo.get("windows", {})
+    jetson = topo.get("jetson", {})
     career = data.get("career_summary", {})
     c_stats = career.get("stats", {})
     c_records = career.get("records", [])
@@ -64,13 +64,20 @@ def cmd_status(args):
     print(f"{Colors.DIM} 最后同步: {meta.get('last_synced', '-')} ｜ 探针: {meta.get('sync_mode', 'Live')}{Colors.ENDC}")
     print(f"{Colors.BOLD}{Colors.CYAN}══════════════════════════════════════════════════════════════════{Colors.ENDC}\n")
 
-    # 1. Dual-Machine
+    # 1. Tri-Device Topology
     win_status_color = Colors.GREEN if win.get("status") == "Online" else Colors.FAIL
     lat = win.get("latency_ms")
     lat_str = f"{lat} ms" if lat else "N/A"
-    print(f"{Colors.BOLD}🖥️  双机拓扑与算力状态:{Colors.ENDC}")
-    print(f"   💻 Mac 本地:  {Colors.GREEN}● 在线{Colors.ENDC}  [{mac.get('device', 'MacBook Air')}]  电量: {mac.get('battery')} ({mac.get('power_state')})")
-    print(f"   🖥️  Win 4070S: {win_status_color}● {win.get('status')}{Colors.ENDC} [{win.get('ip')}]  延迟: {Colors.CYAN}{lat_str}{Colors.ENDC}  Ollama: {win.get('services', [''])[0]}")
+
+    jet_status = jetson.get("status", "Offline")
+    jet_color = Colors.GREEN if "Online" in jet_status else Colors.DIM
+    jet_lat = jetson.get("latency_ms")
+    jet_lat_str = f"{jet_lat} ms" if jet_lat else "局域网待命"
+
+    print(f"{Colors.BOLD}🖥️  三端异构算力拓扑 (Compute Topology):{Colors.ENDC}")
+    print(f"   💻 Mac 本地:   {Colors.GREEN}● 在线{Colors.ENDC}  [{mac.get('device', 'MacBook Air')}]  电量: {mac.get('battery')} ({mac.get('power_state')})")
+    print(f"   🖥️  Win 4070S:  {win_status_color}● {win.get('status')}{Colors.ENDC} [{win.get('ip')}]  延迟: {Colors.CYAN}{lat_str}{Colors.ENDC}  Ollama: {win.get('services', [''])[0]}")
+    print(f"   🤖 Jetson 边缘: {jet_color}● {jet_status}{Colors.ENDC} [{jetson.get('ip')}]  延迟: {Colors.CYAN}{jet_lat_str}{Colors.ENDC}  SSH: {jetson.get('ssh_cmd')}")
 
     # 2. Career Pipeline
     print(f"\n{Colors.BOLD}🎯 求职投递大盘 (Career Pipeline):{Colors.ENDC}")
@@ -187,7 +194,6 @@ def cmd_check(args):
         print(f"❌ 打卡项必须是以下之一: {', '.join(valid_keys)}")
         return
 
-    # Toggle or set True
     curr = data.get("checks", {}).get(target_key, False)
     new_val = not curr if args.toggle else True
     data["checks"][target_key] = new_val
@@ -241,13 +247,11 @@ def cmd_serve(args):
 
 def cmd_schedule(args):
     action = args.sched_action
-    plist_src = BASE_DIR / "scripts" / "com.insistgang.opshub.plist"
     dest = Path.home() / "Library" / "LaunchAgents" / "com.insistgang.opshub.plist"
 
     if action == "install":
         print("⚙️  正在注册 macOS 原生 launchd 早晚定时同步服务...")
         dest.parent.mkdir(parents=True, exist_ok=True)
-        # Generate plist with exact python and script path
         plist_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -306,14 +310,11 @@ def main():
     parser = argparse.ArgumentParser(description="Ops-Hub: Personal Operations Console CLI")
     subparsers = parser.add_subparsers(dest="command")
 
-    # ops status
     p_status = subparsers.add_parser("status", help="打印总台全局状态摘要")
 
-    # ops sync
     p_sync = subparsers.add_parser("sync", help="全量探测并刷新状态")
     p_sync.add_argument("--push", action="store_true", help="探测后自动推送至 GitHub")
 
-    # ops career
     p_career = subparsers.add_parser("career", help="管理求职投递记录")
     p_career.add_argument("career_action", choices=["list", "update", "add"], help="操作")
     p_career.add_argument("company", nargs="?", help="公司名称")
@@ -324,22 +325,18 @@ def main():
     p_career.add_argument("--notes", help="跟进备注")
     p_career.add_argument("--push", action="store_true", help="修改后自动推送")
 
-    # ops check
     p_check = subparsers.add_parser("check", help="今日四勾秩序打卡 (起了/动了/写了/关了)")
     p_check.add_argument("item", choices=["起了", "动了", "写了", "关了"], help="打卡项")
     p_check.add_argument("--toggle", action="store_true", help="反转状态")
     p_check.add_argument("--push", action="store_true", help="打卡后自动推送")
 
-    # ops memory
     p_memory = subparsers.add_parser("memory", help="查看个人记忆与秩序原则")
 
-    # ops serve
     p_serve = subparsers.add_parser("serve", help="本地静态 Web 预览服务")
     p_serve.add_argument("--port", type=int, default=3000, help="预览端口 (默认 3000)")
 
-    # ops schedule
-    p_sched = subparsers.add_parser("schedule", help="管理 macOS 原生 launchd 定时同步")
-    p_sched.add_argument("sched_action", choices=["install", "status", "uninstall"], help="操作")
+    p_schedule = subparsers.add_parser("schedule", help="管理 macOS 原生 launchd 定时同步")
+    p_schedule.add_argument("sched_action", choices=["install", "status", "uninstall"], help="操作")
 
     args = parser.parse_args()
 

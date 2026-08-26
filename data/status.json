@@ -3,12 +3,12 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "1.0.0",
-    "last_synced": "2026-08-26 16:17:39",
+    "last_synced": "2026-08-26 16:34:15",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub"
   },
   "topology": {
-    "timestamp": "2026-08-26 16:17:39",
+    "timestamp": "2026-08-26 16:34:15",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.36.75",
@@ -16,7 +16,7 @@
       "role": "移动生产力中枢 // 图书馆深度工作主场",
       "battery": "100%",
       "power_state": "AC Power",
-      "load_avg": "2.47 2.55 2.77",
+      "load_avg": "2.75 2.52 2.48",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -30,7 +30,7 @@
       "name": "pc-20240911pzjo",
       "role": "算力后端 // CUDA 训练 // Ollama 本地模型 // 冷备仓库",
       "status": "Online",
-      "latency_ms": 6.3,
+      "latency_ms": 4.4,
       "ollama_port": 11434,
       "ollama_active": false,
       "services": [
@@ -40,7 +40,26 @@
         "Tailscale Mesh"
       ]
     },
-    "mesh_latency_ms": 6.3
+    "jetson": {
+      "device": "NVIDIA Jetson 边缘计算硬件 (Yahboom 亚博智能, Tegra aarch64)",
+      "ip": "10.8.20.74",
+      "name": "yahboom",
+      "user": "jetson",
+      "role": "边缘感知节点 // 端侧视觉与机器人感知部署",
+      "network_type": "局域网 (LAN Only)",
+      "status": "Online",
+      "latency_ms": 7.2,
+      "ssh_port": 22,
+      "ssh_active": true,
+      "ssh_cmd": "ssh jetson@10.8.20.74",
+      "services": [
+        "SSH 访问 (Active :22)",
+        "NVIDIA JetPack 6 / Tegra R36",
+        "CUDA Edge Runtime",
+        "Edge AI Perception"
+      ]
+    },
+    "mesh_latency_ms": 4.4
   },
   "career_summary": {
     "stats": {

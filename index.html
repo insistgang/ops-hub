@@ -39,20 +39,27 @@
         <div>
           <div class="flex items-center gap-2">
             <h1 class="text-base font-extrabold tracking-tight text-white">OPS-HUB</h1>
-            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-400 border border-indigo-800/50">v1.0</span>
+            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-400 border border-indigo-800/50">v1.1</span>
           </div>
-          <p class="text-[11px] text-zinc-400 hidden sm:block">Leo 的个人数字化运营工作总台</p>
+          <p class="text-[11px] text-zinc-400 hidden sm:block">Leo 的数字化运营工作总台 // 三端异构拓扑</p>
         </div>
       </div>
 
       <!-- Realtime Status Pills & Quick Links -->
-      <div class="flex items-center gap-2.5">
+      <div class="flex items-center gap-2">
+        <!-- Win Status Pill -->
         <div id="win-status-pill" class="flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-zinc-900 text-zinc-400 border border-zinc-800">
           <span id="win-status-dot" class="w-2 h-2 rounded-full bg-zinc-500"></span>
           <span id="win-status-text">Win 4070S: 检测中...</span>
         </div>
 
-        <div class="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono bg-zinc-900/60 text-zinc-400 border border-zinc-800">
+        <!-- Jetson Status Pill -->
+        <div id="jetson-status-pill" class="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-zinc-900 text-zinc-400 border border-zinc-800">
+          <span id="jetson-status-dot" class="w-2 h-2 rounded-full bg-zinc-500"></span>
+          <span id="jetson-status-text">Jetson: 探测中...</span>
+        </div>
+
+        <div class="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono bg-zinc-900/60 text-zinc-400 border border-zinc-800">
           <i data-lucide="clock" class="w-3.5 h-3.5 text-zinc-400"></i>
           <span id="last-synced-time">-</span>
         </div>
@@ -114,15 +121,15 @@
         <p id="metric-weight-sub" class="text-xs text-zinc-400 mt-2 font-mono truncate">-</p>
       </div>
 
-      <!-- Card 4: Dual-Machine Topology -->
+      <!-- Card 4: Tri-Device Topology -->
       <div class="glass-panel p-4 rounded-2xl relative overflow-hidden group">
         <div class="flex items-center justify-between text-zinc-400 mb-2">
-          <span class="text-xs font-semibold uppercase tracking-wider">双机网络与算力</span>
+          <span class="text-xs font-semibold uppercase tracking-wider">三端异构算力</span>
           <i data-lucide="network" class="w-4 h-4 text-sky-400"></i>
         </div>
         <div class="flex items-baseline gap-2">
           <span id="metric-compute-lat" class="text-3xl font-extrabold font-mono text-sky-400">-</span>
-          <span class="text-xs text-zinc-400">Tailscale 往返</span>
+          <span class="text-xs text-zinc-400">设备在线</span>
         </div>
         <p id="metric-compute-sub" class="text-xs text-zinc-400 mt-2 font-mono truncate">-</p>
       </div>
@@ -148,7 +155,7 @@
 
       <button data-tab="tab-compute" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all flex items-center gap-2 shrink-0">
         <i data-lucide="server" class="w-4 h-4"></i>
-        <span>🖥️ 双机拓扑与算力</span>
+        <span>🖥️ 三端算力与拓扑</span>
       </button>
     </div>
 
@@ -237,11 +244,11 @@
 
     </div>
 
-    <!-- Tab 4: Compute & Topology -->
+    <!-- Tab 4: Tri-Device Compute & Topology -->
     <div id="tab-compute" class="tab-content hidden space-y-6">
       
-      <!-- Visual Hardware Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Visual Hardware Cards (3 Cards) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         
         <!-- Mac M5 Local -->
         <div class="glass-panel p-5 rounded-2xl border-indigo-800/40">
@@ -258,11 +265,11 @@
             <span class="px-2 py-0.5 rounded text-xs font-mono bg-emerald-950 text-emerald-300 border border-emerald-800">Local</span>
           </div>
 
-          <div class="space-y-2 text-xs font-mono bg-zinc-950/60 p-3.5 rounded-xl border border-zinc-800/80">
+          <div class="space-y-2 text-xs font-mono bg-zinc-950/60 p-3 rounded-xl border border-zinc-800/80">
             <div class="flex justify-between"><span class="text-zinc-500">Tailscale IP:</span><span id="mac-ip-text" class="text-slate-200">-</span></div>
-            <div class="flex justify-between"><span class="text-zinc-500">电池与电源:</span><span id="mac-battery-text" class="text-slate-200">-</span></div>
+            <div class="flex justify-between"><span class="text-zinc-500">电池/状态:</span><span id="mac-battery-text" class="text-slate-200">-</span></div>
             <div class="flex justify-between"><span class="text-zinc-500">系统负载:</span><span id="mac-load-text" class="text-slate-200">-</span></div>
-            <div class="flex justify-between"><span class="text-zinc-500">常驻职责:</span><span class="text-indigo-300">Ops-Hub, Obsidian, 论文写作</span></div>
+            <div class="flex justify-between"><span class="text-zinc-500">职责定位:</span><span class="text-indigo-300">Ops-Hub, 论文写作, 求职</span></div>
           </div>
         </div>
 
@@ -274,18 +281,41 @@
                 <i data-lucide="server" class="w-4 h-4"></i>
               </div>
               <div>
-                <h4 class="font-bold text-white text-base">Windows 性能后端</h4>
-                <p class="text-xs text-zinc-400">RTX 4070S (12G) + i5-12600KF + 32G</p>
+                <h4 class="font-bold text-white text-base">Win 性能主机</h4>
+                <p class="text-xs text-zinc-400">i5-12600KF + 32G + 4070S 12G</p>
               </div>
             </div>
             <span id="win-latency-badge" class="px-2 py-0.5 rounded text-xs font-mono bg-sky-950 text-sky-300 border border-sky-800">-</span>
           </div>
 
-          <div class="space-y-2 text-xs font-mono bg-zinc-950/60 p-3.5 rounded-xl border border-zinc-800/80">
+          <div class="space-y-2 text-xs font-mono bg-zinc-950/60 p-3 rounded-xl border border-zinc-800/80">
             <div class="flex justify-between"><span class="text-zinc-500">Tailscale IP:</span><span id="win-ip-text" class="text-slate-200">100.98.218.25</span></div>
             <div class="flex justify-between"><span class="text-zinc-500">Ollama 端点:</span><span id="win-ollama-badge" class="text-sky-300">11434</span></div>
-            <div class="flex justify-between"><span class="text-zinc-500">网络拓扑:</span><span class="text-slate-200">Tailscale 局域网 Mesh 直连</span></div>
-            <div class="flex justify-between"><span class="text-zinc-500">核心职责:</span><span class="text-sky-300">CUDA 训练, 本地大模型, 冷备</span></div>
+            <div class="flex justify-between"><span class="text-zinc-500">网络拓扑:</span><span class="text-slate-200">Tailscale Mesh 直连</span></div>
+            <div class="flex justify-between"><span class="text-zinc-500">职责定位:</span><span class="text-sky-300">CUDA, 本地模型, 冷备</span></div>
+          </div>
+        </div>
+
+        <!-- Jetson Edge Yahboom -->
+        <div class="glass-panel p-5 rounded-2xl border-emerald-800/40">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-emerald-950 text-emerald-400 flex items-center justify-center">
+                <i data-lucide="bot" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-white text-base">Jetson 边缘硬件</h4>
+                <p class="text-xs text-zinc-400">亚博智能 Yahboom / Tegra</p>
+              </div>
+            </div>
+            <span id="jetson-latency-badge" class="px-2 py-0.5 rounded text-xs font-mono bg-emerald-950 text-emerald-300 border border-emerald-800">-</span>
+          </div>
+
+          <div class="space-y-2 text-xs font-mono bg-zinc-950/60 p-3 rounded-xl border border-zinc-800/80">
+            <div class="flex justify-between"><span class="text-zinc-500">局域网 IP:</span><span id="jetson-ip-text" class="text-slate-200">10.8.20.74</span></div>
+            <div class="flex justify-between"><span class="text-zinc-500">SSH 端口:</span><span id="jetson-ssh-badge" class="text-emerald-300">22</span></div>
+            <div class="flex justify-between"><span class="text-zinc-500">网络拓扑:</span><span class="text-slate-200">同局域网直连 (LAN)</span></div>
+            <div class="flex justify-between"><span class="text-zinc-500">职责定位:</span><span class="text-emerald-300">端侧AI, 视觉感知, 机器人</span></div>
           </div>
         </div>
 
@@ -293,24 +323,32 @@
 
       <!-- Quick Dispatch Toolkit -->
       <div class="glass-panel p-5 rounded-2xl">
-        <h4 class="text-base font-bold text-white mb-3">双机快捷分流工具箱</h4>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <h4 class="text-base font-bold text-white mb-3">三端快捷分流工具箱</h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           
-          <button onclick="copySSH()" class="p-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-left transition-all group">
+          <button onclick="copySSH('ssh insistgang@100.98.218.25')" class="p-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-left transition-all group">
             <div class="flex items-center justify-between text-zinc-400 mb-1">
-              <span class="text-xs font-mono font-medium text-slate-200">一键 SSH 登录</span>
+              <span class="text-xs font-mono font-medium text-slate-200">Win 4070S SSH</span>
               <i data-lucide="copy" class="w-3.5 h-3.5 group-hover:text-indigo-400"></i>
             </div>
             <p class="text-[11px] font-mono text-zinc-500 truncate">ssh insistgang@100.98.218.25</p>
           </button>
 
+          <button onclick="copySSH('ssh jetson@10.8.20.74')" class="p-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-left transition-all group">
+            <div class="flex items-center justify-between text-zinc-400 mb-1">
+              <span class="text-xs font-mono font-medium text-slate-200">Jetson 边缘 SSH</span>
+              <i data-lucide="copy" class="w-3.5 h-3.5 group-hover:text-emerald-400"></i>
+            </div>
+            <p class="text-[11px] font-mono text-zinc-500 truncate">ssh jetson@10.8.20.74</p>
+          </button>
+
           <div class="p-3 rounded-xl bg-zinc-900/80 border border-zinc-800 text-left">
-            <div class="text-xs font-mono font-medium text-slate-200 mb-1">Ollama API 局域网调用</div>
+            <div class="text-xs font-mono font-medium text-slate-200 mb-1">Ollama API 端点</div>
             <p class="text-[11px] font-mono text-zinc-500 truncate">http://100.98.218.25:11434</p>
           </div>
 
           <div class="p-3 rounded-xl bg-zinc-900/80 border border-zinc-800 text-left">
-            <div class="text-xs font-mono font-medium text-slate-200 mb-1">局域网冷备共享 (SMB)</div>
+            <div class="text-xs font-mono font-medium text-slate-200 mb-1">局域网 SMB 共享</div>
             <p class="text-[11px] font-mono text-zinc-500 truncate">smb://100.98.218.25/</p>
           </div>
 

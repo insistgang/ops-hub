@@ -53,6 +53,7 @@ function renderHeader() {
   const meta = globalStatus.meta || {};
   const topo = globalStatus.topology || {};
   const win = topo.windows || {};
+  const jetson = topo.jetson || {};
 
   document.getElementById("last-synced-time").innerText = meta.last_synced || "-";
   
@@ -70,6 +71,21 @@ function renderHeader() {
     winText.innerText = "Win 4070S: Offline";
     winPill.className = "flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-rose-950/40 text-rose-300 border border-rose-800/50";
   }
+
+  // Jetson status pill
+  const jetPill = document.getElementById("jetson-status-pill");
+  const jetDot = document.getElementById("jetson-status-dot");
+  const jetText = document.getElementById("jetson-status-text");
+
+  if (jetson.status === "Online") {
+    jetDot.className = "w-2 h-2 rounded-full bg-emerald-400";
+    jetText.innerText = `Jetson: ${jetson.latency_ms}ms`;
+    jetPill.className = "hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-950/40 text-emerald-300 border border-emerald-800/50";
+  } else {
+    jetDot.className = "w-2 h-2 rounded-full bg-zinc-500";
+    jetText.innerText = "Jetson: 局域网待命";
+    jetPill.className = "hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-zinc-900/60 text-zinc-400 border border-zinc-800";
+  }
 }
 
 function renderHeroMetrics() {
@@ -77,7 +93,9 @@ function renderHeroMetrics() {
   const stats = career.stats || {};
   const weight = globalStatus.weight_challenge || {};
   const exams = (globalStatus.projects_and_exams || []).filter(p => p.type === "exam");
-  const win = globalStatus.topology?.windows || {};
+  const topo = globalStatus.topology || {};
+  const win = topo.windows || {};
+  const jetson = topo.jetson || {};
 
   // 1. Career Metric
   document.getElementById("metric-career-total").innerText = stats.total || 0;
@@ -93,9 +111,10 @@ function renderHeroMetrics() {
   document.getElementById("metric-weight-day").innerText = `D${weight.current_day || 3}`;
   document.getElementById("metric-weight-sub").innerText = `决战剩余 ${weight.days_left || 0} 天 ｜ ${weight.members?.join(' · ')}`;
 
-  // 4. Compute Metric
-  document.getElementById("metric-compute-lat").innerText = win.latency_ms ? `${win.latency_ms}ms` : "离线";
-  document.getElementById("metric-compute-sub").innerText = `Win 4070S 12G ｜ ${win.ollama_active ? 'Ollama:就绪' : 'Ollama:待命'}`;
+  // 4. Compute Metric (Tri-device)
+  const onlineCount = (win.status === "Online" ? 1 : 0) + (jetson.status === "Online" ? 1 : 0) + 1;
+  document.getElementById("metric-compute-lat").innerText = `${onlineCount} 节点在线`;
+  document.getElementById("metric-compute-sub").innerText = `4070S:${win.latency_ms ? win.latency_ms + 'ms' : '离线'} ｜ Jetson:${jetson.latency_ms ? jetson.latency_ms + 'ms' : '待命'}`;
 }
 
 function renderCareerPipeline() {
@@ -214,7 +233,7 @@ function renderProjectsRadar() {
 
           <div class="my-3 py-2 px-3 bg-zinc-950/60 rounded-lg border border-zinc-800/80 text-xs font-mono text-slate-400">
             <div class="flex items-center justify-between text-[11px] text-zinc-500 mb-1">
-              <span>最新提交 / 动态</span>
+              <span>最新代码动态</span>
               <span>${p.commit_time || '-'}</span>
             </div>
             <div class="text-slate-300 truncate">
@@ -235,7 +254,6 @@ function renderProjectsRadar() {
 function renderMemoryHub() {
   if (!memoryRules) return;
 
-  // Render Checks
   const checksData = globalStatus.daily_checks?.checks || {};
   const checksContainer = document.getElementById("daily-checks-container");
   checksContainer.innerHTML = "";
@@ -261,7 +279,6 @@ function renderMemoryHub() {
       </div>
     `;
     item.onclick = () => {
-      // Toggle locally
       checksData[def.key] = !isChecked;
       renderMemoryHub();
       lucide.createIcons();
@@ -269,7 +286,6 @@ function renderMemoryHub() {
     checksContainer.appendChild(item);
   });
 
-  // Render Scenes
   const scenesContainer = document.getElementById("scenes-container");
   scenesContainer.innerHTML = "";
   (memoryRules.scene_contracts || []).forEach(sc => {
@@ -287,7 +303,6 @@ function renderMemoryHub() {
     scenesContainer.appendChild(card);
   });
 
-  // Render Principles
   const principlesContainer = document.getElementById("principles-container");
   principlesContainer.innerHTML = "";
   (memoryRules.focus_principles || []).forEach(fp => {
@@ -300,7 +315,6 @@ function renderMemoryHub() {
     principlesContainer.appendChild(card);
   });
 
-  // Render Health
   const hs = memoryRules.health_supplements || {};
   document.getElementById("health-rule-text").innerText = hs.rule || "";
   const healthList = document.getElementById("health-schedule-list");
@@ -317,21 +331,28 @@ function renderComputeTopology() {
   const topo = globalStatus.topology || {};
   const mac = topo.mac || {};
   const win = topo.windows || {};
+  const jetson = topo.jetson || {};
 
+  // Mac
   document.getElementById("mac-ip-text").innerText = mac.ip || "100.86.36.75";
   document.getElementById("mac-battery-text").innerText = `${mac.battery} (${mac.power_state})`;
   document.getElementById("mac-load-text").innerText = mac.load_avg || "-";
 
+  // Win
   document.getElementById("win-ip-text").innerText = win.ip || "100.98.218.25";
   document.getElementById("win-latency-badge").innerText = win.latency_ms ? `${win.latency_ms} ms` : "Offline";
   document.getElementById("win-ollama-badge").innerText = win.ollama_active ? "11434 (Active)" : "11434 (Standby)";
+
+  // Jetson
+  document.getElementById("jetson-ip-text").innerText = jetson.ip || "10.8.20.74";
+  document.getElementById("jetson-latency-badge").innerText = jetson.latency_ms ? `${jetson.latency_ms} ms` : "局域网待命";
+  document.getElementById("jetson-ssh-badge").innerText = jetson.ssh_active ? "22 (Active)" : "22 (Standby)";
 }
 
-function copySSH() {
-  const cmd = "ssh insistgang@100.98.218.25";
+function copySSH(cmd) {
   navigator.clipboard.writeText(cmd).then(() => {
     const toast = document.getElementById("toast");
-    toast.innerText = "已复制 SSH 登录命令到剪贴板！";
+    toast.innerText = `已复制 [${cmd}] 到剪贴板！`;
     toast.classList.remove("opacity-0", "pointer-events-none");
     setTimeout(() => toast.classList.add("opacity-0", "pointer-events-none"), 2000);
   });

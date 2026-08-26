@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
-scripts/probe.py: Level 2 Double-Machine Network & Hardware Probe
-Probes local Mac M5 status and remote Windows 4070S (Tailscale 100.98.218.25)
+scripts/probe.py: Tri-Device Network & Hardware Probe
+Probes:
+1. Mac M5 (Local)
+2. Windows 4070S (Tailscale 100.98.218.25)
+3. NVIDIA Jetson Yahboom (LAN 10.8.20.74)
 """
 
 import sys
@@ -12,23 +15,31 @@ import json
 import re
 from datetime import datetime
 
+# Windows 4070S
 WIN_IP = "100.98.218.25"
 WIN_NAME = "pc-20240911pzjo"
 WIN_OLLAMA_PORT = 11434
+
+# Mac M5
 MAC_NAME = "insistgangmacbook-air"
 MAC_IP = "100.86.36.75"
+
+# Jetson Edge Device (Yahboom)
+JETSON_IP = "10.8.20.74"
+JETSON_NAME = "yahboom"
+JETSON_USER = "jetson"
+JETSON_SSH_PORT = 22
 
 def probe_ping(ip, timeout=2):
     try:
         cmd = ["ping", "-c", "2", "-t", str(timeout), ip]
         res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=timeout + 1)
         if res.returncode == 0:
-            # Parse round-trip avg latency: round-trip min/avg/max/stddev = 7.827/20.081/32.336/12.255 ms
             m = re.search(r'min/avg/max/[a-z]+ = ([\d\.]+)/([\d\.]+)/([\d\.]+)', res.stdout)
             if m:
                 avg_lat = float(m.group(2))
                 return True, round(avg_lat, 1)
-            return True, 20.0
+            return True, 10.0
         return False, None
     except Exception:
         return False, None
@@ -44,7 +55,6 @@ def probe_port(ip, port, timeout=1.5):
         return False
 
 def get_mac_stats():
-    # Battery info
     batt_pct = "100%"
     batt_status = "AC Connected"
     try:
@@ -61,7 +71,6 @@ def get_mac_stats():
     except Exception:
         pass
 
-    # Uptime & Load
     load = "0.8"
     try:
         res = subprocess.run(["uptime"], stdout=subprocess.PIPE, text=True, timeout=2)
@@ -84,10 +93,17 @@ def get_mac_stats():
     }
 
 def probe_all():
-    is_online, latency = probe_ping(WIN_IP, timeout=2)
+    # 1. Probe Windows
+    win_online, win_lat = probe_ping(WIN_IP, timeout=2)
     ollama_ok = False
-    if is_online:
+    if win_online:
         ollama_ok = probe_port(WIN_IP, WIN_OLLAMA_PORT, timeout=1.5)
+
+    # 2. Probe Jetson (LAN)
+    jetson_online, jetson_lat = probe_ping(JETSON_IP, timeout=1.5)
+    jetson_ssh_ok = False
+    if jetson_online:
+        jetson_ssh_ok = probe_port(JETSON_IP, JETSON_SSH_PORT, timeout=1.2)
 
     mac_info = get_mac_stats()
 
@@ -96,8 +112,8 @@ def probe_all():
         "ip": WIN_IP,
         "name": WIN_NAME,
         "role": "算力后端 // CUDA 训练 // Ollama 本地模型 // 冷备仓库",
-        "status": "Online" if is_online else "Offline",
-        "latency_ms": latency if is_online else None,
+        "status": "Online" if win_online else "Offline",
+        "latency_ms": win_lat if win_online else None,
         "ollama_port": WIN_OLLAMA_PORT,
         "ollama_active": ollama_ok,
         "services": [
@@ -108,11 +124,32 @@ def probe_all():
         ]
     }
 
+    jetson_info = {
+        "device": "NVIDIA Jetson 边缘计算硬件 (Yahboom 亚博智能, Tegra aarch64)",
+        "ip": JETSON_IP,
+        "name": JETSON_NAME,
+        "user": JETSON_USER,
+        "role": "边缘感知节点 // 端侧视觉与机器人感知部署",
+        "network_type": "局域网 (LAN Only)",
+        "status": "Online" if jetson_online else "LAN Standby",
+        "latency_ms": jetson_lat if jetson_online else None,
+        "ssh_port": JETSON_SSH_PORT,
+        "ssh_active": jetson_ssh_ok,
+        "ssh_cmd": f"ssh {JETSON_USER}@{JETSON_IP}",
+        "services": [
+            f"SSH 访问 ({'Active :22' if jetson_ssh_ok else 'Standby'})",
+            "NVIDIA JetPack 6 / Tegra R36",
+            "CUDA Edge Runtime",
+            "Edge AI Perception"
+        ]
+    }
+
     return {
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "mac": mac_info,
         "windows": win_info,
-        "mesh_latency_ms": latency if is_online else None
+        "jetson": jetson_info,
+        "mesh_latency_ms": win_lat if win_online else None
     }
 
 if __name__ == "__main__":
