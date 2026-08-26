@@ -1,0 +1,62 @@
+[
+  {
+    "id": "c-001",
+    "company": "施耐德电气",
+    "position": "AI应用顾问",
+    "apply_date": "2026-08-17",
+    "status": "已投递",
+    "priority": "High",
+    "resume_file": "刘钢_个人简历_施耐德电气_AI应用顾问.pdf",
+    "notes": "针对施耐德工业AI及能源数字化场景深度定制，强化了大模型与应用落地经验。"
+  },
+  {
+    "id": "c-002",
+    "company": "为恒智能",
+    "position": "AI Agent工程师",
+    "apply_date": "2026-08-17",
+    "status": "简历初筛",
+    "priority": "High",
+    "resume_file": "刘钢_个人简历_为恒智能_AIAgent.pdf",
+    "notes": "重点对齐智能体多Agent协同架构、任务分解与自动化工具链落地。"
+  },
+  {
+    "id": "c-003",
+    "company": "振石控股",
+    "position": "智能体研发工程师",
+    "apply_date": "2026-08-17",
+    "status": "简历初筛",
+    "priority": "High",
+    "resume_file": "刘钢_个人简历_振石控股_智能体研发.pdf",
+    "notes": "重点对齐复合制造场景智能化与知识库问答Agent研发。"
+  },
+  {
+    "id": "c-004",
+    "company": "上海芯圣电子",
+    "position": "AI系统开发",
+    "apply_date": "2026-08-22",
+    "status": "已投递",
+    "priority": "Medium",
+    "resume_file": "电子信息_刘钢_上海芯圣电子_AI系统开发.pdf",
+    "notes": "辅导员就业群直推，匹配上海半导体/嵌入式AI软硬件联合开发。"
+  },
+  {
+    "id": "c-005",
+    "company": "南凌科技",
+    "position": "测试开发工程师",
+    "apply_date": "2026-08-22",
+    "status": "已投递",
+    "priority": "Medium",
+    "resume_file": "电子信息_刘钢_南凌科技_测试开发.pdf",
+    "notes": "辅导员就业群直推，匹配自动化测试、Python脚本开发与网络协议分析。"
+  },
+  {
+    "id": "c-006",
+    "company": "航天八院",
+    "position": "现场调试与软件",
+    "apply_date": "2026-08-22",
+    "status": "已投递",
+    "priority": "High",
+    "resume_file": "电子信息_刘钢_航天八院_现场调试与软件.pdf",
+    "notes": "辅导员就业群直推，航天军工重点单位，突出硬件接口调试与复杂系统软件开发。"
+  }
+]

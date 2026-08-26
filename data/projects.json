@@ -1,0 +1,52 @@
+[
+  {
+    "id": "p-jiefu",
+    "name": "姐夫项目：电商数据采集与利润测算",
+    "category": "外部合作",
+    "path": "/Users/insistgang/Desktop/jiefu",
+    "tech_stack": "Chrome Extension V3 + Node.js Web",
+    "status": "核心功能就绪，优化联调中",
+    "next_action": "Chrome 插件 V3 优化与利润核算逻辑验证",
+    "priority": "High"
+  },
+  {
+    "id": "p-andy",
+    "name": "Andy 项目：小智伴侣机器人",
+    "category": "硬件与端侧AI",
+    "path": "/Users/insistgang/Desktop/andy",
+    "tech_stack": "xiaozhi-esp32 + py-xiaozhi",
+    "status": "固件开发与协议联调",
+    "next_action": "小智伴侣固件联网与语音交互链路联调",
+    "priority": "Medium"
+  },
+  {
+    "id": "p-lunwen",
+    "name": "毕业小论文：违建识别与遥感变化检测",
+    "category": "学术主线",
+    "path": "/Users/insistgang/Desktop/lunwen",
+    "tech_stack": "YOLOv11 + PyTorch + Remote Sensing",
+    "status": "毕业论文核心推进中 (违建主线 + E-PAS 改投决策)",
+    "next_action": "YOLOv11 违建检测实验数据整理与正文推进",
+    "priority": "Critical"
+  },
+  {
+    "id": "e-jiaoxi",
+    "name": "教师资格证 (教资笔试)",
+    "category": "资格认证",
+    "type": "exam",
+    "target_date": "2026-09-12",
+    "status": "冲刺备考中 (已报名缴费)",
+    "next_action": "考前 17 天高频考点突击与真题模拟",
+    "priority": "Critical"
+  },
+  {
+    "id": "e-cet6",
+    "name": "大学英语六级 (CET-6)",
+    "category": "等级考试",
+    "type": "exam",
+    "target_date": "2026-12-12",
+    "status": "日常积累与听力专项",
+    "next_action": "核心考纲高频词汇与听力真题精听",
+    "priority": "Medium"
+  }
+]
