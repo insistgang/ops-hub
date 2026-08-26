@@ -9,9 +9,56 @@ let currentCareerFilter = "all";
 
 document.addEventListener("DOMContentLoaded", async () => {
   initTabs();
+  startLiveClock();
   await loadData();
   lucide.createIcons();
+
+  // Background auto-fetch every 30 seconds
+  setInterval(async () => {
+    await loadData(true);
+  }, 30000);
 });
+
+function startLiveClock() {
+  const clockEl = document.getElementById("live-clock");
+  const update = () => {
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    if (clockEl) clockEl.innerText = timeStr;
+    updateSyncAge();
+  };
+  update();
+  setInterval(update, 1000);
+}
+
+function updateSyncAge() {
+  if (!globalStatus?.meta?.last_synced) return;
+  const syncDate = new Date(globalStatus.meta.last_synced.replace(/-/g, "/"));
+  const now = new Date();
+  const diffSec = Math.floor((now - syncDate) / 1000);
+  const ageEl = document.getElementById("sync-age-text");
+  if (!ageEl) return;
+
+  if (diffSec < 60) {
+    ageEl.innerText = "刚刚同步";
+  } else if (diffSec < 3600) {
+    ageEl.innerText = `${Math.floor(diffSec / 60)} 分钟前同步`;
+  } else if (diffSec < 86400) {
+    ageEl.innerText = `${Math.floor(diffSec / 3600)} 小时前同步`;
+  } else {
+    ageEl.innerText = `${Math.floor(diffSec / 86400)} 天前同步`;
+  }
+}
+
+async function manualRefresh() {
+  const icon = document.getElementById("sync-refresh-icon");
+  if (icon) icon.classList.add("animate-spin");
+  await loadData();
+  setTimeout(() => {
+    if (icon) icon.classList.remove("animate-spin");
+  }, 600);
+}
 
 function initTabs() {
   const tabButtons = document.querySelectorAll(".tab-btn");
@@ -30,7 +77,7 @@ function initTabs() {
   });
 }
 
-async function loadData() {
+async function loadData(silent = false) {
   try {
     const statusRes = await fetch("data/status.json?t=" + Date.now());
     globalStatus = await statusRes.json();
@@ -45,8 +92,9 @@ async function loadData() {
     renderMemoryHub();
     renderComputeTopology();
     renderDeviceAllocation();
+    updateSyncAge();
   } catch (err) {
-    console.error("加载数据失败:", err);
+    if (!silent) console.error("加载数据失败:", err);
   }
 }
 
@@ -56,7 +104,8 @@ function renderHeader() {
   const win = topo.windows || {};
   const jetson = topo.jetson || {};
 
-  document.getElementById("last-synced-time").innerText = meta.last_synced || "-";
+  const exactTimeEl = document.getElementById("last-synced-exact");
+  if (exactTimeEl) exactTimeEl.innerText = meta.last_synced || "-";
   
   // Win status pill
   const winPill = document.getElementById("win-status-pill");
@@ -102,7 +151,7 @@ function renderHeroMetrics() {
   document.getElementById("metric-career-total").innerText = stats.total || 0;
   document.getElementById("metric-career-sub").innerText = `初筛 ${stats.screening || 0} · 投递 ${stats.applied || 0} · 面试 ${stats.interviewing || 0}`;
 
-  // 2. Exam Metric (Focus on Jiaoshi 9/12)
+  // 2. Exam Metric
   const jiaoshi = exams.find(e => e.id === "e-jiaoxi") || {};
   const cet6 = exams.find(e => e.id === "e-cet6") || {};
   document.getElementById("metric-exam-days").innerText = jiaoshi.days_left !== undefined ? jiaoshi.days_left : "-";
@@ -112,7 +161,7 @@ function renderHeroMetrics() {
   document.getElementById("metric-weight-day").innerText = `D${weight.current_day || 3}`;
   document.getElementById("metric-weight-sub").innerText = `决战剩余 ${weight.days_left || 0} 天 ｜ ${weight.members?.join(' · ')}`;
 
-  // 4. Compute Metric (Tri-device)
+  // 4. Compute Metric
   const onlineCount = (win.status === "Online" ? 1 : 0) + (jetson.status === "Online" ? 1 : 0) + 1;
   document.getElementById("metric-compute-lat").innerText = `${onlineCount} 节点在线`;
   document.getElementById("metric-compute-sub").innerText = `4070S:${win.latency_ms ? win.latency_ms + 'ms' : '离线'} ｜ Jetson:${jetson.latency_ms ? jetson.latency_ms + 'ms' : '待命'}`;
@@ -354,7 +403,6 @@ function renderDeviceAllocation() {
   const devices = alloc.devices || [];
   const workflows = alloc.project_workflows || [];
 
-  // 1. Render Allocation Cards
   const allocContainer = document.getElementById("device-allocation-cards");
   if (!allocContainer) return;
   allocContainer.innerHTML = "";
@@ -406,7 +454,6 @@ function renderDeviceAllocation() {
     allocContainer.appendChild(card);
   });
 
-  // 2. Render Workflows Table
   const wfContainer = document.getElementById("workflows-table-body");
   if (!wfContainer) return;
   wfContainer.innerHTML = "";
