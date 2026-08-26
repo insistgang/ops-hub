@@ -2,7 +2,7 @@
 """
 scripts/collector.py: Aggregates real data from probe, git repos, career records, memory checks,
 and device task allocation matrix.
-Saves to data/status.json.
+Saves to data/status.json AND data/status.js (for zero-CORS offline file:/// compatibility).
 Supports --push to trigger GitOps auto-commit & push to GitHub.
 """
 
@@ -184,12 +184,19 @@ def collect_all():
         with open(alloc_file, "r", encoding="utf-8") as f:
             device_allocation = json.load(f)
 
-    # 7. Assemble Snapshot
+    # 7. Memory Rules
+    rules_file = DATA_DIR / "memory_rules.json"
+    memory_rules = {}
+    if rules_file.exists():
+        with open(rules_file, "r", encoding="utf-8") as f:
+            memory_rules = json.load(f)
+
+    # 8. Assemble Snapshot
     status_snapshot = {
         "meta": {
             "title": "Ops-Hub // Personal Operations Console",
             "author": "Leo (insistgang)",
-            "version": "1.2.0",
+            "version": "1.2.1",
             "last_synced": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "sync_mode": "Level 2 Real Probe (Zero Mock)",
             "github_repo": "https://github.com/insistgang/ops-hub"
@@ -205,16 +212,27 @@ def collect_all():
         "device_allocation": device_allocation
     }
 
+    # Write status.json
     status_file = DATA_DIR / "status.json"
     with open(status_file, "w", encoding="utf-8") as f:
         json.dump(status_snapshot, f, ensure_ascii=False, indent=2)
+
+    # Write status.js (window.__OPS_STATUS__) for instant file:/// zero-CORS loading!
+    status_js = DATA_DIR / "status.js"
+    with open(status_js, "w", encoding="utf-8") as f:
+        f.write("window.__OPS_STATUS__ = " + json.dumps(status_snapshot, ensure_ascii=False) + ";\n")
+
+    # Write memory_rules.js (window.__OPS_MEMORY__)
+    rules_js = DATA_DIR / "memory_rules.js"
+    with open(rules_js, "w", encoding="utf-8") as f:
+        f.write("window.__OPS_MEMORY__ = " + json.dumps(memory_rules, ensure_ascii=False) + ";\n")
 
     return status_snapshot
 
 def gitops_push():
     print("🚀 启动 GitOps 自动化提交流水线...")
     try:
-        subprocess.run(["git", "-C", str(BASE_DIR), "add", "data/status.json", "data/daily_checks.json", "data/career_records.json", "data/device_allocation.json"], check=True)
+        subprocess.run(["git", "-C", str(BASE_DIR), "add", "data/status.json", "data/status.js", "data/memory_rules.js", "data/daily_checks.json", "data/career_records.json", "data/device_allocation.json"], check=True)
         now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
         commit_res = subprocess.run(["git", "-C", str(BASE_DIR), "commit", "-m", f"chore: sync ops status [{now_str}]"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if "nothing to commit" in commit_res.stdout:
@@ -236,6 +254,6 @@ def gitops_push():
 if __name__ == "__main__":
     push_flag = "--push" in sys.argv
     res = collect_all()
-    print(f"✅ 全量数据采集与状态快照生成完毕: {DATA_DIR / 'status.json'}")
+    print(f"✅ 全量数据采集完毕（JSON + JS 双模防卡死）: {DATA_DIR / 'status.json'}")
     if push_flag:
         gitops_push()

@@ -1,23 +1,39 @@
 /**
  * Ops-Hub Frontend Application Logic
- * Zero-dependency Vanilla JS, reads data/status.json and renders high-density dashboard
+ * Dual-engine data loading: Supports fetch() AND zero-CORS direct file:/// loading!
  */
 
-let globalStatus = null;
-let memoryRules = null;
+let globalStatus = window.__OPS_STATUS__ || null;
+let memoryRules = window.__OPS_MEMORY__ || null;
 let currentCareerFilter = "all";
 
 document.addEventListener("DOMContentLoaded", async () => {
   initTabs();
   startLiveClock();
-  await loadData();
-  lucide.createIcons();
+
+  // 1. If preloaded from status.js, render immediately with 0 delay!
+  if (globalStatus) {
+    renderAll();
+  }
+
+  // 2. Fetch fresh data (works on http/https, catches CORS on file:///)
+  await loadData(true);
 
   // Background auto-fetch every 30 seconds
   setInterval(async () => {
     await loadData(true);
   }, 30000);
 });
+
+function safeCreateIcons() {
+  try {
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  } catch (e) {
+    console.warn("Lucide icons init warning:", e);
+  }
+}
 
 function startLiveClock() {
   const clockEl = document.getElementById("live-clock");
@@ -54,7 +70,7 @@ function updateSyncAge() {
 async function manualRefresh() {
   const icon = document.getElementById("sync-refresh-icon");
   if (icon) icon.classList.add("animate-spin");
-  await loadData();
+  await loadData(false);
   setTimeout(() => {
     if (icon) icon.classList.remove("animate-spin");
   }, 600);
@@ -71,8 +87,9 @@ function initTabs() {
       document.querySelectorAll(".tab-content").forEach(content => {
         content.classList.add("hidden");
       });
-      document.getElementById(target).classList.remove("hidden");
-      lucide.createIcons();
+      const targetEl = document.getElementById(target);
+      if (targetEl) targetEl.classList.remove("hidden");
+      safeCreateIcons();
     });
   });
 }
@@ -80,22 +97,39 @@ function initTabs() {
 async function loadData(silent = false) {
   try {
     const statusRes = await fetch("data/status.json?t=" + Date.now());
-    globalStatus = await statusRes.json();
+    if (statusRes.ok) {
+      globalStatus = await statusRes.json();
+    }
 
     const rulesRes = await fetch("data/memory_rules.json?t=" + Date.now());
-    memoryRules = await rulesRes.json();
+    if (rulesRes.ok) {
+      memoryRules = await rulesRes.json();
+    }
 
-    renderHeader();
-    renderHeroMetrics();
-    renderCareerPipeline();
-    renderProjectsRadar();
-    renderMemoryHub();
-    renderComputeTopology();
-    renderDeviceAllocation();
-    updateSyncAge();
+    renderAll();
   } catch (err) {
-    if (!silent) console.error("加载数据失败:", err);
+    // If fetch failed (e.g. file:/// protocol in local browser), fallback to window.__OPS_STATUS__
+    if (window.__OPS_STATUS__) {
+      globalStatus = window.__OPS_STATUS__;
+    }
+    if (window.__OPS_MEMORY__) {
+      memoryRules = window.__OPS_MEMORY__;
+    }
+    renderAll();
   }
+}
+
+function renderAll() {
+  if (!globalStatus) return;
+  renderHeader();
+  renderHeroMetrics();
+  renderCareerPipeline();
+  renderProjectsRadar();
+  renderMemoryHub();
+  renderComputeTopology();
+  renderDeviceAllocation();
+  updateSyncAge();
+  safeCreateIcons();
 }
 
 function renderHeader() {
@@ -112,14 +146,16 @@ function renderHeader() {
   const winDot = document.getElementById("win-status-dot");
   const winText = document.getElementById("win-status-text");
 
-  if (win.status === "Online") {
-    winDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-    winText.innerText = `Win 4070S: ${win.latency_ms}ms`;
-    winPill.className = "flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-950/40 text-emerald-300 border border-emerald-800/50";
-  } else {
-    winDot.className = "w-2 h-2 rounded-full bg-rose-500";
-    winText.innerText = "Win 4070S: Offline";
-    winPill.className = "flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-rose-950/40 text-rose-300 border border-rose-800/50";
+  if (winPill && winDot && winText) {
+    if (win.status === "Online") {
+      winDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+      winText.innerText = `Win 4070S: ${win.latency_ms}ms`;
+      winPill.className = "flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-950/40 text-emerald-300 border border-emerald-800/50";
+    } else {
+      winDot.className = "w-2 h-2 rounded-full bg-rose-500";
+      winText.innerText = "Win 4070S: Offline";
+      winPill.className = "flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-rose-950/40 text-rose-300 border border-rose-800/50";
+    }
   }
 
   // Jetson status pill
@@ -127,14 +163,16 @@ function renderHeader() {
   const jetDot = document.getElementById("jetson-status-dot");
   const jetText = document.getElementById("jetson-status-text");
 
-  if (jetson.status === "Online") {
-    jetDot.className = "w-2 h-2 rounded-full bg-emerald-400";
-    jetText.innerText = `Jetson: ${jetson.latency_ms}ms`;
-    jetPill.className = "hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-950/40 text-emerald-300 border border-emerald-800/50";
-  } else {
-    jetDot.className = "w-2 h-2 rounded-full bg-zinc-500";
-    jetText.innerText = "Jetson: 局域网待命";
-    jetPill.className = "hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-zinc-900/60 text-zinc-400 border border-zinc-800";
+  if (jetPill && jetDot && jetText) {
+    if (jetson.status === "Online") {
+      jetDot.className = "w-2 h-2 rounded-full bg-emerald-400";
+      jetText.innerText = `Jetson: ${jetson.latency_ms}ms`;
+      jetPill.className = "hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-950/40 text-emerald-300 border border-emerald-800/50";
+    } else {
+      jetDot.className = "w-2 h-2 rounded-full bg-zinc-500";
+      jetText.innerText = "Jetson: 局域网待命";
+      jetPill.className = "hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-zinc-900/60 text-zinc-400 border border-zinc-800";
+    }
   }
 }
 
@@ -147,29 +185,34 @@ function renderHeroMetrics() {
   const win = topo.windows || {};
   const jetson = topo.jetson || {};
 
-  // 1. Career Metric
-  document.getElementById("metric-career-total").innerText = stats.total || 0;
-  document.getElementById("metric-career-sub").innerText = `初筛 ${stats.screening || 0} · 投递 ${stats.applied || 0} · 面试 ${stats.interviewing || 0}`;
+  const cTot = document.getElementById("metric-career-total");
+  const cSub = document.getElementById("metric-career-sub");
+  if (cTot) cTot.innerText = stats.total || 0;
+  if (cSub) cSub.innerText = `初筛 ${stats.screening || 0} · 投递 ${stats.applied || 0} · 面试 ${stats.interviewing || 0}`;
 
-  // 2. Exam Metric
   const jiaoshi = exams.find(e => e.id === "e-jiaoxi") || {};
   const cet6 = exams.find(e => e.id === "e-cet6") || {};
-  document.getElementById("metric-exam-days").innerText = jiaoshi.days_left !== undefined ? jiaoshi.days_left : "-";
-  document.getElementById("metric-exam-sub").innerText = `教资9/12冲刺 ｜ 六级剩 ${cet6.days_left || 0} 天`;
+  const eDays = document.getElementById("metric-exam-days");
+  const eSub = document.getElementById("metric-exam-sub");
+  if (eDays) eDays.innerText = jiaoshi.days_left !== undefined ? jiaoshi.days_left : "-";
+  if (eSub) eSub.innerText = `教资9/12冲刺 ｜ 六级剩 ${cet6.days_left || 0} 天`;
 
-  // 3. Weight Metric
-  document.getElementById("metric-weight-day").innerText = `D${weight.current_day || 3}`;
-  document.getElementById("metric-weight-sub").innerText = `决战剩余 ${weight.days_left || 0} 天 ｜ ${weight.members?.join(' · ')}`;
+  const wDay = document.getElementById("metric-weight-day");
+  const wSub = document.getElementById("metric-weight-sub");
+  if (wDay) wDay.innerText = `D${weight.current_day || 3}`;
+  if (wSub) wSub.innerText = `决战剩余 ${weight.days_left || 0} 天 ｜ ${weight.members?.join(' · ')}`;
 
-  // 4. Compute Metric
+  const compLat = document.getElementById("metric-compute-lat");
+  const compSub = document.getElementById("metric-compute-sub");
   const onlineCount = (win.status === "Online" ? 1 : 0) + (jetson.status === "Online" ? 1 : 0) + 1;
-  document.getElementById("metric-compute-lat").innerText = `${onlineCount} 节点在线`;
-  document.getElementById("metric-compute-sub").innerText = `4070S:${win.latency_ms ? win.latency_ms + 'ms' : '离线'} ｜ Jetson:${jetson.latency_ms ? jetson.latency_ms + 'ms' : '待命'}`;
+  if (compLat) compLat.innerText = `${onlineCount} 节点在线`;
+  if (compSub) compSub.innerText = `4070S:${win.latency_ms ? win.latency_ms + 'ms' : '离线'} ｜ Jetson:${jetson.latency_ms ? jetson.latency_ms + 'ms' : '待命'}`;
 }
 
 function renderCareerPipeline() {
   const records = globalStatus.career_summary?.records || [];
   const container = document.getElementById("career-records-list");
+  if (!container) return;
   container.innerHTML = "";
 
   const filtered = records.filter(r => {
@@ -230,7 +273,7 @@ function renderCareerPipeline() {
       btn.classList.add("bg-indigo-600", "text-white");
       currentCareerFilter = btn.getAttribute("data-filter");
       renderCareerPipeline();
-      lucide.createIcons();
+      safeCreateIcons();
     };
   });
 }
@@ -238,6 +281,7 @@ function renderCareerPipeline() {
 function renderProjectsRadar() {
   const projects = globalStatus.projects_and_exams || [];
   const container = document.getElementById("projects-radar-list");
+  if (!container) return;
   container.innerHTML = "";
 
   projects.forEach(p => {
@@ -305,75 +349,84 @@ function renderMemoryHub() {
 
   const checksData = globalStatus.daily_checks?.checks || {};
   const checksContainer = document.getElementById("daily-checks-container");
-  checksContainer.innerHTML = "";
+  if (checksContainer) {
+    checksContainer.innerHTML = "";
 
-  (memoryRules.four_checks_definition || []).forEach(def => {
-    const isChecked = checksData[def.key] === true;
-    const item = document.createElement("div");
-    item.className = `p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
-      isChecked ? 'bg-emerald-950/30 border-emerald-800/60 text-emerald-200' : 'bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:border-zinc-700'
-    }`;
-    item.innerHTML = `
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg ${isChecked ? 'bg-emerald-900/50 text-emerald-400' : 'bg-zinc-800 text-zinc-400'} flex items-center justify-center">
-          <i data-lucide="${def.icon || 'check'}" class="w-4 h-4"></i>
+    (memoryRules.four_checks_definition || []).forEach(def => {
+      const isChecked = checksData[def.key] === true;
+      const item = document.createElement("div");
+      item.className = `p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+        isChecked ? 'bg-emerald-950/30 border-emerald-800/60 text-emerald-200' : 'bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+      }`;
+      item.innerHTML = `
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg ${isChecked ? 'bg-emerald-900/50 text-emerald-400' : 'bg-zinc-800 text-zinc-400'} flex items-center justify-center">
+            <i data-lucide="${def.icon || 'check'}" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h5 class="text-sm font-bold text-slate-200">${def.name} (${def.key})</h5>
+            <p class="text-[11px] text-slate-400">${def.desc}</p>
+          </div>
         </div>
-        <div>
-          <h5 class="text-sm font-bold text-slate-200">${def.name} (${def.key})</h5>
-          <p class="text-[11px] text-slate-400">${def.desc}</p>
+        <div class="w-6 h-6 rounded-md border flex items-center justify-center ${isChecked ? 'bg-emerald-600 border-emerald-500 text-white' : 'border-zinc-700'}">
+          ${isChecked ? '<i data-lucide="check" class="w-4 h-4"></i>' : ''}
         </div>
-      </div>
-      <div class="w-6 h-6 rounded-md border flex items-center justify-center ${isChecked ? 'bg-emerald-600 border-emerald-500 text-white' : 'border-zinc-700'}">
-        ${isChecked ? '<i data-lucide="check" class="w-4 h-4"></i>' : ''}
-      </div>
-    `;
-    item.onclick = () => {
-      checksData[def.key] = !isChecked;
-      renderMemoryHub();
-      lucide.createIcons();
-    };
-    checksContainer.appendChild(item);
-  });
+      `;
+      item.onclick = () => {
+        checksData[def.key] = !isChecked;
+        renderMemoryHub();
+        safeCreateIcons();
+      };
+      checksContainer.appendChild(item);
+    });
+  }
 
   const scenesContainer = document.getElementById("scenes-container");
-  scenesContainer.innerHTML = "";
-  (memoryRules.scene_contracts || []).forEach(sc => {
-    const card = document.createElement("div");
-    card.className = "p-4 rounded-xl bg-zinc-900/70 border border-zinc-800";
-    card.innerHTML = `
-      <div class="flex items-center justify-between mb-2">
-        <h5 class="font-bold text-slate-100">${sc.scene}</h5>
-        <span class="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 font-mono">${sc.mode}</span>
-      </div>
-      <ul class="text-xs text-slate-400 space-y-1.5 mt-2">
-        ${sc.rules.map(r => `<li class="flex items-start gap-1.5"><span class="text-indigo-400">▹</span><span>${r}</span></li>`).join('')}
-      </ul>
-    `;
-    scenesContainer.appendChild(card);
-  });
+  if (scenesContainer) {
+    scenesContainer.innerHTML = "";
+    (memoryRules.scene_contracts || []).forEach(sc => {
+      const card = document.createElement("div");
+      card.className = "p-4 rounded-xl bg-zinc-900/70 border border-zinc-800";
+      card.innerHTML = `
+        <div class="flex items-center justify-between mb-2">
+          <h5 class="font-bold text-slate-100">${sc.scene}</h5>
+          <span class="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 font-mono">${sc.mode}</span>
+        </div>
+        <ul class="text-xs text-slate-400 space-y-1.5 mt-2">
+          ${sc.rules.map(r => `<li class="flex items-start gap-1.5"><span class="text-indigo-400">▹</span><span>${r}</span></li>`).join('')}
+        </ul>
+      `;
+      scenesContainer.appendChild(card);
+    });
+  }
 
   const principlesContainer = document.getElementById("principles-container");
-  principlesContainer.innerHTML = "";
-  (memoryRules.focus_principles || []).forEach(fp => {
-    const card = document.createElement("div");
-    card.className = "p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/80 text-xs";
-    card.innerHTML = `
-      <span class="font-bold text-indigo-300 block mb-1">⚡ ${fp.principle}</span>
-      <span class="text-slate-400 leading-relaxed">${fp.desc}</span>
-    `;
-    principlesContainer.appendChild(card);
-  });
+  if (principlesContainer) {
+    principlesContainer.innerHTML = "";
+    (memoryRules.focus_principles || []).forEach(fp => {
+      const card = document.createElement("div");
+      card.className = "p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/80 text-xs";
+      card.innerHTML = `
+        <span class="font-bold text-indigo-300 block mb-1">⚡ ${fp.principle}</span>
+        <span class="text-slate-400 leading-relaxed">${fp.desc}</span>
+      `;
+      principlesContainer.appendChild(card);
+    });
+  }
 
   const hs = memoryRules.health_supplements || {};
-  document.getElementById("health-rule-text").innerText = hs.rule || "";
+  const healthRuleEl = document.getElementById("health-rule-text");
+  if (healthRuleEl) healthRuleEl.innerText = hs.rule || "";
   const healthList = document.getElementById("health-schedule-list");
-  healthList.innerHTML = "";
-  (hs.schedule || []).forEach(s => {
-    const li = document.createElement("div");
-    li.className = "flex items-center justify-between text-xs py-1 border-b border-zinc-800/50 last:border-0";
-    li.innerHTML = `<span class="text-indigo-300 font-mono font-medium">${s.period}</span><span class="text-slate-300">${s.items}</span>`;
-    healthList.appendChild(li);
-  });
+  if (healthList) {
+    healthList.innerHTML = "";
+    (hs.schedule || []).forEach(s => {
+      const li = document.createElement("div");
+      li.className = "flex items-center justify-between text-xs py-1 border-b border-zinc-800/50 last:border-0";
+      li.innerHTML = `<span class="text-indigo-300 font-mono font-medium">${s.period}</span><span class="text-slate-300">${s.items}</span>`;
+      healthList.appendChild(li);
+    });
+  }
 }
 
 function renderComputeTopology() {
@@ -382,20 +435,26 @@ function renderComputeTopology() {
   const win = topo.windows || {};
   const jetson = topo.jetson || {};
 
-  // Mac
-  document.getElementById("mac-ip-text").innerText = mac.ip || "100.86.36.75";
-  document.getElementById("mac-battery-text").innerText = `${mac.battery} (${mac.power_state})`;
-  document.getElementById("mac-load-text").innerText = mac.load_avg || "-";
+  const macIp = document.getElementById("mac-ip-text");
+  const macBatt = document.getElementById("mac-battery-text");
+  const macLoad = document.getElementById("mac-load-text");
+  if (macIp) macIp.innerText = mac.ip || "100.86.36.75";
+  if (macBatt) macBatt.innerText = `${mac.battery} (${mac.power_state})`;
+  if (macLoad) macLoad.innerText = mac.load_avg || "-";
 
-  // Win
-  document.getElementById("win-ip-text").innerText = win.ip || "100.98.218.25";
-  document.getElementById("win-latency-badge").innerText = win.latency_ms ? `${win.latency_ms} ms` : "Offline";
-  document.getElementById("win-ollama-badge").innerText = win.ollama_active ? "11434 (Active)" : "11434 (Standby)";
+  const winIp = document.getElementById("win-ip-text");
+  const winLat = document.getElementById("win-latency-badge");
+  const winOll = document.getElementById("win-ollama-badge");
+  if (winIp) winIp.innerText = win.ip || "100.98.218.25";
+  if (winLat) winLat.innerText = win.latency_ms ? `${win.latency_ms} ms` : "Offline";
+  if (winOll) winOll.innerText = win.ollama_active ? "11434 (Active)" : "11434 (Standby)";
 
-  // Jetson
-  document.getElementById("jetson-ip-text").innerText = jetson.ip || "10.8.20.74";
-  document.getElementById("jetson-latency-badge").innerText = jetson.latency_ms ? `${jetson.latency_ms} ms` : "局域网待命";
-  document.getElementById("jetson-ssh-badge").innerText = jetson.ssh_active ? "22 (Active)" : "22 (Standby)";
+  const jetIp = document.getElementById("jetson-ip-text");
+  const jetLat = document.getElementById("jetson-latency-badge");
+  const jetSsh = document.getElementById("jetson-ssh-badge");
+  if (jetIp) jetIp.innerText = jetson.ip || "10.8.20.74";
+  if (jetLat) jetLat.innerText = jetson.latency_ms ? `${jetson.latency_ms} ms` : "局域网待命";
+  if (jetSsh) jetSsh.innerText = jetson.ssh_active ? "22 (Active)" : "22 (Standby)";
 }
 
 function renderDeviceAllocation() {
@@ -404,76 +463,78 @@ function renderDeviceAllocation() {
   const workflows = alloc.project_workflows || [];
 
   const allocContainer = document.getElementById("device-allocation-cards");
-  if (!allocContainer) return;
-  allocContainer.innerHTML = "";
+  if (allocContainer) {
+    allocContainer.innerHTML = "";
 
-  devices.forEach(dev => {
-    const isMac = dev.id === "mac";
-    const isWin = dev.id === "win";
-    const borderClass = isMac ? "border-indigo-800/40" : (isWin ? "border-sky-800/40" : "border-emerald-800/40");
-    const headerColor = isMac ? "text-indigo-400" : (isWin ? "text-sky-400" : "text-emerald-400");
-    const badgeColor = isMac ? "bg-indigo-950 text-indigo-300 border-indigo-800/60" : (isWin ? "bg-sky-950 text-sky-300 border-sky-800/60" : "bg-emerald-950 text-emerald-300 border-emerald-800/60");
+    devices.forEach(dev => {
+      const isMac = dev.id === "mac";
+      const isWin = dev.id === "win";
+      const borderClass = isMac ? "border-indigo-800/40" : (isWin ? "border-sky-800/40" : "border-emerald-800/40");
+      const headerColor = isMac ? "text-indigo-400" : (isWin ? "text-sky-400" : "text-emerald-400");
+      const badgeColor = isMac ? "bg-indigo-950 text-indigo-300 border-indigo-800/60" : (isWin ? "bg-sky-950 text-sky-300 border-sky-800/60" : "bg-emerald-950 text-emerald-300 border-emerald-800/60");
 
-    const card = document.createElement("div");
-    card.className = `glass-panel p-5 rounded-2xl border ${borderClass} flex flex-col justify-between`;
-    card.innerHTML = `
-      <div>
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-mono uppercase px-2 py-0.5 rounded border ${badgeColor}">
-            ${dev.badge}
-          </span>
-          <span class="text-xs font-mono text-zinc-400">${dev.network.split(' ')[0]}</span>
-        </div>
-        <h4 class="text-lg font-bold text-white mt-1">${dev.name}</h4>
-        <p class="text-xs text-zinc-400 font-mono mt-0.5">${dev.hardware}</p>
-        <p class="text-xs ${headerColor} font-medium mt-1 mb-3">${dev.role}</p>
-
-        <!-- Primary Tasks -->
-        <div class="mb-4">
-          <div class="text-xs font-bold text-slate-200 mb-1.5 flex items-center gap-1">
-            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400"></i>
-            <span>专属主责任务清单</span>
-          </div>
-          <ul class="text-xs text-slate-300 space-y-1.5 bg-zinc-950/50 p-2.5 rounded-xl border border-zinc-800/80">
-            ${dev.primary_tasks.map(t => `<li class="flex items-start gap-1.5"><span class="text-indigo-400 font-bold shrink-0">✓</span><span>${t}</span></li>`).join('')}
-          </ul>
-        </div>
-
-        <!-- Redlines -->
+      const card = document.createElement("div");
+      card.className = `glass-panel p-5 rounded-2xl border ${borderClass} flex flex-col justify-between`;
+      card.innerHTML = `
         <div>
-          <div class="text-xs font-bold text-rose-300 mb-1.5 flex items-center gap-1">
-            <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-rose-400"></i>
-            <span>设备使用绝不越界红线</span>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-mono uppercase px-2 py-0.5 rounded border ${badgeColor}">
+              ${dev.badge}
+            </span>
+            <span class="text-xs font-mono text-zinc-400">${dev.network.split(' ')[0]}</span>
           </div>
-          <ul class="text-xs text-rose-200/80 space-y-1 bg-rose-950/20 p-2.5 rounded-xl border border-rose-900/40 font-mono">
-            ${dev.redlines.map(r => `<li class="flex items-start gap-1.5"><span>${r}</span></li>`).join('')}
-          </ul>
+          <h4 class="text-lg font-bold text-white mt-1">${dev.name}</h4>
+          <p class="text-xs text-zinc-400 font-mono mt-0.5">${dev.hardware}</p>
+          <p class="text-xs ${headerColor} font-medium mt-1 mb-3">${dev.role}</p>
+
+          <div class="mb-4">
+            <div class="text-xs font-bold text-slate-200 mb-1.5 flex items-center gap-1">
+              <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>专属主责任务清单</span>
+            </div>
+            <ul class="text-xs text-slate-300 space-y-1.5 bg-zinc-950/50 p-2.5 rounded-xl border border-zinc-800/80">
+              ${dev.primary_tasks.map(t => `<li class="flex items-start gap-1.5"><span class="text-indigo-400 font-bold shrink-0">✓</span><span>${t}</span></li>`).join('')}
+            </ul>
+          </div>
+
+          <div>
+            <div class="text-xs font-bold text-rose-300 mb-1.5 flex items-center gap-1">
+              <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-rose-400"></i>
+              <span>设备使用绝不越界红线</span>
+            </div>
+            <ul class="text-xs text-rose-200/80 space-y-1 bg-rose-950/20 p-2.5 rounded-xl border border-rose-900/40 font-mono">
+              ${dev.redlines.map(r => `<li class="flex items-start gap-1.5"><span>${r}</span></li>`).join('')}
+            </ul>
+          </div>
         </div>
-      </div>
-    `;
-    allocContainer.appendChild(card);
-  });
+      `;
+      allocContainer.appendChild(card);
+    });
+  }
 
   const wfContainer = document.getElementById("workflows-table-body");
-  if (!wfContainer) return;
-  wfContainer.innerHTML = "";
-
-  workflows.forEach(wf => {
-    const tr = document.createElement("tr");
-    tr.className = "border-b border-zinc-800/60 hover:bg-zinc-900/30 transition-all text-xs";
-    tr.innerHTML = `
-      <td class="py-3 px-4 font-bold text-slate-200 whitespace-nowrap">${wf.project}</td>
-      <td class="py-3 px-4 text-indigo-300 bg-indigo-950/10">${wf.mac_role}</td>
-      <td class="py-3 px-4 text-sky-300 bg-sky-950/10">${wf.win_role}</td>
-      <td class="py-3 px-4 text-zinc-400 font-mono">${wf.collab_mode}</td>
-    `;
-    wfContainer.appendChild(tr);
-  });
+  if (wfContainer) {
+    wfContainer.innerHTML = "";
+    workflows.forEach(wf => {
+      const tr = document.createElement("tr");
+      tr.className = "border-b border-zinc-800/60 hover:bg-zinc-900/30 transition-all text-xs";
+      tr.innerHTML = `
+        <td class="py-3 px-4 font-bold text-slate-200 whitespace-nowrap">${wf.project}</td>
+        <td class="py-3 px-4 text-indigo-300 bg-indigo-950/10">${wf.mac_role}</td>
+        <td class="py-3 px-4 text-sky-300 bg-sky-950/10">${wf.win_role}</td>
+        <td class="py-3 px-4 text-zinc-400 font-mono">${wf.collab_mode}</td>
+      `;
+      wfContainer.appendChild(tr);
+    });
+  }
 }
 
 function handleTaskRoute(val) {
-  const query = (val || document.getElementById("task-route-input").value).trim().toLowerCase();
+  const inputEl = document.getElementById("task-route-input");
+  const query = (val || (inputEl ? inputEl.value : "")).trim().toLowerCase();
   const resBox = document.getElementById("task-route-result");
+  if (!resBox) return;
+
   if (!query) {
     resBox.classList.add("hidden");
     return;
@@ -517,14 +578,16 @@ function handleTaskRoute(val) {
       </div>
     `;
   }
-  lucide.createIcons();
+  safeCreateIcons();
 }
 
 function copySSH(cmd) {
   navigator.clipboard.writeText(cmd).then(() => {
     const toast = document.getElementById("toast");
-    toast.innerText = `已复制 [${cmd}] 到剪贴板！`;
-    toast.classList.remove("opacity-0", "pointer-events-none");
-    setTimeout(() => toast.classList.add("opacity-0", "pointer-events-none"), 2000);
+    if (toast) {
+      toast.innerText = `已复制 [${cmd}] 到剪贴板！`;
+      toast.classList.remove("opacity-0", "pointer-events-none");
+      setTimeout(() => toast.classList.add("opacity-0", "pointer-events-none"), 2000);
+    }
   });
 }
