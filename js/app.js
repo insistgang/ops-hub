@@ -7,23 +7,38 @@ let globalStatus = window.__OPS_STATUS__ || null;
 let memoryRules = window.__OPS_MEMORY__ || null;
 let currentCareerFilter = "all";
 
-document.addEventListener("DOMContentLoaded", async () => {
+function boot() {
+  console.log("🚀 Ops-Hub 正在初始化启动...");
   initTabs();
   startLiveClock();
+
+  if (window.__OPS_STATUS__) {
+    globalStatus = window.__OPS_STATUS__;
+  }
+  if (window.__OPS_MEMORY__) {
+    memoryRules = window.__OPS_MEMORY__;
+  }
 
   // 1. If preloaded from status.js, render immediately with 0 delay!
   if (globalStatus) {
     renderAll();
   }
 
-  // 2. Fetch fresh data (works on http/https, catches CORS on file:///)
-  await loadData(true);
+  // 2. Fetch fresh data (works on http/https, gracefully handles file:///)
+  loadData(true);
 
   // Background auto-fetch every 30 seconds
-  setInterval(async () => {
-    await loadData(true);
+  setInterval(() => {
+    loadData(true);
   }, 30000);
-});
+}
+
+// Immediate execution or on DOMContentLoaded
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", boot);
+} else {
+  boot();
+}
 
 function safeCreateIcons() {
   try {
@@ -49,14 +64,19 @@ function startLiveClock() {
 }
 
 function updateSyncAge() {
-  if (!globalStatus?.meta?.last_synced) return;
-  const syncDate = new Date(globalStatus.meta.last_synced.replace(/-/g, "/"));
-  const now = new Date();
-  const diffSec = Math.floor((now - syncDate) / 1000);
   const ageEl = document.getElementById("sync-age-text");
   if (!ageEl) return;
 
-  if (diffSec < 60) {
+  if (!globalStatus?.meta?.last_synced) {
+    ageEl.innerText = "已加载";
+    return;
+  }
+
+  const syncDate = new Date(globalStatus.meta.last_synced.replace(/-/g, "/"));
+  const now = new Date();
+  const diffSec = Math.floor((now - syncDate) / 1000);
+
+  if (isNaN(diffSec) || diffSec < 60) {
     ageEl.innerText = "刚刚同步";
   } else if (diffSec < 3600) {
     ageEl.innerText = `${Math.floor(diffSec / 60)} 分钟前同步`;
@@ -108,7 +128,6 @@ async function loadData(silent = false) {
 
     renderAll();
   } catch (err) {
-    // If fetch failed (e.g. file:/// protocol in local browser), fallback to window.__OPS_STATUS__
     if (window.__OPS_STATUS__) {
       globalStatus = window.__OPS_STATUS__;
     }
@@ -121,15 +140,19 @@ async function loadData(silent = false) {
 
 function renderAll() {
   if (!globalStatus) return;
-  renderHeader();
-  renderHeroMetrics();
-  renderCareerPipeline();
-  renderProjectsRadar();
-  renderMemoryHub();
-  renderComputeTopology();
-  renderDeviceAllocation();
-  updateSyncAge();
-  safeCreateIcons();
+  try {
+    renderHeader();
+    renderHeroMetrics();
+    renderCareerPipeline();
+    renderProjectsRadar();
+    renderMemoryHub();
+    renderComputeTopology();
+    renderDeviceAllocation();
+    updateSyncAge();
+    safeCreateIcons();
+  } catch (err) {
+    console.error("renderAll 异常:", err);
+  }
 }
 
 function renderHeader() {
