@@ -14,7 +14,7 @@
 2. ⚡ **零构建单页直出 (Zero-Build Vanilla)**：纯净 HTML5 + Tailwind CSS + Lucide Icons，无构建心智负担，GitHub Pages 秒级生效。
 3. 🏛️ **设备专属分工与场景秩序**：
    - **MacBook Air (Apple M5, 16G)**：移动生产力中枢，带去**图书馆专注完成**（论文写作/求职/知识库/轻开发）。
-   - **Windows 4070S (i5-12600KF, 32G, 12G独显)**：常驻算力后端（CUDA训练/Ollama/冷备仓库），Tailscale Mesh 直连（延迟实测 ~5ms）。
+   - **Windows 4070S (i5-12600KF, 32G, 12G独显)**：常驻算力后端（CUDA训练、批量构建、远程执行与冷备仓库），Tailscale Mesh 直连。
    - **NVIDIA Jetson 边缘端 (Yahboom, Tegra aarch64)**：端侧 AI 感知节点（视觉模型部署/ROS调试，局域网 `10.8.20.74` 直连）。
 
 ---

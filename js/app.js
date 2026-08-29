@@ -467,10 +467,12 @@ function renderComputeTopology() {
 
   const winIp = document.getElementById("win-ip-text");
   const winLat = document.getElementById("win-latency-badge");
-  const winOll = document.getElementById("win-ollama-badge");
+  const winSsh = document.getElementById("win-ssh-badge");
+  const winSmb = document.getElementById("win-smb-badge");
   if (winIp) winIp.innerText = win.ip || "100.98.218.25";
   if (winLat) winLat.innerText = win.latency_ms ? `${win.latency_ms} ms` : "Offline";
-  if (winOll) winOll.innerText = win.ollama_active ? "11434 (Active)" : "11434 (Standby)";
+  if (winSsh) winSsh.innerText = win.ssh_active ? "22 (Active)" : "22 (Standby)";
+  if (winSmb) winSmb.innerText = win.smb_active ? "445 (Active)" : "445 (Standby)";
 
   const jetIp = document.getElementById("jetson-ip-text");
   const jetLat = document.getElementById("jetson-latency-badge");
@@ -574,13 +576,13 @@ function handleTaskRoute(val) {
         </div>
       </div>
     `;
-  } else if (query.includes("cuda") || query.includes("训练") || query.includes("yolo") || query.includes("大模型") || query.includes("ollama") || query.includes("冷备") || query.includes("备份") || query.includes("下载") || query.includes("游戏") || query.includes("渲染")) {
+  } else if (query.includes("cuda") || query.includes("训练") || query.includes("yolo") || query.includes("冷备") || query.includes("备份") || query.includes("下载") || query.includes("游戏") || query.includes("渲染") || query.includes("构建") || query.includes("依赖")) {
     resBox.innerHTML = `
       <div class="flex items-center gap-3 text-sky-300">
         <i data-lucide="server" class="w-5 h-5 text-sky-400 shrink-0"></i>
         <div>
           <span class="font-bold text-sm text-white">👉 立即派发给 Windows 4070S 性能主机 执行！</span>
-          <p class="text-xs text-zinc-400 mt-0.5">快捷登录：<code class="text-sky-300 bg-zinc-900 px-1.5 py-0.5 rounded cursor-pointer" onclick="copySSH('ssh insistgang@100.98.218.25')">ssh insistgang@100.98.218.25</code> ｜ Ollama: 11434 端口</p>
+          <p class="text-xs text-zinc-400 mt-0.5">快捷登录：<code class="text-sky-300 bg-zinc-900 px-1.5 py-0.5 rounded cursor-pointer" onclick="copySSH('ssh insistgang@100.98.218.25')">ssh insistgang@100.98.218.25</code> ｜ CUDA 训练 / 批量构建 / 冷备</p>
         </div>
       </div>
     `;
@@ -597,7 +599,7 @@ function handleTaskRoute(val) {
   } else {
     resBox.innerHTML = `
       <div class="text-xs text-zinc-300">
-        💡 <span class="font-bold text-white">通用分流口诀：</span>思考/文字/求职留在 Mac（去图书馆），重跑/Ollama/冷备丢给 Win 4070S，端侧感知丢给 Jetson。
+        💡 <span class="font-bold text-white">通用分流口诀：</span>思考/文字/求职留在 Mac（去图书馆），重跑/构建/冷备丢给 Win 4070S，端侧感知丢给 Jetson。
       </div>
     `;
   }

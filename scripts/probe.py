@@ -18,7 +18,8 @@ from datetime import datetime
 # Windows 4070S
 WIN_IP = "100.98.218.25"
 WIN_NAME = "pc-20240911pzjo"
-WIN_OLLAMA_PORT = 11434
+WIN_SSH_PORT = 22
+WIN_SMB_PORT = 445
 
 # Mac M5
 MAC_NAME = "insistgangmacbook-air"
@@ -95,9 +96,11 @@ def get_mac_stats():
 def probe_all():
     # 1. Probe Windows
     win_online, win_lat = probe_ping(WIN_IP, timeout=2)
-    ollama_ok = False
+    win_ssh_ok = False
+    win_smb_ok = False
     if win_online:
-        ollama_ok = probe_port(WIN_IP, WIN_OLLAMA_PORT, timeout=1.5)
+        win_ssh_ok = probe_port(WIN_IP, WIN_SSH_PORT, timeout=1.5)
+        win_smb_ok = probe_port(WIN_IP, WIN_SMB_PORT, timeout=1.5)
 
     # 2. Probe Jetson (LAN)
     jetson_online, jetson_lat = probe_ping(JETSON_IP, timeout=1.5)
@@ -111,15 +114,17 @@ def probe_all():
         "device": "Windows 性能主机 (i5-12600KF, 32GB, RTX 4070S 12GB)",
         "ip": WIN_IP,
         "name": WIN_NAME,
-        "role": "算力后端 // CUDA 训练 // Ollama 本地模型 // 冷备仓库",
+        "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
         "status": "Online" if win_online else "Offline",
         "latency_ms": win_lat if win_online else None,
-        "ollama_port": WIN_OLLAMA_PORT,
-        "ollama_active": ollama_ok,
+        "ssh_port": WIN_SSH_PORT,
+        "ssh_active": win_ssh_ok,
+        "smb_port": WIN_SMB_PORT,
+        "smb_active": win_smb_ok,
         "services": [
-            f"Ollama AI ({'Active :11434' if ollama_ok else 'Standby'})",
+            f"SSH Remote ({'Active :22' if win_ssh_ok else 'Standby'})",
+            f"SMB Storage ({'Active :445' if win_smb_ok else 'Standby'})",
             "CUDA 12 Compute",
-            "SMB Storage",
             "Tailscale Mesh"
         ]
     }

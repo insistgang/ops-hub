@@ -77,7 +77,9 @@ def cmd_status(args):
 
     print(f"{Colors.BOLD}🖥️  三端异构算力拓扑 (Compute Topology):{Colors.ENDC}")
     print(f"   💻 Mac 本地:   {Colors.GREEN}● 在线{Colors.ENDC}  [{mac.get('device', 'MacBook Air')}]  电量: {mac.get('battery')} ({mac.get('power_state')})")
-    print(f"   🖥️  Win 4070S:  {win_status_color}● {win.get('status')}{Colors.ENDC} [{win.get('ip')}]  延迟: {Colors.CYAN}{lat_str}{Colors.ENDC}  Ollama: {win.get('services', [''])[0]}")
+    win_ssh = "22 Active" if win.get("ssh_active") else "Standby"
+    win_smb = "445 Active" if win.get("smb_active") else "Standby"
+    print(f"   🖥️  Win 4070S:  {win_status_color}● {win.get('status')}{Colors.ENDC} [{win.get('ip')}]  延迟: {Colors.CYAN}{lat_str}{Colors.ENDC}  SSH: {win_ssh}  SMB: {win_smb}")
     print(f"   🤖 Jetson 边缘: {jet_color}● {jet_status}{Colors.ENDC} [{jetson.get('ip')}]  延迟: {Colors.CYAN}{jet_lat_str}{Colors.ENDC}  SSH: {jetson.get('ssh_cmd')}")
 
     # 2. Career Pipeline
@@ -131,10 +133,9 @@ def cmd_dispatch(args):
         if any(k in query for k in ["论文", "写作", "日记", "求职", "简历", "复盘", "思考", "typst", "前端"]):
             print(f"👉 {Colors.BOLD}{Colors.GREEN}立即留在 MacBook Air (M5){Colors.ENDC} 执行！")
             print(f"   📌 场景指引: 抱上 Mac 前往图书馆专注完成，断网/静音深潜，禁止多开。")
-        elif any(k in query for k in ["cuda", "训练", "yolo", "大模型", "ollama", "冷备", "备份", "下载", "游戏", "渲染"]):
+        elif any(k in query for k in ["cuda", "训练", "yolo", "冷备", "备份", "下载", "游戏", "渲染", "构建", "依赖"]):
             print(f"👉 {Colors.BOLD}{Colors.CYAN}立即派发给 Windows 4070S 性能主机{Colors.ENDC} 执行！")
             print(f"   📌 快捷登录: {Colors.BOLD}ssh insistgang@100.98.218.25{Colors.ENDC}")
-            print(f"   📌 Ollama API: http://100.98.218.25:11434")
         elif any(k in query for k in ["jetson", "边缘", "机器人", "ros", "视觉", "传感器", "亚博"]):
             print(f"👉 {Colors.BOLD}{Colors.GREEN}立即派发给 Jetson 边缘计算硬件{Colors.ENDC} 执行！")
             print(f"   📌 快捷登录: {Colors.BOLD}ssh jetson@10.8.20.74{Colors.ENDC}")
@@ -367,7 +368,7 @@ def main():
 
     # ops dispatch [query]
     p_disp = subparsers.add_parser("dispatch", help="查看三端设备任务分工矩阵或查询分流指引")
-    p_disp.add_argument("query", nargs="?", help="任务关键词 (如: 论文, 训练, yolo, 求职, 日记, ollama)")
+    p_disp.add_argument("query", nargs="?", help="任务关键词 (如: 论文, 训练, yolo, 构建, 求职, 日记)")
 
     p_sync = subparsers.add_parser("sync", help="全量探测并刷新状态")
     p_sync.add_argument("--push", action="store_true", help="探测后自动推送至 GitHub")

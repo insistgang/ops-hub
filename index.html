@@ -273,7 +273,7 @@
         <div class="flex items-center gap-2">
           <div class="relative flex-1">
             <i data-lucide="search" class="w-4 h-4 text-zinc-400 absolute left-3.5 top-3"></i>
-            <input id="task-route-input" oninput="handleTaskRoute()" placeholder="输入任务关键词 (如: 论文正文, YOLO训练, 简历投递, Ollama批处理, 机器人感知...)" class="w-full pl-10 pr-4 py-2 rounded-xl bg-zinc-900/90 border border-zinc-700 text-xs text-slate-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 transition-all font-mono">
+            <input id="task-route-input" oninput="handleTaskRoute()" placeholder="输入任务关键词 (如: 论文正文, YOLO训练, 简历投递, 批量构建, 机器人感知...)" class="w-full pl-10 pr-4 py-2 rounded-xl bg-zinc-900/90 border border-zinc-700 text-xs text-slate-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 transition-all font-mono">
           </div>
         </div>
 
@@ -283,7 +283,7 @@
           <button onclick="handleTaskRoute('写毕业小论文')" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition-all font-mono text-[11px]">✍️ 写毕业小论文</button>
           <button onclick="handleTaskRoute('跑 YOLOv11 训练')" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition-all font-mono text-[11px]">⚡ 跑 YOLOv11 训练</button>
           <button onclick="handleTaskRoute('求职投递与定制简历')" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition-all font-mono text-[11px]">🎯 求职与定制简历</button>
-          <button onclick="handleTaskRoute('Ollama 本地模型调用')" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition-all font-mono text-[11px]">🤖 Ollama 本地模型</button>
+          <button onclick="handleTaskRoute('Windows 批量构建与依赖测试')" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition-all font-mono text-[11px]">🧱 Windows 批量构建</button>
           <button onclick="handleTaskRoute('Jetson 机器人与传感器')" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition-all font-mono text-[11px]">🦾 Jetson 机器人感知</button>
         </div>
 
@@ -347,7 +347,8 @@
           </div>
           <div class="text-[11px] font-mono text-zinc-400 space-y-1">
             <div class="flex justify-between"><span>IP:</span><span id="win-ip-text" class="text-slate-200">100.98.218.25</span></div>
-            <div class="flex justify-between"><span>Ollama:</span><span id="win-ollama-badge" class="text-sky-300">11434</span></div>
+            <div class="flex justify-between"><span>SSH:</span><span id="win-ssh-badge" class="text-sky-300">22</span></div>
+            <div class="flex justify-between"><span>SMB:</span><span id="win-smb-badge" class="text-sky-300">445</span></div>
             <div class="flex justify-between"><span>链路:</span><span class="text-slate-200">Tailscale Mesh</span></div>
           </div>
         </div>
@@ -370,7 +371,7 @@
       <!-- Quick Dispatch Toolkit -->
       <div class="glass-panel p-5 rounded-2xl">
         <h4 class="text-base font-bold text-white mb-3">三端快捷分流工具箱</h4>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           
           <button onclick="copySSH('ssh insistgang@100.98.218.25')" class="p-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-left transition-all group">
             <div class="flex items-center justify-between text-zinc-400 mb-1">
@@ -387,11 +388,6 @@
             </div>
             <p class="text-[11px] font-mono text-zinc-500 truncate">ssh jetson@10.8.20.74</p>
           </button>
-
-          <div class="p-3 rounded-xl bg-zinc-900/80 border border-zinc-800 text-left">
-            <div class="text-xs font-mono font-medium text-slate-200 mb-1">Ollama API 端点</div>
-            <p class="text-[11px] font-mono text-zinc-500 truncate">http://100.98.218.25:11434</p>
-          </div>
 
           <div class="p-3 rounded-xl bg-zinc-900/80 border border-zinc-800 text-left">
             <div class="text-xs font-mono font-medium text-slate-200 mb-1">局域网 SMB 共享</div>

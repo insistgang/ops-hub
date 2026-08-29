@@ -43,7 +43,7 @@
       "mode": "算力与充电协作场 (Win 4070S 联动)",
       "rules": [
         "Mac 充电回血、多 Session 推进日常杂务",
-        "远程调度 Windows 4070S 跑 CUDA 训练、Ollama 批处理",
+        "远程调度 Windows 4070S 跑 CUDA 训练与批量构建",
         "对接老师、队友与外部合作伙伴"
       ],
       "color": "sky"
