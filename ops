@@ -16,6 +16,7 @@ Usage:
 import sys
 import os
 import json
+import shutil
 import argparse
 import subprocess
 import webbrowser
@@ -312,11 +313,16 @@ def cmd_schedule(args):
 
     if action == "install":
         print("⚙️  正在注册 macOS 原生 launchd 早晚定时同步服务...")
+        # TCC 完全磁盘访问权限是"按二进制"授权的：优先使用已被用户授权的解释器
+        # （如本机已授权的 uv python3.11），而非默认的 CLT /usr/bin/python3。
+        # 可用环境变量 OPS_PYTHON 显式覆盖。realpath 解析符号链接以匹配 TCC 记录。
+        python_bin = os.path.realpath(os.environ.get("OPS_PYTHON") or shutil.which("python3.11") or "/usr/bin/python3")
+        print(f"🐍 定时任务解释器: {python_bin}")
         tcc_dirs = [Path.home() / d for d in ("Desktop", "Documents", "Downloads")]
         if any(str(BASE_DIR).startswith(str(d)) for d in tcc_dirs):
             print(f"{Colors.WARNING}⚠️  项目位于 macOS 隐私保护目录 ({BASE_DIR})。")
-            print(f"   launchd 以系统 python3 读取该目录需授权，否则任务会静默失败 (Operation not permitted)。")
-            print(f"   修复路径: 系统设置 → 隐私与安全性 → 完全磁盘访问权限 → 添加 /usr/bin/python3")
+            print(f"   若定时任务日志出现 'Operation not permitted'，请给上述解释器授权:")
+            print(f"   系统设置 → 隐私与安全性 → 完全磁盘访问权限 → 添加 {python_bin}")
             print(f"   授权后执行 ops schedule status 可看到真实退出码。{Colors.ENDC}")
         dest.parent.mkdir(parents=True, exist_ok=True)
         plist_content = f"""<?xml version="1.0" encoding="UTF-8"?>
@@ -327,7 +333,7 @@ def cmd_schedule(args):
     <string>com.insistgang.opshub</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/bin/python3</string>
+        <string>{python_bin}</string>
         <string>{BASE_DIR}/scripts/collector.py</string>
         <string>--push</string>
     </array>
@@ -385,8 +391,15 @@ def cmd_schedule(args):
                     for l in tail:
                         print(f"   {Colors.FAIL}{l}{Colors.ENDC}")
             if "Operation not permitted" in err_text:
+                interp = "/usr/bin/python3"
+                try:
+                    import plistlib
+                    with open(dest, "rb") as f:
+                        interp = plistlib.load(f).get("ProgramArguments", [interp])[0]
+                except Exception:
+                    pass
                 print(f"   {Colors.WARNING}💡 这是 macOS 隐私权限 (TCC) 拦截。修复: 系统设置 → 隐私与安全性 →")
-                print(f"      完全磁盘访问权限 → 添加 /usr/bin/python3，然后 ops schedule install 重载服务。{Colors.ENDC}")
+                print(f"      完全磁盘访问权限 → 添加 {interp}，然后 ops schedule install 重载服务。{Colors.ENDC}")
             sys.exit(1)
     elif action == "uninstall":
         if dest.exists():
