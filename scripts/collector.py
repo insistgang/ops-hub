@@ -9,6 +9,7 @@ Supports --push to trigger GitOps auto-commit & push to GitHub.
 import os
 import sys
 import json
+import re
 import fcntl
 import tempfile
 import subprocess
@@ -170,14 +171,31 @@ def get_git_info(repo_path):
         "branch": "-"
     }
 
-def calculate_days_left(target_date_str):
+def calculate_days_left(target_date_str, today=None):
     try:
         target = datetime.strptime(target_date_str, "%Y-%m-%d").date()
-        today = date.today()
+        today = today or date.today()
         diff = (target - today).days
         return max(diff, 0)
     except Exception:
         return 0
+
+
+# Leading "考前 N 天" / "今日考试" in next_action is a live stamp, not a static slogan.
+_EXAM_COUNTDOWN_PREFIX = re.compile(r"^(?:考前\s*\d+\s*天|今日考试)[·•\s]*")
+
+
+def stamp_exam_next_action(action, days):
+    """Rewrite exam next_action with a live countdown so hardcoded day counts cannot rot."""
+    try:
+        days = int(days)
+    except (TypeError, ValueError):
+        days = 0
+    stripped = _EXAM_COUNTDOWN_PREFIX.sub("", (action or "").strip()).strip(" ·•")
+    lead = "今日考试" if days <= 0 else f"考前 {days} 天"
+    if not stripped:
+        return lead
+    return f"{lead} · {stripped}"
 
 def collect_all():
     # 1. Network Probe (Tri-Device)
@@ -204,6 +222,7 @@ def collect_all():
         if entry.get("type") == "exam":
             days = calculate_days_left(entry.get("target_date", "2026-12-31"))
             entry["days_left"] = days
+            entry["next_action"] = stamp_exam_next_action(entry.get("next_action"), days)
         else:
             path = entry.get("path")
             if path:

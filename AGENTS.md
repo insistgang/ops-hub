@@ -70,7 +70,7 @@ Desktop/ops-hub/
    - Andy 项目 (`~/Desktop/andy`)：小智伴侣机器人 (`xiaozhi-esp32` + `py-xiaozhi`)。
    - 毕业小论文 (`~/Desktop/lunwen`)：违建 YOLOv11 主线 + E-PAS Sensors 改投。
    - 自动提取本地 Git 最新提交时间与 Commit 信息，展示 Next Action。
-   - 考试倒计时：教资（2026-09-12，17 天高危冲刺）+ 六级（2026-12）。
+   - 考试倒计时：教资（2026-09-12，按剩余天数动态高危冲刺）+ 六级（2026-12）。
 3. **Tab 3: 🧠 个人记忆与秩序中枢 (Personal Memory & Order Hub)**
    - 每日四勾：起了、动了、写了、关了（Web 点击打卡持久化在浏览器 localStorage、按日期隔离；CLI 写入 `daily_checks.json`，仍是跨设备真源）。
    - 场景契约：图书馆（思考/写作/Mac）vs 实验室（算力/充电/4070S/Jetson）vs 宿舍（关机恢复）。
