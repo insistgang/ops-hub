@@ -40,7 +40,8 @@ def probe_ping(ip, timeout=2):
             if m:
                 avg_lat = float(m.group(2))
                 return True, round(avg_lat, 1)
-            return True, 10.0
+            # Reachable but latency unparsable — report honestly (Zero-Mock Axiom)
+            return True, None
         return False, None
     except Exception:
         return False, None

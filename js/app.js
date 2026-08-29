@@ -7,8 +7,19 @@ let globalStatus = window.__OPS_STATUS__ || null;
 let memoryRules = window.__OPS_MEMORY__ || null;
 let currentCareerFilter = "all";
 
+/**
+ * Escape external/user-controlled text before injecting into innerHTML (XSS guard).
+ * All data rendered via innerHTML MUST pass through esc() first.
+ */
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+
 function boot() {
   console.log("🚀 Ops-Hub 正在初始化启动...");
+  initTheme();
   initTabs();
   startLiveClock();
 
@@ -48,6 +59,32 @@ function safeCreateIcons() {
   } catch (e) {
     console.warn("Lucide icons init warning:", e);
   }
+}
+
+/* ---------- Day/Night Theme ---------- */
+
+function applyTheme(theme) {
+  const isDark = theme === "dark";
+  document.documentElement.classList.toggle("dark", isDark);
+  const btn = document.getElementById("theme-toggle");
+  if (btn) {
+    // Show the icon of the theme you will switch TO
+    btn.innerHTML = `<i data-lucide="${isDark ? 'sun' : 'moon'}" class="w-4 h-4"></i>`;
+    btn.title = isDark ? "切换到日间模式" : "切换到夜间模式";
+  }
+  safeCreateIcons();
+}
+
+function initTheme() {
+  let saved = "dark";
+  try { saved = localStorage.getItem("ops_theme") || "dark"; } catch (e) {}
+  applyTheme(saved);
+}
+
+function toggleTheme() {
+  const next = document.documentElement.classList.contains("dark") ? "light" : "dark";
+  applyTheme(next);
+  try { localStorage.setItem("ops_theme", next); } catch (e) {}
 }
 
 function startLiveClock() {
@@ -172,7 +209,7 @@ function renderHeader() {
   if (winPill && winDot && winText) {
     if (win.status === "Online") {
       winDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-      winText.innerText = `Win 4070S: ${win.latency_ms}ms`;
+      winText.innerText = win.latency_ms != null ? `Win 4070S: ${win.latency_ms}ms` : "Win 4070S: Online";
       winPill.className = "flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-950/40 text-emerald-300 border border-emerald-800/50";
     } else {
       winDot.className = "w-2 h-2 rounded-full bg-rose-500";
@@ -189,7 +226,7 @@ function renderHeader() {
   if (jetPill && jetDot && jetText) {
     if (jetson.status === "Online") {
       jetDot.className = "w-2 h-2 rounded-full bg-emerald-400";
-      jetText.innerText = `Jetson: ${jetson.latency_ms}ms`;
+      jetText.innerText = jetson.latency_ms != null ? `Jetson: ${jetson.latency_ms}ms` : "Jetson: Online";
       jetPill.className = "hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-950/40 text-emerald-300 border border-emerald-800/50";
     } else {
       jetDot.className = "w-2 h-2 rounded-full bg-zinc-500";
@@ -229,7 +266,7 @@ function renderHeroMetrics() {
   const compSub = document.getElementById("metric-compute-sub");
   const onlineCount = (win.status === "Online" ? 1 : 0) + (jetson.status === "Online" ? 1 : 0) + 1;
   if (compLat) compLat.innerText = `${onlineCount} 节点在线`;
-  if (compSub) compSub.innerText = `4070S:${win.latency_ms ? win.latency_ms + 'ms' : '离线'} ｜ Jetson:${jetson.latency_ms ? jetson.latency_ms + 'ms' : '待命'}`;
+  if (compSub) compSub.innerText = `4070S:${win.latency_ms != null ? win.latency_ms + 'ms' : (win.status === "Online" ? '在线' : '离线')} ｜ Jetson:${jetson.latency_ms != null ? jetson.latency_ms + 'ms' : (jetson.status === "Online" ? '在线' : '待命')}`;
 }
 
 function renderCareerPipeline() {
@@ -262,27 +299,27 @@ function renderCareerPipeline() {
     card.innerHTML = `
       <div class="flex items-start gap-3.5">
         <div class="w-10 h-10 rounded-lg bg-zinc-800/80 border border-zinc-700 flex items-center justify-center shrink-0 text-indigo-400 font-bold">
-          ${r.company.substring(0, 2)}
+          ${esc((r.company || "").substring(0, 2))}
         </div>
         <div>
           <div class="flex items-center gap-2 flex-wrap">
-            <h4 class="font-bold text-slate-100">${r.company}</h4>
-            <span class="px-2 py-0.5 rounded text-xs border font-medium ${statusClass}">${r.status}</span>
+            <h4 class="font-bold text-slate-100">${esc(r.company)}</h4>
+            <span class="px-2 py-0.5 rounded text-xs border font-medium ${statusClass}">${esc(r.status)}</span>
             ${priorityBadge}
           </div>
           <p class="text-xs text-slate-400 mt-1 flex items-center gap-2">
-            <span class="text-indigo-300 font-medium">${r.position}</span>
+            <span class="text-indigo-300 font-medium">${esc(r.position)}</span>
             <span>·</span>
-            <span>投递于 ${r.apply_date}</span>
+            <span>投递于 ${esc(r.apply_date)}</span>
           </p>
-          ${r.notes ? `<p class="text-xs text-slate-400/90 mt-2 bg-zinc-900/60 p-2 rounded-lg border border-zinc-800 font-mono">${r.notes}</p>` : ''}
+          ${r.notes ? `<p class="text-xs text-slate-400/90 mt-2 bg-zinc-900/60 p-2 rounded-lg border border-zinc-800 font-mono">${esc(r.notes)}</p>` : ''}
         </div>
       </div>
       <div class="flex items-center gap-2 self-end md:self-center shrink-0">
         ${r.resume_file ? `
           <div class="text-[11px] font-mono text-zinc-400 bg-zinc-900 px-2.5 py-1.5 rounded-md border border-zinc-800 flex items-center gap-1.5">
             <i data-lucide="file-text" class="w-3.5 h-3.5 text-indigo-400"></i>
-            <span>${r.resume_file}</span>
+            <span>${esc(r.resume_file)}</span>
           </div>
         ` : ''}
       </div>
@@ -318,17 +355,17 @@ function renderProjectsRadar() {
         <div>
           <div class="flex items-center justify-between mb-2">
             <span class="text-xs font-mono uppercase px-2 py-0.5 rounded ${isUrgent ? 'bg-rose-950 text-rose-300 border border-rose-800/60 danger-pulse' : 'bg-indigo-950 text-indigo-300 border border-indigo-800/60'}">
-              ${p.category}
+              ${esc(p.category)}
             </span>
-            <span class="text-xs text-slate-400 font-mono">考期: ${p.target_date}</span>
+            <span class="text-xs text-slate-400 font-mono">考期: ${esc(p.target_date)}</span>
           </div>
-          <h4 class="text-base font-bold text-slate-100 mt-1">${p.name}</h4>
+          <h4 class="text-base font-bold text-slate-100 mt-1">${esc(p.name)}</h4>
           <div class="my-4 flex items-baseline gap-2">
-            <span class="text-3xl font-extrabold font-mono ${isUrgent ? 'text-rose-400' : 'text-amber-400'}">${p.days_left}</span>
+            <span class="text-3xl font-extrabold font-mono ${isUrgent ? 'text-rose-400' : 'text-amber-400'}">${esc(p.days_left)}</span>
             <span class="text-xs text-slate-400">天后开考</span>
           </div>
           <div class="bg-zinc-900/80 p-2.5 rounded-lg border border-zinc-800 text-xs text-slate-300">
-            <span class="text-indigo-400 font-semibold">下一步冲刺：</span>${p.next_action}
+            <span class="text-indigo-400 font-semibold">下一步冲刺：</span>${esc(p.next_action)}
           </div>
         </div>
       `;
@@ -337,28 +374,28 @@ function renderProjectsRadar() {
         <div>
           <div class="flex items-center justify-between mb-2">
             <span class="text-xs font-mono uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
-              ${p.category}
+              ${esc(p.category)}
             </span>
             <span class="text-xs font-mono text-emerald-400 flex items-center gap-1">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-              ${p.status}
+              ${esc(p.status)}
             </span>
           </div>
-          <h4 class="text-base font-bold text-slate-100 mt-1">${p.name}</h4>
-          <p class="text-xs text-indigo-300 font-mono mt-1">${p.tech_stack}</p>
+          <h4 class="text-base font-bold text-slate-100 mt-1">${esc(p.name)}</h4>
+          <p class="text-xs text-indigo-300 font-mono mt-1">${esc(p.tech_stack)}</p>
 
           <div class="my-3 py-2 px-3 bg-zinc-950/60 rounded-lg border border-zinc-800/80 text-xs font-mono text-slate-400">
             <div class="flex items-center justify-between text-[11px] text-zinc-500 mb-1">
               <span>最新代码动态</span>
-              <span>${p.commit_time || '-'}</span>
+              <span>${esc(p.commit_time || '-')}</span>
             </div>
             <div class="text-slate-300 truncate">
-              <span class="text-indigo-400 font-semibold">[${p.commit_hash || 'LOCAL'}]</span> ${p.commit_msg || '-'}
+              <span class="text-indigo-400 font-semibold">[${esc(p.commit_hash || 'LOCAL')}]</span> ${esc(p.commit_msg || '-')}
             </div>
           </div>
 
           <div class="bg-zinc-900/80 p-2.5 rounded-lg border border-zinc-800 text-xs text-slate-300 mt-2">
-            <span class="text-indigo-400 font-semibold">下一步行动：</span>${p.next_action}
+            <span class="text-indigo-400 font-semibold">下一步行动：</span>${esc(p.next_action)}
           </div>
         </div>
       `;
@@ -370,7 +407,29 @@ function renderProjectsRadar() {
 function renderMemoryHub() {
   if (!memoryRules) return;
 
-  const checksData = globalStatus.daily_checks?.checks || {};
+  // Web check-ins persist in localStorage (static site: browser is the only writable store).
+  // CLI (`ops check`) remains the cross-device source of truth via daily_checks.json.
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  const storageKey = `ops_checks_${todayStr}`;
+
+  const dateBadge = document.getElementById("daily-checks-date");
+  if (dateBadge) dateBadge.innerText = todayStr;
+
+  let checksData = null;
+  try {
+    checksData = JSON.parse(localStorage.getItem(storageKey) || "null");
+  } catch (e) { checksData = null; }
+  if (!checksData || typeof checksData !== "object") {
+    // Fall back to JSON snapshot only when it is actually today's record
+    const jsonChecks = globalStatus.daily_checks || {};
+    checksData = Object.assign(
+      { "起了": false, "动了": false, "写了": false, "关了": false },
+      jsonChecks.date === todayStr ? (jsonChecks.checks || {}) : {}
+    );
+  }
+
   const checksContainer = document.getElementById("daily-checks-container");
   if (checksContainer) {
     checksContainer.innerHTML = "";
@@ -384,11 +443,11 @@ function renderMemoryHub() {
       item.innerHTML = `
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded-lg ${isChecked ? 'bg-emerald-900/50 text-emerald-400' : 'bg-zinc-800 text-zinc-400'} flex items-center justify-center">
-            <i data-lucide="${def.icon || 'check'}" class="w-4 h-4"></i>
+            <i data-lucide="${esc(def.icon || 'check')}" class="w-4 h-4"></i>
           </div>
           <div>
-            <h5 class="text-sm font-bold text-slate-200">${def.name} (${def.key})</h5>
-            <p class="text-[11px] text-slate-400">${def.desc}</p>
+            <h5 class="text-sm font-bold text-slate-200">${esc(def.name)} (${esc(def.key)})</h5>
+            <p class="text-[11px] text-slate-400">${esc(def.desc)}</p>
           </div>
         </div>
         <div class="w-6 h-6 rounded-md border flex items-center justify-center ${isChecked ? 'bg-emerald-600 border-emerald-500 text-white' : 'border-zinc-700'}">
@@ -397,6 +456,9 @@ function renderMemoryHub() {
       `;
       item.onclick = () => {
         checksData[def.key] = !isChecked;
+        try { localStorage.setItem(storageKey, JSON.stringify(checksData)); } catch (e) {
+          console.warn("打卡持久化失败 (localStorage 不可用):", e);
+        }
         renderMemoryHub();
         safeCreateIcons();
       };
@@ -412,11 +474,11 @@ function renderMemoryHub() {
       card.className = "p-4 rounded-xl bg-zinc-900/70 border border-zinc-800";
       card.innerHTML = `
         <div class="flex items-center justify-between mb-2">
-          <h5 class="font-bold text-slate-100">${sc.scene}</h5>
-          <span class="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 font-mono">${sc.mode}</span>
+          <h5 class="font-bold text-slate-100">${esc(sc.scene)}</h5>
+          <span class="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 font-mono">${esc(sc.mode)}</span>
         </div>
         <ul class="text-xs text-slate-400 space-y-1.5 mt-2">
-          ${sc.rules.map(r => `<li class="flex items-start gap-1.5"><span class="text-indigo-400">▹</span><span>${r}</span></li>`).join('')}
+          ${sc.rules.map(r => `<li class="flex items-start gap-1.5"><span class="text-indigo-400">▹</span><span>${esc(r)}</span></li>`).join('')}
         </ul>
       `;
       scenesContainer.appendChild(card);
@@ -430,8 +492,8 @@ function renderMemoryHub() {
       const card = document.createElement("div");
       card.className = "p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/80 text-xs";
       card.innerHTML = `
-        <span class="font-bold text-indigo-300 block mb-1">⚡ ${fp.principle}</span>
-        <span class="text-slate-400 leading-relaxed">${fp.desc}</span>
+        <span class="font-bold text-indigo-300 block mb-1">⚡ ${esc(fp.principle)}</span>
+        <span class="text-slate-400 leading-relaxed">${esc(fp.desc)}</span>
       `;
       principlesContainer.appendChild(card);
     });
@@ -446,7 +508,7 @@ function renderMemoryHub() {
     (hs.schedule || []).forEach(s => {
       const li = document.createElement("div");
       li.className = "flex items-center justify-between text-xs py-1 border-b border-zinc-800/50 last:border-0";
-      li.innerHTML = `<span class="text-indigo-300 font-mono font-medium">${s.period}</span><span class="text-slate-300">${s.items}</span>`;
+      li.innerHTML = `<span class="text-indigo-300 font-mono font-medium">${esc(s.period)}</span><span class="text-slate-300">${esc(s.items)}</span>`;
       healthList.appendChild(li);
     });
   }
@@ -470,7 +532,7 @@ function renderComputeTopology() {
   const winSsh = document.getElementById("win-ssh-badge");
   const winSmb = document.getElementById("win-smb-badge");
   if (winIp) winIp.innerText = win.ip || "100.98.218.25";
-  if (winLat) winLat.innerText = win.latency_ms ? `${win.latency_ms} ms` : "Offline";
+  if (winLat) winLat.innerText = win.latency_ms != null ? `${win.latency_ms} ms` : (win.status === "Online" ? "在线" : "Offline");
   if (winSsh) winSsh.innerText = win.ssh_active ? "22 (Active)" : "22 (Standby)";
   if (winSmb) winSmb.innerText = win.smb_active ? "445 (Active)" : "445 (Standby)";
 
@@ -478,7 +540,7 @@ function renderComputeTopology() {
   const jetLat = document.getElementById("jetson-latency-badge");
   const jetSsh = document.getElementById("jetson-ssh-badge");
   if (jetIp) jetIp.innerText = jetson.ip || "10.8.20.74";
-  if (jetLat) jetLat.innerText = jetson.latency_ms ? `${jetson.latency_ms} ms` : "局域网待命";
+  if (jetLat) jetLat.innerText = jetson.latency_ms != null ? `${jetson.latency_ms} ms` : (jetson.status === "Online" ? "在线" : "局域网待命");
   if (jetSsh) jetSsh.innerText = jetson.ssh_active ? "22 (Active)" : "22 (Standby)";
 }
 
@@ -504,13 +566,13 @@ function renderDeviceAllocation() {
         <div>
           <div class="flex items-center justify-between mb-2">
             <span class="text-xs font-mono uppercase px-2 py-0.5 rounded border ${badgeColor}">
-              ${dev.badge}
+              ${esc(dev.badge)}
             </span>
-            <span class="text-xs font-mono text-zinc-400">${dev.network.split(' ')[0]}</span>
+            <span class="text-xs font-mono text-zinc-400">${esc((dev.network || "").split(' ')[0])}</span>
           </div>
-          <h4 class="text-lg font-bold text-white mt-1">${dev.name}</h4>
-          <p class="text-xs text-zinc-400 font-mono mt-0.5">${dev.hardware}</p>
-          <p class="text-xs ${headerColor} font-medium mt-1 mb-3">${dev.role}</p>
+          <h4 class="text-lg font-bold text-white mt-1">${esc(dev.name)}</h4>
+          <p class="text-xs text-zinc-400 font-mono mt-0.5">${esc(dev.hardware)}</p>
+          <p class="text-xs ${headerColor} font-medium mt-1 mb-3">${esc(dev.role)}</p>
 
           <div class="mb-4">
             <div class="text-xs font-bold text-slate-200 mb-1.5 flex items-center gap-1">
@@ -518,7 +580,7 @@ function renderDeviceAllocation() {
               <span>专属主责任务清单</span>
             </div>
             <ul class="text-xs text-slate-300 space-y-1.5 bg-zinc-950/50 p-2.5 rounded-xl border border-zinc-800/80">
-              ${dev.primary_tasks.map(t => `<li class="flex items-start gap-1.5"><span class="text-indigo-400 font-bold shrink-0">✓</span><span>${t}</span></li>`).join('')}
+              ${dev.primary_tasks.map(t => `<li class="flex items-start gap-1.5"><span class="text-indigo-400 font-bold shrink-0">✓</span><span>${esc(t)}</span></li>`).join('')}
             </ul>
           </div>
 
@@ -528,7 +590,7 @@ function renderDeviceAllocation() {
               <span>设备使用绝不越界红线</span>
             </div>
             <ul class="text-xs text-rose-200/80 space-y-1 bg-rose-950/20 p-2.5 rounded-xl border border-rose-900/40 font-mono">
-              ${dev.redlines.map(r => `<li class="flex items-start gap-1.5"><span>${r}</span></li>`).join('')}
+              ${dev.redlines.map(r => `<li class="flex items-start gap-1.5"><span>${esc(r)}</span></li>`).join('')}
             </ul>
           </div>
         </div>
@@ -544,10 +606,10 @@ function renderDeviceAllocation() {
       const tr = document.createElement("tr");
       tr.className = "border-b border-zinc-800/60 hover:bg-zinc-900/30 transition-all text-xs";
       tr.innerHTML = `
-        <td class="py-3 px-4 font-bold text-slate-200 whitespace-nowrap">${wf.project}</td>
-        <td class="py-3 px-4 text-indigo-300 bg-indigo-950/10">${wf.mac_role}</td>
-        <td class="py-3 px-4 text-sky-300 bg-sky-950/10">${wf.win_role}</td>
-        <td class="py-3 px-4 text-zinc-400 font-mono">${wf.collab_mode}</td>
+        <td class="py-3 px-4 font-bold text-slate-200 whitespace-nowrap">${esc(wf.project)}</td>
+        <td class="py-3 px-4 text-indigo-300 bg-indigo-950/10">${esc(wf.mac_role)}</td>
+        <td class="py-3 px-4 text-sky-300 bg-sky-950/10">${esc(wf.win_role)}</td>
+        <td class="py-3 px-4 text-zinc-400 font-mono">${esc(wf.collab_mode)}</td>
       `;
       wfContainer.appendChild(tr);
     });

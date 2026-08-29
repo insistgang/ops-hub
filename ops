@@ -171,10 +171,11 @@ def cmd_dispatch(args):
 
 def cmd_sync(args):
     print("🔄 正在执行全量探测与状态刷新...")
-    res = collector.collect_all()
-    print(f"✅ 状态快照已更新至 data/status.json")
-    if args.push:
-        collector.gitops_push()
+    if collector.run_pipeline(push=args.push):
+        print(f"✅ 状态快照已更新至 data/status.json")
+    else:
+        print(f"{Colors.FAIL}❌ 同步流程未完全成功，请检查上方日志。{Colors.ENDC}")
+        sys.exit(1)
 
 def cmd_career(args):
     career_file = DATA_DIR / "career_records.json"
@@ -194,6 +195,12 @@ def cmd_career(args):
                 print(f"     备注: {Colors.DIM}{c.get('notes')}{Colors.ENDC}")
             print()
     elif args.career_action == "update":
+        if not args.company:
+            print(f"{Colors.FAIL}❌ 用法: ops career update <公司名> --status <新状态> [--notes 备注] [--push]{Colors.ENDC}")
+            sys.exit(2)
+        if not args.status:
+            print(f"{Colors.FAIL}❌ 缺少 --status 参数 (如: --status 一面 / 笔试中 / Offer){Colors.ENDC}")
+            sys.exit(2)
         target = args.company
         found = False
         for c in records:
@@ -208,12 +215,13 @@ def cmd_career(args):
         if not found:
             print(f"❌ 未找到公司包含 '{target}' 的记录，如需新增请使用 ops career add")
         else:
-            with open(career_file, "w", encoding="utf-8") as f:
-                json.dump(records, f, ensure_ascii=False, indent=2)
-            collector.collect_all()
-            if args.push:
-                collector.gitops_push()
+            collector.atomic_write_text(career_file, json.dumps(records, ensure_ascii=False, indent=2) + "\n")
+            if not collector.run_pipeline(push=args.push):
+                sys.exit(1)
     elif args.career_action == "add":
+        if not args.company:
+            print(f"{Colors.FAIL}❌ 用法: ops career add <公司名> [--pos 岗位] [--status 状态] [--date 日期] [--notes 备注]{Colors.ENDC}")
+            sys.exit(2)
         new_id = f"c-{len(records)+1:03d}"
         new_item = {
             "id": new_id,
@@ -225,22 +233,23 @@ def cmd_career(args):
             "notes": args.notes or ""
         }
         records.append(new_item)
-        with open(career_file, "w", encoding="utf-8") as f:
-            json.dump(records, f, ensure_ascii=False, indent=2)
+        collector.atomic_write_text(career_file, json.dumps(records, ensure_ascii=False, indent=2) + "\n")
         print(f"✅ 已新增企业投递记录: [{args.company}] - {new_item['position']}")
-        collector.collect_all()
-        if args.push:
-            collector.gitops_push()
+        if not collector.run_pipeline(push=args.push):
+            sys.exit(1)
 
 def cmd_check(args):
     checks_file = DATA_DIR / "daily_checks.json"
-    data = {
+    data = collector.load_json(checks_file, {
         "date": datetime.now().strftime("%Y-%m-%d"),
-        "checks": { "起了": False, "动了": False, "写了": False, "关了": False }
-    }
-    if checks_file.exists():
-        with open(checks_file, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        "checks": { "起了": False, "动了": False, "写了": False, "关了": False },
+        "history": []
+    })
+
+    # Cross-day rollover: archive yesterday's record before toggling today's
+    data, rolled = collector.rollover_daily_checks(data)
+    if rolled and data.get("history"):
+        print(f"🗓️  已跨天：自动归档 {data['history'][-1]['date']} 的打卡记录，开启今日新基线。")
 
     target_key = args.item
     valid_keys = ["起了", "动了", "写了", "关了"]
@@ -252,14 +261,12 @@ def cmd_check(args):
     new_val = not curr if args.toggle else True
     data["checks"][target_key] = new_val
 
-    with open(checks_file, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    collector.atomic_write_text(checks_file, json.dumps(data, ensure_ascii=False, indent=2) + "\n")
 
     status_icon = "✅" if new_val else "⬜"
     print(f"🎯 今日秩序打卡: [{target_key}] ➔ {status_icon} ({'已完成' if new_val else '未完成'})")
-    collector.collect_all()
-    if args.push:
-        collector.gitops_push()
+    if not collector.run_pipeline(push=args.push):
+        sys.exit(1)
 
 def cmd_memory(args):
     rules_file = DATA_DIR / "memory_rules.json"
@@ -291,11 +298,11 @@ def cmd_memory(args):
 
 def cmd_serve(args):
     port = args.port or 3000
-    print(f"🌐 正在启动 Ops-Hub Web 总台本地预览...")
+    print(f"🌐 正在启动 Ops-Hub Web 总台本地预览（仅监听本机回环 127.0.0.1）...")
     print(f"👉 访问地址: http://localhost:{port}")
     webbrowser.open(f"http://localhost:{port}")
     try:
-        subprocess.run(["python3", "-m", "http.server", str(port)], cwd=str(BASE_DIR))
+        subprocess.run(["python3", "-m", "http.server", str(port), "--bind", "127.0.0.1"], cwd=str(BASE_DIR))
     except KeyboardInterrupt:
         print("\n👋 Web 预览服务已停止。")
 
@@ -305,6 +312,12 @@ def cmd_schedule(args):
 
     if action == "install":
         print("⚙️  正在注册 macOS 原生 launchd 早晚定时同步服务...")
+        tcc_dirs = [Path.home() / d for d in ("Desktop", "Documents", "Downloads")]
+        if any(str(BASE_DIR).startswith(str(d)) for d in tcc_dirs):
+            print(f"{Colors.WARNING}⚠️  项目位于 macOS 隐私保护目录 ({BASE_DIR})。")
+            print(f"   launchd 以系统 python3 读取该目录需授权，否则任务会静默失败 (Operation not permitted)。")
+            print(f"   修复路径: 系统设置 → 隐私与安全性 → 完全磁盘访问权限 → 添加 /usr/bin/python3")
+            print(f"   授权后执行 ops schedule status 可看到真实退出码。{Colors.ENDC}")
         dest.parent.mkdir(parents=True, exist_ok=True)
         plist_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -348,10 +361,33 @@ def cmd_schedule(args):
         print("🕒 自动执行时间: 每天 09:00 与 21:00 (休眠唤醒后自动对齐)")
     elif action == "status":
         res = subprocess.run(["launchctl", "list"], stdout=subprocess.PIPE, text=True)
-        if "com.insistgang.opshub" in res.stdout:
-            print("🟢 launchd 定时服务当前状态: [已加载并运行中]")
-        else:
+        line = next((l for l in res.stdout.splitlines() if "com.insistgang.opshub" in l), None)
+        if not line:
             print("⚪ launchd 定时服务当前状态: [未安装/未加载]")
+            return
+        # launchctl list columns: PID \t LastExitStatus \t Label
+        parts = line.split("\t")
+        pid = parts[0] if len(parts) > 0 else "-"
+        last_exit = parts[1] if len(parts) > 1 else "?"
+        if pid != "-":
+            print(f"🟢 launchd 定时服务当前状态: [正在执行中] (PID {pid})")
+        elif last_exit == "0":
+            print(f"🟢 launchd 定时服务当前状态: [已加载，等待调度] (上次执行成功)")
+        else:
+            print(f"🔴 launchd 定时服务已加载，但上次执行失败 (退出码 {last_exit})！")
+            err_log = Path("/tmp/opshub_sync_err.log")
+            err_text = ""
+            if err_log.exists():
+                err_text = err_log.read_text(encoding="utf-8", errors="replace")
+                tail = [l for l in err_text.strip().splitlines() if l.strip()][-3:]
+                if tail:
+                    print(f"{Colors.DIM}   最近错误日志:{Colors.ENDC}")
+                    for l in tail:
+                        print(f"   {Colors.FAIL}{l}{Colors.ENDC}")
+            if "Operation not permitted" in err_text:
+                print(f"   {Colors.WARNING}💡 这是 macOS 隐私权限 (TCC) 拦截。修复: 系统设置 → 隐私与安全性 →")
+                print(f"      完全磁盘访问权限 → 添加 /usr/bin/python3，然后 ops schedule install 重载服务。{Colors.ENDC}")
+            sys.exit(1)
     elif action == "uninstall":
         if dest.exists():
             subprocess.run(["launchctl", "unload", str(dest)], stderr=subprocess.DEVNULL)

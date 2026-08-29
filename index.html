@@ -6,12 +6,16 @@
   <title>Ops-Hub // 个人数字化运营工作总台</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons -->
-  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
-  <link rel="stylesheet" href="css/custom.css">
+  <!-- Lucide Icons (version pinned) -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@1.37.0/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="css/custom.css?v=1.3.0">
+  <!-- Theme bootstrap: apply saved theme before first paint (anti-FOUC) -->
+  <script>
+    try { if (localStorage.getItem("ops_theme") === "light") document.documentElement.classList.remove("dark"); } catch (e) {}
+  </script>
   <!-- Preloaded Data for Zero-CORS offline file:/// compatibility -->
-  <script src="data/status.js?v=1.2.3"></script>
-  <script src="data/memory_rules.js?v=1.2.3"></script>
+  <script src="data/status.js?v=1.3.0"></script>
+  <script src="data/memory_rules.js?v=1.3.0"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -42,7 +46,7 @@
         <div>
           <div class="flex items-center gap-2">
             <h1 class="text-base font-extrabold tracking-tight text-white">OPS-HUB</h1>
-            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-400 border border-indigo-800/50">v1.2.3</span>
+            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-400 border border-indigo-800/50">v1.3.0</span>
           </div>
           <p class="text-[11px] text-zinc-400 hidden sm:block">Leo 的数字化运营工作总台 // 设备分工与算力中枢</p>
         </div>
@@ -78,6 +82,10 @@
           <i data-lucide="flame" class="w-3.5 h-3.5 text-rose-400"></i>
           <span>减重决战 ↗</span>
         </a>
+
+        <button id="theme-toggle" onclick="toggleTheme()" title="切换日间/夜间主题" class="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800/80 transition-all">
+          <i data-lucide="sun" class="w-4 h-4"></i>
+        </button>
 
         <a href="https://github.com/insistgang/ops-hub" target="_blank" class="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800/80 transition-all">
           <i data-lucide="github" class="w-4 h-4"></i>
@@ -215,7 +223,7 @@
             </h4>
             <p class="text-xs text-zinc-400 mt-0.5">点击可直接在浏览器端打卡，或在终端输入 <code class="text-indigo-300">ops check [项]</code></p>
           </div>
-          <span class="text-xs font-mono text-zinc-400 bg-zinc-900 px-2.5 py-1 rounded-md border border-zinc-800">2026-08-26</span>
+          <span id="daily-checks-date" class="text-xs font-mono text-zinc-400 bg-zinc-900 px-2.5 py-1 rounded-md border border-zinc-800">-</span>
         </div>
         <div id="daily-checks-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <!-- Injected via JS -->
@@ -406,11 +414,7 @@
     已复制到剪贴板
   </div>
 
-  <script src="js/app.js?v=1.2.3"></script>
-  <script>
-    if (typeof boot === 'function') {
-      boot();
-    }
-  </script>
+  <script src="js/app.js?v=1.3.0"></script>
+  <!-- app.js self-boots via its own readyState check; no manual boot() call here -->
 </body>
 </html>

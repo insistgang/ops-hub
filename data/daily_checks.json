@@ -1,15 +1,29 @@
 {
-  "date": "2026-08-26",
+  "date": "2026-08-29",
   "checks": {
-    "起了": true,
+    "起了": false,
     "动了": false,
-    "写了": true,
+    "写了": false,
     "关了": false
   },
   "history": [
     {
       "date": "2026-08-25",
-      "checks": { "起了": true, "动了": true, "写了": true, "关了": true }
+      "checks": {
+        "起了": true,
+        "动了": true,
+        "写了": true,
+        "关了": true
+      }
+    },
+    {
+      "date": "2026-08-26",
+      "checks": {
+        "起了": true,
+        "动了": false,
+        "写了": true,
+        "关了": false
+      }
     }
   ]
 }
