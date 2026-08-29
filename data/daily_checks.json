@@ -1,5 +1,5 @@
 {
-  "date": "2026-08-29",
+  "date": "2026-08-30",
   "checks": {
     "起了": false,
     "动了": false,
@@ -22,6 +22,15 @@
         "起了": true,
         "动了": false,
         "写了": true,
+        "关了": false
+      }
+    },
+    {
+      "date": "2026-08-29",
+      "checks": {
+        "起了": false,
+        "动了": false,
+        "写了": false,
         "关了": false
       }
     }

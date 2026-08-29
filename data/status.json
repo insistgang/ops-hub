@@ -3,20 +3,20 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "1.2.1",
-    "last_synced": "2026-08-29 22:38:46",
+    "last_synced": "2026-08-30 07:06:44",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub"
   },
   "topology": {
-    "timestamp": "2026-08-29 22:38:45",
+    "timestamp": "2026-08-30 07:06:44",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.36.75",
       "name": "insistgangmacbook-air",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "76%",
-      "power_state": "Discharging (Battery)",
-      "load_avg": "31.69 21.23 15.16",
+      "battery": "8%",
+      "power_state": "Charging",
+      "load_avg": "5.30 6.06 6.12",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -30,7 +30,7 @@
       "name": "pc-20240911pzjo",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
       "status": "Online",
-      "latency_ms": 357.3,
+      "latency_ms": 241.1,
       "ssh_port": 22,
       "ssh_active": true,
       "smb_port": 445,
@@ -61,7 +61,7 @@
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": 357.3
+    "mesh_latency_ms": 241.1
   },
   "career_summary": {
     "stats": {
@@ -192,9 +192,9 @@
       "type": "exam",
       "target_date": "2026-09-12",
       "status": "冲刺备考中 (已报名缴费)",
-      "next_action": "考前 17 天高频考点突击与真题模拟",
+      "next_action": "考前 13 天 · 高频考点突击与真题模拟",
       "priority": "Critical",
-      "days_left": 14
+      "days_left": 13
     },
     {
       "id": "e-cet6",
@@ -203,9 +203,9 @@
       "type": "exam",
       "target_date": "2026-12-12",
       "status": "日常积累与听力专项",
-      "next_action": "核心考纲高频词汇与听力真题精听",
+      "next_action": "考前 104 天 · 核心考纲高频词汇与听力真题精听",
       "priority": "Medium",
-      "days_left": 105
+      "days_left": 104
     }
   ],
   "weight_challenge": {
@@ -213,8 +213,8 @@
     "live_url": "https://insistgang.top/weight-tracker/",
     "period": "2026-08-24 ~ 2026-09-30",
     "total_days": 38,
-    "current_day": 6,
-    "days_left": 32,
+    "current_day": 7,
+    "days_left": 31,
     "members": [
       "刘钢",
       "张庭磊",
@@ -223,7 +223,7 @@
     "target": "不找借口 · 真实记录 · 早晚双测 · 责任捆绑 · 顶峰相见"
   },
   "daily_checks": {
-    "date": "2026-08-29",
+    "date": "2026-08-30",
     "checks": {
       "起了": false,
       "动了": false,
@@ -246,6 +246,15 @@
           "起了": true,
           "动了": false,
           "写了": true,
+          "关了": false
+        }
+      },
+      {
+        "date": "2026-08-29",
+        "checks": {
+          "起了": false,
+          "动了": false,
+          "写了": false,
           "关了": false
         }
       }
