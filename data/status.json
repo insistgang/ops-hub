@@ -3,20 +3,20 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "1.2.1",
-    "last_synced": "2026-08-30 07:18:26",
+    "last_synced": "2026-08-30 09:15:12",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub"
   },
   "topology": {
-    "timestamp": "2026-08-30 07:18:26",
+    "timestamp": "2026-08-30 09:15:12",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.36.75",
       "name": "insistgangmacbook-air",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "8%",
+      "battery": "16%",
       "power_state": "Charging",
-      "load_avg": "3.74 4.76 5.47",
+      "load_avg": "7.10 6.92 5.29",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -29,15 +29,15 @@
       "ip": "100.98.218.25",
       "name": "pc-20240911pzjo",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
-      "status": "Online",
-      "latency_ms": 241.3,
+      "status": "Offline",
+      "latency_ms": null,
       "ssh_port": 22,
-      "ssh_active": true,
+      "ssh_active": false,
       "smb_port": 445,
-      "smb_active": true,
+      "smb_active": false,
       "services": [
-        "SSH Remote (Active :22)",
-        "SMB Storage (Active :445)",
+        "SSH Remote (Standby)",
+        "SMB Storage (Standby)",
         "CUDA 12 Compute",
         "Tailscale Mesh"
       ]
@@ -61,7 +61,7 @@
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": 241.3
+    "mesh_latency_ms": null
   },
   "career_summary": {
     "stats": {
