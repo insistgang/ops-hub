@@ -3,20 +3,20 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "1.2.1",
-    "last_synced": "2026-08-30 09:15:12",
+    "last_synced": "2026-08-30 21:00:07",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub"
   },
   "topology": {
-    "timestamp": "2026-08-30 09:15:12",
+    "timestamp": "2026-08-30 21:00:07",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.36.75",
       "name": "insistgangmacbook-air",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "16%",
-      "power_state": "Charging",
-      "load_avg": "7.10 6.92 5.29",
+      "battery": "100%",
+      "power_state": "AC Power",
+      "load_avg": "2.61 2.79 2.51",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -29,15 +29,15 @@
       "ip": "100.98.218.25",
       "name": "pc-20240911pzjo",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
-      "status": "Offline",
-      "latency_ms": null,
+      "status": "Online",
+      "latency_ms": 23.4,
       "ssh_port": 22,
-      "ssh_active": false,
+      "ssh_active": true,
       "smb_port": 445,
-      "smb_active": false,
+      "smb_active": true,
       "services": [
-        "SSH Remote (Standby)",
-        "SMB Storage (Standby)",
+        "SSH Remote (Active :22)",
+        "SMB Storage (Active :445)",
         "CUDA 12 Compute",
         "Tailscale Mesh"
       ]
@@ -49,19 +49,19 @@
       "user": "jetson",
       "role": "边缘感知节点 // 端侧视觉与机器人感知部署",
       "network_type": "局域网 (LAN Only)",
-      "status": "LAN Standby",
-      "latency_ms": null,
+      "status": "Online",
+      "latency_ms": 7.3,
       "ssh_port": 22,
-      "ssh_active": false,
+      "ssh_active": true,
       "ssh_cmd": "ssh jetson@10.8.20.74",
       "services": [
-        "SSH 访问 (Standby)",
+        "SSH 访问 (Active :22)",
         "NVIDIA JetPack 6 / Tegra R36",
         "CUDA Edge Runtime",
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": null
+    "mesh_latency_ms": 23.4
   },
   "career_summary": {
     "stats": {
@@ -145,11 +145,13 @@
       "status": "核心功能就绪，优化联调中",
       "next_action": "Chrome 插件 V3 优化与利润核算逻辑验证",
       "priority": "High",
-      "git_available": false,
-      "commit_hash": "LOCAL",
-      "commit_time": "2026-08-21 19:34",
-      "commit_msg": "本地代码活跃 (更新于 2026-08-21 19:34)",
-      "branch": "local"
+      "git_available": true,
+      "sub_repo": "",
+      "commit_hash": "341f8e8",
+      "author": "insistgang",
+      "commit_time": "2026-08-30 13:39",
+      "commit_msg": "backup: initial commit of jiefu e-commerce extraction project",
+      "branch": "main"
     },
     {
       "id": "p-andy",
