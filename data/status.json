@@ -3,20 +3,20 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "1.2.1",
-    "last_synced": "2026-08-31 09:00:02",
+    "last_synced": "2026-08-31 21:00:07",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub"
   },
   "topology": {
-    "timestamp": "2026-08-31 09:00:02",
+    "timestamp": "2026-08-31 21:00:07",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.36.75",
       "name": "insistgangmacbook-air",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "100%",
-      "power_state": "AC Power",
-      "load_avg": "2.46 2.70 2.68",
+      "battery": "80%",
+      "power_state": "Charging",
+      "load_avg": "2.80 2.94 2.83",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -30,7 +30,7 @@
       "name": "pc-20240911pzjo",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
       "status": "Online",
-      "latency_ms": 42.6,
+      "latency_ms": 16.0,
       "ssh_port": 22,
       "ssh_active": true,
       "smb_port": 445,
@@ -50,7 +50,7 @@
       "role": "边缘感知节点 // 端侧视觉与机器人感知部署",
       "network_type": "局域网 (LAN Only)",
       "status": "Online",
-      "latency_ms": 8.0,
+      "latency_ms": 8.1,
       "ssh_port": 22,
       "ssh_active": true,
       "ssh_cmd": "ssh jetson@10.8.20.74",
@@ -61,7 +61,7 @@
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": 42.6
+    "mesh_latency_ms": 16.0
   },
   "career_summary": {
     "stats": {
