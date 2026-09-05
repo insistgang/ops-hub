@@ -3,20 +3,20 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "1.2.1",
-    "last_synced": "2026-09-04 21:00:06",
+    "last_synced": "2026-09-05 09:00:08",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub"
   },
   "topology": {
-    "timestamp": "2026-09-04 21:00:06",
+    "timestamp": "2026-09-05 09:00:08",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.36.75",
       "name": "insistgangmacbook-air",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "100%",
-      "power_state": "AC Power",
-      "load_avg": "0.94 1.50 1.71",
+      "battery": "74%",
+      "power_state": "Discharging (Battery)",
+      "load_avg": "3.08 2.33 2.27",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -30,7 +30,7 @@
       "name": "pc-20240911pzjo",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
       "status": "Online",
-      "latency_ms": 19.2,
+      "latency_ms": 481.1,
       "ssh_port": 22,
       "ssh_active": true,
       "smb_port": 445,
@@ -49,19 +49,19 @@
       "user": "jetson",
       "role": "边缘感知节点 // 端侧视觉与机器人感知部署",
       "network_type": "局域网 (LAN Only)",
-      "status": "Online",
-      "latency_ms": 7.9,
+      "status": "LAN Standby",
+      "latency_ms": null,
       "ssh_port": 22,
-      "ssh_active": true,
+      "ssh_active": false,
       "ssh_cmd": "ssh jetson@10.8.20.74",
       "services": [
-        "SSH 访问 (Active :22)",
+        "SSH 访问 (Standby)",
         "NVIDIA JetPack 6 / Tegra R36",
         "CUDA Edge Runtime",
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": 19.2
+    "mesh_latency_ms": 481.1
   },
   "career_summary": {
     "stats": {
@@ -194,9 +194,9 @@
       "type": "exam",
       "target_date": "2026-09-12",
       "status": "冲刺备考中 (已报名缴费)",
-      "next_action": "考前 8 天 · 高频考点突击与真题模拟",
+      "next_action": "考前 7 天 · 高频考点突击与真题模拟",
       "priority": "Critical",
-      "days_left": 8
+      "days_left": 7
     },
     {
       "id": "e-cet6",
@@ -205,9 +205,9 @@
       "type": "exam",
       "target_date": "2026-12-12",
       "status": "日常积累与听力专项",
-      "next_action": "考前 99 天 · 核心考纲高频词汇与听力真题精听",
+      "next_action": "考前 98 天 · 核心考纲高频词汇与听力真题精听",
       "priority": "Medium",
-      "days_left": 99
+      "days_left": 98
     }
   ],
   "weight_challenge": {
@@ -215,8 +215,8 @@
     "live_url": "https://insistgang.top/weight-tracker/",
     "period": "2026-08-24 ~ 2026-09-30",
     "total_days": 38,
-    "current_day": 12,
-    "days_left": 26,
+    "current_day": 13,
+    "days_left": 25,
     "members": [
       "刘钢",
       "张庭磊",
@@ -225,7 +225,7 @@
     "target": "不找借口 · 真实记录 · 早晚双测 · 责任捆绑 · 顶峰相见"
   },
   "daily_checks": {
-    "date": "2026-09-04",
+    "date": "2026-09-05",
     "checks": {
       "起了": false,
       "动了": false,
@@ -298,6 +298,15 @@
       },
       {
         "date": "2026-09-03",
+        "checks": {
+          "起了": false,
+          "动了": false,
+          "写了": false,
+          "关了": false
+        }
+      },
+      {
+        "date": "2026-09-04",
         "checks": {
           "起了": false,
           "动了": false,
