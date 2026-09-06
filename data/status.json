@@ -3,20 +3,20 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "1.2.1",
-    "last_synced": "2026-09-06 09:03:08",
+    "last_synced": "2026-09-06 21:00:05",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub"
   },
   "topology": {
-    "timestamp": "2026-09-06 09:03:08",
+    "timestamp": "2026-09-06 21:00:05",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.36.75",
       "name": "insistgangmacbook-air",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "50%",
+      "battery": "98%",
       "power_state": "Discharging (Battery)",
-      "load_avg": "10.12 7.23 5.31",
+      "load_avg": "2.77 2.74 2.51",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
