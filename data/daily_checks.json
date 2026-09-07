@@ -1,5 +1,5 @@
 {
-  "date": "2026-09-06",
+  "date": "2026-09-07",
   "checks": {
     "起了": false,
     "动了": false,
@@ -90,6 +90,15 @@
     },
     {
       "date": "2026-09-05",
+      "checks": {
+        "起了": false,
+        "动了": false,
+        "写了": false,
+        "关了": false
+      }
+    },
+    {
+      "date": "2026-09-06",
       "checks": {
         "起了": false,
         "动了": false,
