@@ -3,20 +3,20 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "1.2.1",
-    "last_synced": "2026-09-08 21:06:16",
+    "last_synced": "2026-09-09 09:06:40",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub"
   },
   "topology": {
-    "timestamp": "2026-09-08 21:06:15",
+    "timestamp": "2026-09-09 09:06:39",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.36.75",
       "name": "insistgangmacbook-air",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "75%",
+      "battery": "100%",
       "power_state": "Discharging (Battery)",
-      "load_avg": "4.36 5.13 4.15",
+      "load_avg": "1.96 1.72 2.06",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -194,9 +194,9 @@
       "type": "exam",
       "target_date": "2026-09-12",
       "status": "冲刺备考中 (已报名缴费)",
-      "next_action": "考前 4 天 · 高频考点突击与真题模拟",
+      "next_action": "考前 3 天 · 高频考点突击与真题模拟",
       "priority": "Critical",
-      "days_left": 4
+      "days_left": 3
     },
     {
       "id": "e-cet6",
@@ -205,9 +205,9 @@
       "type": "exam",
       "target_date": "2026-12-12",
       "status": "日常积累与听力专项",
-      "next_action": "考前 95 天 · 核心考纲高频词汇与听力真题精听",
+      "next_action": "考前 94 天 · 核心考纲高频词汇与听力真题精听",
       "priority": "Medium",
-      "days_left": 95
+      "days_left": 94
     }
   ],
   "weight_challenge": {
@@ -215,8 +215,8 @@
     "live_url": "https://insistgang.top/weight-tracker/",
     "period": "2026-08-24 ~ 2026-09-30",
     "total_days": 38,
-    "current_day": 16,
-    "days_left": 22,
+    "current_day": 17,
+    "days_left": 21,
     "members": [
       "刘钢",
       "张庭磊",
@@ -225,7 +225,7 @@
     "target": "不找借口 · 真实记录 · 早晚双测 · 责任捆绑 · 顶峰相见"
   },
   "daily_checks": {
-    "date": "2026-09-08",
+    "date": "2026-09-09",
     "checks": {
       "起了": false,
       "动了": false,
@@ -334,6 +334,15 @@
       },
       {
         "date": "2026-09-07",
+        "checks": {
+          "起了": false,
+          "动了": false,
+          "写了": false,
+          "关了": false
+        }
+      },
+      {
+        "date": "2026-09-08",
         "checks": {
           "起了": false,
           "动了": false,
