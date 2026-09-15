@@ -3,20 +3,20 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "1.2.1",
-    "last_synced": "2026-09-15 09:00:05",
+    "last_synced": "2026-09-15 21:06:33",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub"
   },
   "topology": {
-    "timestamp": "2026-09-15 09:00:05",
+    "timestamp": "2026-09-15 21:06:33",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.36.75",
       "name": "insistgangmacbook-air",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "97%",
+      "battery": "98%",
       "power_state": "Discharging (Battery)",
-      "load_avg": "8.09 4.36 3.57",
+      "load_avg": "2.17 2.39 2.62",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -49,13 +49,13 @@
       "user": "jetson",
       "role": "边缘感知节点 // 端侧视觉与机器人感知部署",
       "network_type": "局域网 (LAN Only)",
-      "status": "LAN Standby",
-      "latency_ms": null,
+      "status": "Online",
+      "latency_ms": 2.1,
       "ssh_port": 22,
-      "ssh_active": false,
+      "ssh_active": true,
       "ssh_cmd": "ssh jetson@10.8.20.74",
       "services": [
-        "SSH 访问 (Standby)",
+        "SSH 访问 (Active :22)",
         "NVIDIA JetPack 6 / Tegra R36",
         "CUDA Edge Runtime",
         "Edge AI Perception"
