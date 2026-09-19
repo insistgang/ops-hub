@@ -3,20 +3,20 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "1.2.1",
-    "last_synced": "2026-09-18 21:00:05",
+    "last_synced": "2026-09-19 09:15:01",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub"
   },
   "topology": {
-    "timestamp": "2026-09-18 21:00:04",
+    "timestamp": "2026-09-19 09:15:01",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.36.75",
       "name": "insistgangmacbook-air",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "100%",
+      "battery": "82%",
       "power_state": "Discharging (Battery)",
-      "load_avg": "2.50 3.73 3.49",
+      "load_avg": "1.98 2.27 2.52",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -29,15 +29,15 @@
       "ip": "100.98.218.25",
       "name": "pc-20240911pzjo",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
-      "status": "Online",
-      "latency_ms": 921.8,
+      "status": "Offline",
+      "latency_ms": null,
       "ssh_port": 22,
-      "ssh_active": true,
+      "ssh_active": false,
       "smb_port": 445,
-      "smb_active": true,
+      "smb_active": false,
       "services": [
-        "SSH Remote (Active :22)",
-        "SMB Storage (Active :445)",
+        "SSH Remote (Standby)",
+        "SMB Storage (Standby)",
         "CUDA 12 Compute",
         "Tailscale Mesh"
       ]
@@ -61,7 +61,7 @@
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": 921.8
+    "mesh_latency_ms": null
   },
   "career_summary": {
     "stats": {
@@ -205,9 +205,9 @@
       "type": "exam",
       "target_date": "2026-12-12",
       "status": "日常积累与听力专项",
-      "next_action": "考前 85 天 · 核心考纲高频词汇与听力真题精听",
+      "next_action": "考前 84 天 · 核心考纲高频词汇与听力真题精听",
       "priority": "Medium",
-      "days_left": 85
+      "days_left": 84
     }
   ],
   "weight_challenge": {
@@ -215,8 +215,8 @@
     "live_url": "https://insistgang.top/weight-tracker/",
     "period": "2026-08-24 ~ 2026-09-30",
     "total_days": 38,
-    "current_day": 26,
-    "days_left": 12,
+    "current_day": 27,
+    "days_left": 11,
     "members": [
       "刘钢",
       "张庭磊",
@@ -225,7 +225,7 @@
     "target": "不找借口 · 真实记录 · 早晚双测 · 责任捆绑 · 顶峰相见"
   },
   "daily_checks": {
-    "date": "2026-09-18",
+    "date": "2026-09-19",
     "checks": {
       "起了": false,
       "动了": false,
@@ -424,6 +424,15 @@
       },
       {
         "date": "2026-09-17",
+        "checks": {
+          "起了": false,
+          "动了": false,
+          "写了": false,
+          "关了": false
+        }
+      },
+      {
+        "date": "2026-09-18",
         "checks": {
           "起了": false,
           "动了": false,
