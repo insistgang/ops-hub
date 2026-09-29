@@ -3,20 +3,20 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "1.2.1",
-    "last_synced": "2026-09-28 21:00:03",
+    "last_synced": "2026-09-29 09:02:34",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub"
   },
   "topology": {
-    "timestamp": "2026-09-28 21:00:03",
+    "timestamp": "2026-09-29 09:02:29",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.36.75",
       "name": "insistgangmacbook-air",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "100%",
-      "power_state": "AC Power",
-      "load_avg": "2.81 2.44 2.72",
+      "battery": "87%",
+      "power_state": "Discharging (Battery)",
+      "load_avg": "1.23 1.36 1.54",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -29,15 +29,15 @@
       "ip": "100.98.218.25",
       "name": "pc-20240911pzjo",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
-      "status": "Online",
-      "latency_ms": 132.8,
+      "status": "Offline",
+      "latency_ms": null,
       "ssh_port": 22,
-      "ssh_active": true,
+      "ssh_active": false,
       "smb_port": 445,
-      "smb_active": true,
+      "smb_active": false,
       "services": [
-        "SSH Remote (Active :22)",
-        "SMB Storage (Active :445)",
+        "SSH Remote (Standby)",
+        "SMB Storage (Standby)",
         "CUDA 12 Compute",
         "Tailscale Mesh"
       ]
@@ -61,7 +61,7 @@
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": 132.8
+    "mesh_latency_ms": null
   },
   "career_summary": {
     "stats": {
@@ -145,13 +145,11 @@
       "status": "核心功能就绪，优化联调中",
       "next_action": "Chrome 插件 V3 优化与利润核算逻辑验证",
       "priority": "High",
-      "git_available": true,
-      "sub_repo": "",
-      "commit_hash": "341f8e8",
-      "author": "insistgang",
-      "commit_time": "2026-08-30 13:39",
-      "commit_msg": "backup: initial commit of jiefu e-commerce extraction project",
-      "branch": "main"
+      "git_available": false,
+      "commit_hash": "-",
+      "commit_time": "-",
+      "commit_msg": "读取 Git 失败",
+      "branch": "-"
     },
     {
       "id": "p-andy",
@@ -205,9 +203,9 @@
       "type": "exam",
       "target_date": "2026-12-12",
       "status": "日常积累与听力专项",
-      "next_action": "考前 75 天 · 核心考纲高频词汇与听力真题精听",
+      "next_action": "考前 74 天 · 核心考纲高频词汇与听力真题精听",
       "priority": "Medium",
-      "days_left": 75
+      "days_left": 74
     }
   ],
   "weight_challenge": {
@@ -215,8 +213,8 @@
     "live_url": "https://insistgang.top/weight-tracker/",
     "period": "2026-08-24 ~ 2026-09-30",
     "total_days": 38,
-    "current_day": 36,
-    "days_left": 2,
+    "current_day": 37,
+    "days_left": 1,
     "members": [
       "刘钢",
       "张庭磊",
@@ -225,7 +223,7 @@
     "target": "不找借口 · 真实记录 · 早晚双测 · 责任捆绑 · 顶峰相见"
   },
   "daily_checks": {
-    "date": "2026-09-28",
+    "date": "2026-09-29",
     "checks": {
       "起了": false,
       "动了": false,
@@ -514,6 +512,15 @@
       },
       {
         "date": "2026-09-27",
+        "checks": {
+          "起了": false,
+          "动了": false,
+          "写了": false,
+          "关了": false
+        }
+      },
+      {
+        "date": "2026-09-28",
         "checks": {
           "起了": false,
           "动了": false,
