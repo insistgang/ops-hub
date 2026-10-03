@@ -3,20 +3,20 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "1.2.1",
-    "last_synced": "2026-09-29 09:02:34",
+    "last_synced": "2026-10-03 09:08:26",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub"
   },
   "topology": {
-    "timestamp": "2026-09-29 09:02:29",
+    "timestamp": "2026-10-03 09:08:25",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.36.75",
       "name": "insistgangmacbook-air",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "87%",
+      "battery": "74%",
       "power_state": "Discharging (Battery)",
-      "load_avg": "1.23 1.36 1.54",
+      "load_avg": "47.24 17.38 11.42",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -29,15 +29,15 @@
       "ip": "100.98.218.25",
       "name": "pc-20240911pzjo",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
-      "status": "Offline",
-      "latency_ms": null,
+      "status": "Online",
+      "latency_ms": 1355.7,
       "ssh_port": 22,
-      "ssh_active": false,
+      "ssh_active": true,
       "smb_port": 445,
-      "smb_active": false,
+      "smb_active": true,
       "services": [
-        "SSH Remote (Standby)",
-        "SMB Storage (Standby)",
+        "SSH Remote (Active :22)",
+        "SMB Storage (Active :445)",
         "CUDA 12 Compute",
         "Tailscale Mesh"
       ]
@@ -61,7 +61,7 @@
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": null
+    "mesh_latency_ms": 1355.7
   },
   "career_summary": {
     "stats": {
@@ -140,22 +140,24 @@
       "id": "p-jiefu",
       "name": "姐夫项目：电商数据采集与利润测算",
       "category": "外部合作",
-      "path": "/Users/insistgang/Desktop/jiefu",
+      "path": "/Users/insistgang/Desktop/合作项目/jiefu",
       "tech_stack": "Chrome Extension V3 + Node.js Web",
       "status": "核心功能就绪，优化联调中",
       "next_action": "Chrome 插件 V3 优化与利润核算逻辑验证",
       "priority": "High",
-      "git_available": false,
-      "commit_hash": "-",
-      "commit_time": "-",
-      "commit_msg": "读取 Git 失败",
-      "branch": "-"
+      "git_available": true,
+      "sub_repo": "",
+      "commit_hash": "341f8e8",
+      "author": "insistgang",
+      "commit_time": "2026-08-30 13:39",
+      "commit_msg": "backup: initial commit of jiefu e-commerce extraction project",
+      "branch": "main"
     },
     {
       "id": "p-andy",
       "name": "Andy 项目：小智伴侣机器人",
       "category": "硬件与端侧AI",
-      "path": "/Users/insistgang/Desktop/andy",
+      "path": "/Users/insistgang/Desktop/合作项目/andy",
       "tech_stack": "xiaozhi-esp32 + py-xiaozhi",
       "status": "固件开发与协议联调",
       "next_action": "小智伴侣固件联网与语音交互链路联调",
@@ -172,7 +174,7 @@
       "id": "p-lunwen",
       "name": "毕业小论文：违建识别与遥感变化检测",
       "category": "学术主线",
-      "path": "/Users/insistgang/Desktop/lunwen",
+      "path": "/Users/insistgang/Desktop/论文与阅读/lunwen",
       "tech_stack": "YOLOv11 + PyTorch + Remote Sensing",
       "status": "毕业论文核心推进中 (违建主线 + E-PAS 改投决策)",
       "next_action": "YOLOv11 违建检测实验数据整理与正文推进",
@@ -191,7 +193,7 @@
       "category": "资格认证",
       "type": "exam",
       "target_date": "2026-09-12",
-      "status": "冲刺备考中 (已报名缴费)",
+      "status": "已完成考试，待成绩公布",
       "next_action": "今日考试 · 高频考点突击与真题模拟",
       "priority": "Critical",
       "days_left": 0
@@ -203,9 +205,21 @@
       "type": "exam",
       "target_date": "2026-12-12",
       "status": "日常积累与听力专项",
-      "next_action": "考前 74 天 · 核心考纲高频词汇与听力真题精听",
+      "next_action": "考前 70 天 · 核心考纲高频词汇与听力真题精听",
       "priority": "Medium",
-      "days_left": 74
+      "days_left": 70
+    },
+    {
+      "id": "e-ccf-lmcc-a",
+      "name": "CCF 大模型能力认证 (LMCC-A)",
+      "category": "专业认证",
+      "type": "exam",
+      "path": "/Users/insistgang/Desktop/个人工具/CCF-LMCC-A-Exam",
+      "target_date": "2026-09-19",
+      "status": "已完成笔试 (9/19 东华大学松江校区)，待成绩公布",
+      "next_action": "今日考试 · 等待官方成绩公布，备考记录保留以备复盘",
+      "priority": "Medium",
+      "days_left": 0
     }
   ],
   "weight_challenge": {
@@ -213,8 +227,8 @@
     "live_url": "https://insistgang.top/weight-tracker/",
     "period": "2026-08-24 ~ 2026-09-30",
     "total_days": 38,
-    "current_day": 37,
-    "days_left": 1,
+    "current_day": 38,
+    "days_left": 0,
     "members": [
       "刘钢",
       "张庭磊",
@@ -223,7 +237,7 @@
     "target": "不找借口 · 真实记录 · 早晚双测 · 责任捆绑 · 顶峰相见"
   },
   "daily_checks": {
-    "date": "2026-09-29",
+    "date": "2026-10-03",
     "checks": {
       "起了": false,
       "动了": false,
@@ -521,6 +535,42 @@
       },
       {
         "date": "2026-09-28",
+        "checks": {
+          "起了": false,
+          "动了": false,
+          "写了": false,
+          "关了": false
+        }
+      },
+      {
+        "date": "2026-09-29",
+        "checks": {
+          "起了": false,
+          "动了": false,
+          "写了": false,
+          "关了": false
+        }
+      },
+      {
+        "date": "2026-09-30",
+        "checks": {
+          "起了": false,
+          "动了": false,
+          "写了": false,
+          "关了": false
+        }
+      },
+      {
+        "date": "2026-10-01",
+        "checks": {
+          "起了": false,
+          "动了": false,
+          "写了": false,
+          "关了": false
+        }
+      },
+      {
+        "date": "2026-10-02",
         "checks": {
           "起了": false,
           "动了": false,

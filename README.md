@@ -25,7 +25,7 @@
 |:---|:---|
 | 🖥️ **设备分工与算力总台** | 包含交互式任务分流决策器、Mac vs Windows 专属任务/红线矩阵、真实项目流转协同表。 |
 | 🎯 **求职投递管道** | 对接 `~/Career-Copilot`，追踪施耐德、为恒智能、振石控股、芯圣电子等企业的推进阶段与定制简历。 |
-| 🚀 **多线项目雷达** | 自动提取本地 Git Commit：姐夫电商系统 (`Desktop/jiefu`)、Andy小智机器人 (`Desktop/andy`)、毕业小论文 (`Desktop/lunwen`)。 |
+| 🚀 **多线项目雷达** | 自动提取本地 Git Commit：姐夫电商系统 (`Desktop/合作项目/jiefu`)、Andy小智机器人 (`Desktop/合作项目/andy`)、毕业小论文 (`Desktop/论文与阅读/lunwen`)。 |
 | ⏳ **考期冲刺预警** | **教师资格证 (教资笔试)** 2026-09-12 冲刺倒计时（高危预警）+ **英语六级 (CET-6)** 12月冲刺。 |
 | ⚖️ **减重决战直通** | 直通秋季 38 天决战大盘（刘钢/张庭磊/卢轩）：[https://insistgang.top/weight-tracker/](https://insistgang.top/weight-tracker/) |
 | 🧠 **个人记忆与秩序** | 沉淀每日四勾（起了/动了/写了/关了）、场景分工契约、WIP=1 防散铁律及实验室补剂规则。 |

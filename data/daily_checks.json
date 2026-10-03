@@ -1,5 +1,5 @@
 {
-  "date": "2026-09-29",
+  "date": "2026-10-03",
   "checks": {
     "起了": false,
     "动了": false,
@@ -297,6 +297,42 @@
     },
     {
       "date": "2026-09-28",
+      "checks": {
+        "起了": false,
+        "动了": false,
+        "写了": false,
+        "关了": false
+      }
+    },
+    {
+      "date": "2026-09-29",
+      "checks": {
+        "起了": false,
+        "动了": false,
+        "写了": false,
+        "关了": false
+      }
+    },
+    {
+      "date": "2026-09-30",
+      "checks": {
+        "起了": false,
+        "动了": false,
+        "写了": false,
+        "关了": false
+      }
+    },
+    {
+      "date": "2026-10-01",
+      "checks": {
+        "起了": false,
+        "动了": false,
+        "写了": false,
+        "关了": false
+      }
+    },
+    {
+      "date": "2026-10-02",
       "checks": {
         "起了": false,
         "动了": false,

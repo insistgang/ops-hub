@@ -1,7 +1,7 @@
 # AGENTS.md — Ops-Hub 智能体与开发者协作契约
 
 > **项目名称**：Ops-Hub（个人数字化运营工作总台）  
-> **代码仓库**：`Desktop/ops-hub`  
+> **代码仓库**：`Desktop/个人工具/ops-hub`  
 > **真源设计**：详见 `docs/PRD.md` 与 `docs/PRD_REVIEW.md`  
 > **所有在本项目中工作的 AI 智能体与协作者均须严格遵循本契约。**
 
@@ -15,7 +15,7 @@ Ops-Hub 是承载个人的三端算力调度（Mac + Windows 4070S + Jetson 边�
 ### 1.2 不可动摇的三大铁律
 1. 🚫 **零 Mock 假数据铁律 (Zero-Mock Axiom)**：
    - 严禁制造任何捏造的假数据。所有展示的数据必须 100% 真实、有据可循。
-   - 数据源必须来自本地真实路径 (`~/Career-Copilot`、`~/Desktop/jiefu` 等)、线上系统 (`https://insistgang.top/weight-tracker/`) 及真实硬件探针（Win 4070S / Jetson 边缘）。
+   - 数据源必须来自本地真实路径 (`~/Career-Copilot`、`~/Desktop/合作项目/jiefu` 等)、线上系统 (`https://insistgang.top/weight-tracker/`) 及真实硬件探针（Win 4070S / Jetson 边缘）。
 2. ⚡ **零构建纯净单页架构 (Zero-Build Vanilla Stack)**：
    - 页面采用 `HTML5 + Tailwind CSS (CDN) + Lucide Icons (锁版本)`。
    - 根目录下直接放置 `index.html`，无需复杂的 Node 构建或打包步骤。克隆即用、双击即看、GitHub Pages 秒级上线。
@@ -29,7 +29,7 @@ Ops-Hub 是承载个人的三端算力调度（Mac + Windows 4070S + Jetson 边�
 ## 2. 目录架构与职责划分
 
 ```text
-Desktop/ops-hub/
+Desktop/个人工具/ops-hub/
 ├── index.html                 # 现代化纯净版单页工作总台（Tab 切换式，三端拓扑）
 ├── css/
 │   └── custom.css             # 玻璃拟态样式 + 日间/夜间双主题覆盖层（暗色为默认）
@@ -66,11 +66,11 @@ Desktop/ops-hub/
    - 字段：公司名称、岗位、投递日期、状态 Badge、简历指引、跟进备注。
    - 默认排序：推进中（面试/笔试）自动高亮置顶。
 2. **Tab 2: 🚀 多线项目推进雷达 (Project Radar)**
-   - 姐夫项目 (`~/Desktop/jiefu`)：Chrome 插件 V3 + 利润核算。
-   - Andy 项目 (`~/Desktop/andy`)：小智伴侣机器人 (`xiaozhi-esp32` + `py-xiaozhi`)。
-   - 毕业小论文 (`~/Desktop/lunwen`)：违建 YOLOv11 主线 + E-PAS Sensors 改投。
+   - 姐夫项目 (`~/Desktop/合作项目/jiefu`)：Chrome 插件 V3 + 利润核算。
+   - Andy 项目 (`~/Desktop/合作项目/andy`)：小智伴侣机器人 (`xiaozhi-esp32` + `py-xiaozhi`)。
+   - 毕业小论文 (`~/Desktop/论文与阅读/lunwen`)：违建 YOLOv11 主线 + E-PAS Sensors 改投。
    - 自动提取本地 Git 最新提交时间与 Commit 信息，展示 Next Action。
-   - 考试倒计时：教资（2026-09-12，按剩余天数动态高危冲刺）+ 六级（2026-12）。
+   - 考试倒计时：CCF LMCC-A（9/19 已完成笔试）+ 六级（2026-12）。
 3. **Tab 3: 🧠 个人记忆与秩序中枢 (Personal Memory & Order Hub)**
    - 每日四勾：起了、动了、写了、关了（Web 点击打卡持久化在浏览器 localStorage、按日期隔离；CLI 写入 `daily_checks.json`，仍是跨设备真源）。
    - 场景契约：图书馆（思考/写作/Mac）vs 实验室（算力/充电/4070S/Jetson）vs 宿舍（关机恢复）。

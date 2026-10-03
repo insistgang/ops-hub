@@ -2,7 +2,7 @@
 
 > **状态**：需求访谈完成（进入三轮 Review 阶段）  
 > **定位**：个人数字化运营工作总台（公开在 GitHub / 拒绝 Mock / 全真实数据可溯源）  
-> **代码仓库**：`Desktop/ops-hub`  
+> **代码仓库**：`Desktop/个人工具/ops-hub`  
 > **公网部署目标**：GitHub Pages 纯净单页直出（根目录 `index.html`，零构建，全自动 GitOps）
 
 ---
@@ -51,9 +51,9 @@
 ### Tab 2: 🚀 多线项目推进雷达 (Project Radar)
 * **自动探针机制**：每次同步时，脚本自动读取本地 Git 仓库提取：最新 Commit Hash、提交时间、Commit 说明、当前分支。
 * **涵盖项目矩阵**：
-  * **姐夫项目** (`~/Desktop/jiefu`)：电商数据采集 Chrome 插件 (V3) + 商品利润测算与管理系统。Next Action: `Chrome 插件 V3 优化与利润核算逻辑验证`。
-  * **Andy 项目** (`~/Desktop/andy`)：小智伴侣机器人 (`xiaozhi-esp32` + `py-xiaozhi`)。Next Action: `小智伴侣固件联网与语音交互链路联调`。
-  * **毕业小论文** (`~/Desktop/lunwen`)：违建识别论文（YOLOv11，毕业论文绝对主线）+ E-PAS 遥感变化检测（Sensors 改投复盘）。Next Action: `YOLOv11 违建检测实验数据整理与正文推进`。
+  * **姐夫项目** (`~/Desktop/合作项目/jiefu`)：电商数据采集 Chrome 插件 (V3) + 商品利润测算与管理系统。Next Action: `Chrome 插件 V3 优化与利润核算逻辑验证`。
+  * **Andy 项目** (`~/Desktop/合作项目/andy`)：小智伴侣机器人 (`xiaozhi-esp32` + `py-xiaozhi`)。Next Action: `小智伴侣固件联网与语音交互链路联调`。
+  * **毕业小论文** (`~/Desktop/论文与阅读/lunwen`)：违建识别论文（YOLOv11，毕业论文绝对主线）+ E-PAS 遥感变化检测（Sensors 改投复盘）。Next Action: `YOLOv11 违建检测实验数据整理与正文推进`。
   * **资格考试冲刺卡**：
     - 教资（2026-09-12 笔试冲刺，考前 17 天高频考点突击与真题模拟）。
     - 英语六级（2026-12 冲刺，核心词汇与听力专项冲刺）。
