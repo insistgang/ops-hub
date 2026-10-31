@@ -81,12 +81,12 @@
 
 ### Tab 4: 🖥️ 双机拓扑与算力调度 (Compute & Topology)
 * **设备明细卡**：
-  * **MacBook Air** (`100.86.x.x`): Apple M5 / 16G 统一内存，移动主力与总台交互端。
-  * **Windows 4070S** (`100.98.x.x`): i5-12600KF / 32G / RTX 4070S (12G)，Ping 实测 ~20ms。
+  * **MacBook Air** (`已隐藏`): Apple M5 / 16G 统一内存，移动主力与总台交互端。
+  * **Windows 4070S** (`已隐藏`): i5-12600KF / 32G / RTX 4070S (12G)，Ping 实测 ~20ms。
 * **快捷调度面板**：
-  * 一键复制 SSH：`ssh <user>@100.98.x.x`
+  * 一键复制 SSH：`地址已隐藏`
   * Windows SSH 与 SMB 服务端口的实时探测状态。
-  * 局域网 SMB 共享指引：`smb://100.98.x.x/`
+  * 局域网 SMB 共享指引：`地址已隐藏`
 
 ---
 

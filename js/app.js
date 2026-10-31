@@ -523,7 +523,7 @@ function renderComputeTopology() {
   const macIp = document.getElementById("mac-ip-text");
   const macBatt = document.getElementById("mac-battery-text");
   const macLoad = document.getElementById("mac-load-text");
-  if (macIp) macIp.innerText = mac.ip || "100.86.x.x";
+  if (macIp) macIp.innerText = mac.ip || "已隐藏";
   if (macBatt) macBatt.innerText = `${mac.battery} (${mac.power_state})`;
   if (macLoad) macLoad.innerText = mac.load_avg || "-";
 
@@ -531,7 +531,7 @@ function renderComputeTopology() {
   const winLat = document.getElementById("win-latency-badge");
   const winSsh = document.getElementById("win-ssh-badge");
   const winSmb = document.getElementById("win-smb-badge");
-  if (winIp) winIp.innerText = win.ip || "100.98.x.x";
+  if (winIp) winIp.innerText = win.ip || "已隐藏";
   if (winLat) winLat.innerText = win.latency_ms != null ? `${win.latency_ms} ms` : (win.status === "Online" ? "在线" : "Offline");
   if (winSsh) winSsh.innerText = win.ssh_active ? "22 (Active)" : "22 (Standby)";
   if (winSmb) winSmb.innerText = win.smb_active ? "445 (Active)" : "445 (Standby)";
@@ -539,7 +539,7 @@ function renderComputeTopology() {
   const jetIp = document.getElementById("jetson-ip-text");
   const jetLat = document.getElementById("jetson-latency-badge");
   const jetSsh = document.getElementById("jetson-ssh-badge");
-  if (jetIp) jetIp.innerText = jetson.ip || "10.8.x.x";
+  if (jetIp) jetIp.innerText = jetson.ip || "已隐藏";
   if (jetLat) jetLat.innerText = jetson.latency_ms != null ? `${jetson.latency_ms} ms` : (jetson.status === "Online" ? "在线" : "局域网待命");
   if (jetSsh) jetSsh.innerText = jetson.ssh_active ? "22 (Active)" : "22 (Standby)";
 }
@@ -644,7 +644,7 @@ function handleTaskRoute(val) {
         <i data-lucide="server" class="w-5 h-5 text-sky-400 shrink-0"></i>
         <div>
           <span class="font-bold text-sm text-white">👉 立即派发给 Windows 4070S 性能主机 执行！</span>
-          <p class="text-xs text-zinc-400 mt-0.5">快捷登录：<code class="text-sky-300 bg-zinc-900 px-1.5 py-0.5 rounded cursor-pointer" onclick="copySSH('ssh <user>@100.98.x.x')">ssh &lt;user&gt;@100.98.x.x</code> ｜ CUDA 训练 / 批量构建 / 冷备</p>
+          <p class="text-xs text-zinc-400 mt-0.5">快捷登录：<code class="text-sky-300 bg-zinc-900 px-1.5 py-0.5 rounded cursor-pointer" onclick="copySSH('地址已隐藏')">地址已隐藏</code> ｜ CUDA 训练 / 批量构建 / 冷备</p>
         </div>
       </div>
     `;
@@ -654,7 +654,7 @@ function handleTaskRoute(val) {
         <i data-lucide="bot" class="w-5 h-5 text-emerald-400 shrink-0"></i>
         <div>
           <span class="font-bold text-sm text-white">👉 立即派发给 Jetson 边缘计算硬件 执行！</span>
-          <p class="text-xs text-zinc-400 mt-0.5">快捷登录：<code class="text-emerald-300 bg-zinc-900 px-1.5 py-0.5 rounded cursor-pointer" onclick="copySSH('ssh <user>@10.8.x.x')">ssh &lt;user&gt;@10.8.x.x</code> (局域网)</p>
+          <p class="text-xs text-zinc-400 mt-0.5">快捷登录：<code class="text-emerald-300 bg-zinc-900 px-1.5 py-0.5 rounded cursor-pointer" onclick="copySSH('地址已隐藏')">地址已隐藏</code> (局域网)</p>
         </div>
       </div>
     `;

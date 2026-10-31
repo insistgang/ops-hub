@@ -27,7 +27,7 @@
    - 选用 HTML5 + Tailwind CSS CDN + Lucide Icons + Chart.js，直接存放在根目录 `index.html`。
    - 完全不需要 `npm run build`，GitHub Pages 启用 `main` 分支根目录即刻全局生效，通过！
 3. **网络心跳与端口探测可行性**：
-   - Tailscale 探测实测通过（Mac `100.86.x.x` -> Win `100.98.x.x`，延迟 ~20ms）。
+   - Tailscale 探测实测通过（Mac `已隐藏` -> Win `已隐藏`，延迟 ~20ms）。
    - 探针设置 2 秒超时，禁止长阻塞，通过！
 4. **GitOps 推送容错性**：
    - 结合用户网络实情，设计 SSH 优先、HTTPS 自动降级双协议逻辑，确保断网或端口受限时不报错崩溃，通过！

@@ -48,17 +48,17 @@ def _device(key, field, env_name, default):
 
 
 # Windows 4070S
-WIN_IP = _device("windows", "ip", "OPSHUB_WIN_IP", "100.98.x.x")
+WIN_IP = _device("windows", "ip", "OPSHUB_WIN_IP", "已隐藏")
 WIN_NAME = _device("windows", "name", "OPSHUB_WIN_NAME", "windows-host")
 WIN_SSH_PORT = 22
 WIN_SMB_PORT = 445
 
 # Mac M5
 MAC_NAME = _device("mac", "name", "OPSHUB_MAC_NAME", "mac-host")
-MAC_IP = _device("mac", "ip", "OPSHUB_MAC_IP", "100.86.x.x")
+MAC_IP = _device("mac", "ip", "OPSHUB_MAC_IP", "已隐藏")
 
 # Jetson Edge Device (Yahboom)
-JETSON_IP = _device("jetson", "ip", "OPSHUB_JETSON_IP", "10.8.x.x")
+JETSON_IP = _device("jetson", "ip", "OPSHUB_JETSON_IP", "已隐藏")
 JETSON_NAME = _device("jetson", "name", "OPSHUB_JETSON_NAME", "jetson-host")
 JETSON_USER = _device("jetson", "user", "OPSHUB_JETSON_USER", "jetson")
 JETSON_SSH_PORT = 22

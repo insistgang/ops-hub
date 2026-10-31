@@ -14,7 +14,7 @@
     "timestamp": "2026-10-31 22:10:58",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
-      "ip": "100.86.x.x",
+      "ip": "已隐藏",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
       "battery": "30%",
       "power_state": "Charging",
@@ -28,7 +28,7 @@
     },
     "windows": {
       "device": "Windows 性能主机 (i5-12600KF, 32GB, RTX 4070S 12GB)",
-      "ip": "100.98.x.x",
+      "ip": "已隐藏",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
       "status": "Online",
       "latency_ms": 736.2,
@@ -45,7 +45,7 @@
     },
     "jetson": {
       "device": "NVIDIA Jetson 边缘计算硬件 (Yahboom 亚博智能, Tegra aarch64)",
-      "ip": "10.8.x.x",
+      "ip": "已隐藏",
       "user": "jetson",
       "role": "边缘感知节点 // 端侧视觉与机器人感知部署",
       "network_type": "局域网 (LAN Only)",
