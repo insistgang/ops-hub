@@ -24,13 +24,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import probe
 
 # Files managed by the GitOps pipeline (used for dirty-worktree protection)
+# 注意：托管的是公开脱敏产物（data/public/），本地真源已 git-ignore。
 GITOPS_FILES = [
-    "data/status.json",
-    "data/status.js",
-    "data/memory_rules.js",
-    "data/daily_checks.json",
-    "data/career_records.json",
-    "data/device_allocation.json",
+    "data/public/status.json",
+    "data/public/status.js",
+    "data/public/memory_rules.js",
 ]
 
 def load_json(path, default):
@@ -244,20 +242,24 @@ def collect_all():
         atomic_write_text(checks_file, json.dumps(daily_checks, ensure_ascii=False, indent=2) + "\n")
 
     # 5. Weight Tracker Challenge
-    start_date = date(2026, 8, 24)
-    end_date = date(2026, 9, 30)
+    # 私密配置（成员真名、挑战链接）存放在本地真源 data/private_challenge.json，
+    # 该文件已 git-ignore，不会进入公开仓库。
+    # 公开展示产物由 scripts/sanitize_public.py 生成时会整块移除此模块。
+    private_challenge = load_json(DATA_DIR / "private_challenge.json", {})
+    start_date = date.fromisoformat(private_challenge.get("period_start", "2026-08-24"))
+    end_date = date.fromisoformat(private_challenge.get("period_end", "2026-09-30"))
     today = date.today()
     total_days = (end_date - start_date).days + 1
     current_day = max(min((today - start_date).days + 1, total_days), 1)
     weight_challenge = {
-        "title": "2026 秋季三人减重决战",
-        "live_url": "https://insistgang.top/weight-tracker/",
-        "period": "2026-08-24 ~ 2026-09-30",
+        "title": private_challenge.get("title", "私人挑战"),
+        "live_url": private_challenge.get("live_url", ""),
+        "period": f"{start_date.isoformat()} ~ {end_date.isoformat()}",
         "total_days": total_days,
         "current_day": current_day,
         "days_left": max((end_date - today).days, 0),
-        "members": ["刘钢", "张庭磊", "卢轩"],
-        "target": "不找借口 · 真实记录 · 早晚双测 · 责任捆绑 · 顶峰相见"
+        "members": private_challenge.get("members", []),
+        "target": private_challenge.get("target", "")
     }
 
     # 6. Device Allocation Matrix
@@ -295,6 +297,14 @@ def collect_all():
 
     # Write memory_rules.js (window.__OPS_MEMORY__)
     atomic_write_text(DATA_DIR / "memory_rules.js", "window.__OPS_MEMORY__ = " + json.dumps(memory_rules, ensure_ascii=False) + ";\n")
+
+    # 9. Generate sanitized public artifacts (data/public/) for the public repository.
+    # Local truth source stays in data/ and is git-ignored; only the sanitized copy is tracked.
+    try:
+        import sanitize_public
+        sanitize_public.write_public_files()
+    except Exception as e:
+        print(f"⚠️ 公开脱敏产物生成失败（本地真源不受影响）: {e}")
 
     return status_snapshot
 

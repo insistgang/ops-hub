@@ -136,10 +136,10 @@ def cmd_dispatch(args):
             print(f"   📌 场景指引: 抱上 Mac 前往图书馆专注完成，断网/静音深潜，禁止多开。")
         elif any(k in query for k in ["cuda", "训练", "yolo", "冷备", "备份", "下载", "游戏", "渲染", "构建", "依赖"]):
             print(f"👉 {Colors.BOLD}{Colors.CYAN}立即派发给 Windows 4070S 性能主机{Colors.ENDC} 执行！")
-            print(f"   📌 快捷登录: {Colors.BOLD}ssh insistgang@100.98.218.25{Colors.ENDC}")
+            print(f"   📌 快捷登录: {Colors.BOLD}ssh {os.environ.get('OPSHUB_WIN_USER', '<user>')}@{os.environ.get('OPSHUB_WIN_IP', '100.98.x.x')}{Colors.ENDC}")
         elif any(k in query for k in ["jetson", "边缘", "机器人", "ros", "视觉", "传感器", "亚博"]):
             print(f"👉 {Colors.BOLD}{Colors.GREEN}立即派发给 Jetson 边缘计算硬件{Colors.ENDC} 执行！")
-            print(f"   📌 快捷登录: {Colors.BOLD}ssh jetson@10.8.20.74{Colors.ENDC}")
+            print(f"   📌 快捷登录: {Colors.BOLD}ssh {os.environ.get('OPSHUB_JETSON_USER', '<user>')}@{os.environ.get('OPSHUB_JETSON_IP', '10.8.x.x')}{Colors.ENDC}")
         else:
             print(f"💡 建议规则：思考与文字留在 Mac，算力与批处理丢给 Windows 4070S，端侧感知丢给 Jetson。")
         print()

@@ -3,8 +3,12 @@
 scripts/probe.py: Tri-Device Network & Hardware Probe
 Probes:
 1. Mac M5 (Local)
-2. Windows 4070S (Tailscale 100.98.218.25)
-3. NVIDIA Jetson Yahboom (LAN 10.8.20.74)
+2. Windows 4070S (Tailscale)
+3. NVIDIA Jetson Yahboom (LAN)
+
+设备地址通过环境变量配置，默认值为占位地址。
+本机部署时在 shell / launchd 中导出 OPSHUB_WIN_IP、OPSHUB_MAC_IP、
+OPSHUB_JETSON_IP 即可覆盖，避免真实内网地址进入公开仓库。
 """
 
 import sys
@@ -16,19 +20,19 @@ import re
 from datetime import datetime
 
 # Windows 4070S
-WIN_IP = "100.98.218.25"
-WIN_NAME = "pc-20240911pzjo"
+WIN_IP = os.environ.get("OPSHUB_WIN_IP", "100.98.x.x")
+WIN_NAME = os.environ.get("OPSHUB_WIN_NAME", "windows-host")
 WIN_SSH_PORT = 22
 WIN_SMB_PORT = 445
 
 # Mac M5
-MAC_NAME = "insistgangmacbook-air"
-MAC_IP = "100.86.36.75"
+MAC_NAME = os.environ.get("OPSHUB_MAC_NAME", "mac-host")
+MAC_IP = os.environ.get("OPSHUB_MAC_IP", "100.86.x.x")
 
 # Jetson Edge Device (Yahboom)
-JETSON_IP = "10.8.20.74"
-JETSON_NAME = "yahboom"
-JETSON_USER = "jetson"
+JETSON_IP = os.environ.get("OPSHUB_JETSON_IP", "10.8.x.x")
+JETSON_NAME = os.environ.get("OPSHUB_JETSON_NAME", "jetson-host")
+JETSON_USER = os.environ.get("OPSHUB_JETSON_USER", "jetson")
 JETSON_SSH_PORT = 22
 
 def probe_ping(ip, timeout=2):

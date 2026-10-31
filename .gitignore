@@ -2,3 +2,20 @@
 __pycache__/
 .opshub.lock
 *.tmp
+
+# 本地真源：含真实投递记录、同事真名、内网与 Tailscale 地址、本地绝对路径。
+# 仅供本机与局域网使用，不进入公开仓库。
+# 公开展示产物由 scripts/sanitize_public.py 生成到 data/public/。
+data/status.json
+data/status.js
+data/memory_rules.js
+data/memory_rules.json
+data/daily_checks.json
+data/career_records.json
+data/projects.json
+data/device_allocation.json
+data/private_challenge.json
+data/private_aliases.json
+
+# 备份目录
+.tmp/

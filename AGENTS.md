@@ -15,14 +15,14 @@ Ops-Hub 是承载个人的三端算力调度（Mac + Windows 4070S + Jetson 边�
 ### 1.2 不可动摇的三大铁律
 1. 🚫 **零 Mock 假数据铁律 (Zero-Mock Axiom)**：
    - 严禁制造任何捏造的假数据。所有展示的数据必须 100% 真实、有据可循。
-   - 数据源必须来自本地真实路径 (`~/Career-Copilot`、`~/Desktop/合作项目/jiefu` 等)、线上系统 (`https://insistgang.top/weight-tracker/`) 及真实硬件探针（Win 4070S / Jetson 边缘）。
+   - 数据源必须有真实来源：本项目求职记录来自 `data/career_records.json`，项目和设备信息来自现有工程与硬件探针。Career-Copilot 主工程在 `../Career-Copilot/`，其 `data/applications.json` 与本项目记录分开维护；未实现同步前不得宣称两者自动互通。
 2. ⚡ **零构建纯净单页架构 (Zero-Build Vanilla Stack)**：
    - 页面采用 `HTML5 + Tailwind CSS (CDN) + Lucide Icons (锁版本)`。
    - 根目录下直接放置 `index.html`，无需复杂的 Node 构建或打包步骤。克隆即用、双击即看、GitHub Pages 秒级上线。
 3. 🏛️ **三端算力分工与场景秩序**：
    - **MacBook Air (M5)**：移动生产力中枢，负责思考、写作、投递跟踪、总台控制。原则：**带去图书馆专注完成**。
-   - **Windows 4070S**：常驻算力后端，负责 CUDA 训练、批量构建、远程执行与冷备仓库（Tailscale `100.98.218.25`）。
-   - **Jetson 边缘硬件 (Yahboom)**：端侧 AI 感知节点，负责机器人/视觉感知模型部署（局域网 `10.8.20.74`，`ssh jetson@10.8.20.74`）。
+   - **Windows 4070S**：常驻算力后端，负责 CUDA 训练、批量构建、远程执行与冷备仓库（Tailscale `100.98.x.x`）。
+   - **Jetson 边缘硬件 (Yahboom)**：端侧 AI 感知节点，负责机器人/视觉感知模型部署（局域网 `10.8.x.x`，`ssh <user>@10.8.x.x`）。
 
 ---
 
@@ -38,8 +38,8 @@ Desktop/个人工具/ops-hub/
 ├── data/                      # 真实数据真源目录（全部随 Git 提交公开）
 │   ├── status.json            # 探针自动汇总的运行时状态快照（三端延迟、时间戳、统计）
 │   ├── status.js              # status.json 的 JS 镜像（file:/// 零 CORS 预加载）
-│   ├── career_records.json    # 真实求职企业与投递状态（施耐德、为恒、振石等）
-│   ├── projects.json          # 真实项目配置（姐夫、Andy、小论文、教资、六级）
+│   ├── career_records.json    # 本地真源：真实求职企业与投递状态（公开版已脱敏，不入库）
+│   ├── projects.json          # 本地真源：真实项目配置（公开版已脱敏，不入库）
 │   ├── daily_checks.json      # 今日四勾打卡状态与历史归档（跨天自动归档重置）
 │   ├── memory_rules.json      # 个人记忆、场景分工与专注秩序原则沉淀
 │   ├── memory_rules.js        # memory_rules.json 的 JS 镜像
@@ -66,20 +66,20 @@ Desktop/个人工具/ops-hub/
    - 字段：公司名称、岗位、投递日期、状态 Badge、简历指引、跟进备注。
    - 默认排序：推进中（面试/笔试）自动高亮置顶。
 2. **Tab 2: 🚀 多线项目推进雷达 (Project Radar)**
-   - 姐夫项目 (`~/Desktop/合作项目/jiefu`)：Chrome 插件 V3 + 利润核算。
-   - Andy 项目 (`~/Desktop/合作项目/andy`)：小智伴侣机器人 (`xiaozhi-esp32` + `py-xiaozhi`)。
+   - 外部合作项目 (`~/Desktop/合作项目/jiefu`)：Chrome 插件 V3 + 利润核算。
+   - 端侧硬件项目 (`~/Desktop/合作项目/andy`)：端侧硬件伴侣机器人 (`xiaozhi-esp32` + `py-xiaozhi`)。
    - 毕业小论文 (`~/Desktop/论文与阅读/lunwen`)：违建 YOLOv11 主线 + E-PAS Sensors 改投。
    - 自动提取本地 Git 最新提交时间与 Commit 信息，展示 Next Action。
-   - 考试倒计时：CCF LMCC-A（9/19 已完成笔试）+ 六级（2026-12）。
+   - 考试倒计时：六级（2026-12）。
 3. **Tab 3: 🧠 个人记忆与秩序中枢 (Personal Memory & Order Hub)**
    - 每日四勾：起了、动了、写了、关了（Web 点击打卡持久化在浏览器 localStorage、按日期隔离；CLI 写入 `daily_checks.json`，仍是跨设备真源）。
    - 场景契约：图书馆（思考/写作/Mac）vs 实验室（算力/充电/4070S/Jetson）vs 宿舍（关机恢复）。
    - 认知原则：同时最多 3 件活跃事项，每个工作时段聚焦一件；新想法入 `00-Inbox/`；已到期补剂提醒不再延续。具体作息以当月计划与当天安排为准。
 4. **Tab 4: 🖥️ 三端算力与拓扑 (Compute & Topology)**
-   - Mac M5 (`100.86.36.75`)、Win 4070S (`100.98.218.25`) 与 Jetson 边缘 (`10.8.20.74`) 实时网络延迟卡片。
+   - Mac M5 (`100.86.x.x`)、Win 4070S (`100.98.x.x`) 与 Jetson 边缘 (`10.8.x.x`) 实时网络延迟卡片。
    - 一键复制 SSH 登录命令（Win 与 Jetson 均支持）。
    - Windows SSH (`22`) 与 SMB (`445`) 实时服务状态。
-   - 外部直达：`https://insistgang.top/weight-tracker/`。
+   - 外部直达：`（本地私有模块，公开版已移除）`。
 
 ---
 

@@ -14,8 +14,8 @@
     try { if (localStorage.getItem("ops_theme") === "light") document.documentElement.classList.remove("dark"); } catch (e) {}
   </script>
   <!-- Preloaded Data for Zero-CORS offline file:/// compatibility -->
-  <script src="data/status.js?v=1.3.0"></script>
-  <script src="data/memory_rules.js?v=1.3.0"></script>
+  <script src="data/public/status.js?v=1.3.0"></script>
+  <script src="data/public/memory_rules.js?v=1.3.0"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -77,11 +77,6 @@
           <span id="jetson-status-dot" class="w-2 h-2 rounded-full bg-zinc-500"></span>
           <span id="jetson-status-text">Jetson: 探测中...</span>
         </div>
-
-        <a href="https://insistgang.top/weight-tracker/" target="_blank" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-950/60 text-rose-300 hover:bg-rose-900/60 border border-rose-800/50 transition-all shadow-sm shadow-rose-950/40">
-          <i data-lucide="flame" class="w-3.5 h-3.5 text-rose-400"></i>
-          <span>减重决战 ↗</span>
-        </a>
 
         <button id="theme-toggle" onclick="toggleTheme()" title="切换日间/夜间主题" class="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800/80 transition-all">
           <i data-lucide="sun" class="w-4 h-4"></i>
@@ -184,7 +179,7 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
           <h3 class="text-lg font-bold text-white">求职投递管道与状态跟进</h3>
-          <p class="text-xs text-zinc-400">连接自根目录 ~/Career-Copilot，按真实定制简历与辅导员就业信息群匹配</p>
+          <p class="text-xs text-zinc-400">展示本总台维护的求职记录，尚未自动同步 Career-Copilot 投递台账</p>
         </div>
         <div class="flex items-center gap-1 bg-zinc-900/90 p-1 rounded-xl border border-zinc-800 text-xs">
           <button data-filter="all" class="career-filter-btn px-3 py-1.5 rounded-lg font-medium bg-indigo-600 text-white transition-all">全部</button>
@@ -354,7 +349,7 @@
             <span id="win-latency-badge" class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-sky-950 text-sky-300 border border-sky-800">-</span>
           </div>
           <div class="text-[11px] font-mono text-zinc-400 space-y-1">
-            <div class="flex justify-between"><span>IP:</span><span id="win-ip-text" class="text-slate-200">100.98.218.25</span></div>
+            <div class="flex justify-between"><span>IP:</span><span id="win-ip-text" class="text-slate-200">100.98.x.x</span></div>
             <div class="flex justify-between"><span>SSH:</span><span id="win-ssh-badge" class="text-sky-300">22</span></div>
             <div class="flex justify-between"><span>SMB:</span><span id="win-smb-badge" class="text-sky-300">445</span></div>
             <div class="flex justify-between"><span>链路:</span><span class="text-slate-200">Tailscale Mesh</span></div>
@@ -368,7 +363,7 @@
             <span id="jetson-latency-badge" class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-800">-</span>
           </div>
           <div class="text-[11px] font-mono text-zinc-400 space-y-1">
-            <div class="flex justify-between"><span>IP:</span><span id="jetson-ip-text" class="text-slate-200">10.8.20.74</span></div>
+            <div class="flex justify-between"><span>IP:</span><span id="jetson-ip-text" class="text-slate-200">10.8.x.x</span></div>
             <div class="flex justify-between"><span>SSH:</span><span id="jetson-ssh-badge" class="text-emerald-300">22</span></div>
             <div class="flex justify-between"><span>链路:</span><span class="text-slate-200">同局域网直连</span></div>
           </div>
@@ -381,25 +376,25 @@
         <h4 class="text-base font-bold text-white mb-3">三端快捷分流工具箱</h4>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           
-          <button onclick="copySSH('ssh insistgang@100.98.218.25')" class="p-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-left transition-all group">
+          <button onclick="copySSH('ssh <user>@100.98.x.x')" class="p-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-left transition-all group">
             <div class="flex items-center justify-between text-zinc-400 mb-1">
               <span class="text-xs font-mono font-medium text-slate-200">Win 4070S SSH</span>
               <i data-lucide="copy" class="w-3.5 h-3.5 group-hover:text-indigo-400"></i>
             </div>
-            <p class="text-[11px] font-mono text-zinc-500 truncate">ssh insistgang@100.98.218.25</p>
+            <p class="text-[11px] font-mono text-zinc-500 truncate">ssh &lt;user&gt;@100.98.x.x</p>
           </button>
 
-          <button onclick="copySSH('ssh jetson@10.8.20.74')" class="p-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-left transition-all group">
+          <button onclick="copySSH('ssh <user>@10.8.x.x')" class="p-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-left transition-all group">
             <div class="flex items-center justify-between text-zinc-400 mb-1">
               <span class="text-xs font-mono font-medium text-slate-200">Jetson 边缘 SSH</span>
               <i data-lucide="copy" class="w-3.5 h-3.5 group-hover:text-emerald-400"></i>
             </div>
-            <p class="text-[11px] font-mono text-zinc-500 truncate">ssh jetson@10.8.20.74</p>
+            <p class="text-[11px] font-mono text-zinc-500 truncate">ssh &lt;user&gt;@10.8.x.x</p>
           </button>
 
           <div class="p-3 rounded-xl bg-zinc-900/80 border border-zinc-800 text-left">
             <div class="text-xs font-mono font-medium text-slate-200 mb-1">局域网 SMB 共享</div>
-            <p class="text-[11px] font-mono text-zinc-500 truncate">smb://100.98.218.25/</p>
+            <p class="text-[11px] font-mono text-zinc-500 truncate">smb://100.98.x.x/</p>
           </div>
 
         </div>
