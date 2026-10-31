@@ -6,9 +6,9 @@ Probes:
 2. Windows 4070S (Tailscale)
 3. NVIDIA Jetson Yahboom (LAN)
 
-设备地址通过环境变量配置，默认值为占位地址。
-本机部署时在 shell / launchd 中导出 OPSHUB_WIN_IP、OPSHUB_MAC_IP、
-OPSHUB_JETSON_IP 即可覆盖，避免真实内网地址进入公开仓库。
+设备地址解析优先级：环境变量 > 本地真源 data/private_devices.json > 占位默认值。
+本机部署时导出 OPSHUB_WIN_IP、OPSHUB_MAC_IP、OPSHUB_JETSON_IP 可覆盖；
+也可直接编辑本地真源文件。公开仓库中不出现任何真实内网地址。
 """
 
 import sys
@@ -17,22 +17,50 @@ import socket
 import subprocess
 import json
 import re
+from pathlib import Path
 from datetime import datetime
 
+# 设备地址解析优先级：环境变量 > 本地真源 data/private_devices.json > 占位默认值。
+# 本地真源已 git-ignore，公开仓库中不出现任何真实内网地址。
+DEVICE_CONFIG_PATH = Path(__file__).resolve().parent.parent / "data" / "private_devices.json"
+
+
+def _load_device_config():
+    """读取本机设备配置（本地真源，缺失时返回空字典）。"""
+    try:
+        with open(DEVICE_CONFIG_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return {}
+
+
+_DEVICE_CFG = _load_device_config()
+
+
+def _device(key, field, env_name, default):
+    """按环境变量 → 本地真源 → 默认值的顺序解析设备字段。"""
+    env_value = os.environ.get(env_name)
+    if env_value:
+        return env_value
+    section = _DEVICE_CFG.get(key) or {}
+    value = section.get(field)
+    return value if value else default
+
+
 # Windows 4070S
-WIN_IP = os.environ.get("OPSHUB_WIN_IP", "100.98.x.x")
-WIN_NAME = os.environ.get("OPSHUB_WIN_NAME", "windows-host")
+WIN_IP = _device("windows", "ip", "OPSHUB_WIN_IP", "100.98.x.x")
+WIN_NAME = _device("windows", "name", "OPSHUB_WIN_NAME", "windows-host")
 WIN_SSH_PORT = 22
 WIN_SMB_PORT = 445
 
 # Mac M5
-MAC_NAME = os.environ.get("OPSHUB_MAC_NAME", "mac-host")
-MAC_IP = os.environ.get("OPSHUB_MAC_IP", "100.86.x.x")
+MAC_NAME = _device("mac", "name", "OPSHUB_MAC_NAME", "mac-host")
+MAC_IP = _device("mac", "ip", "OPSHUB_MAC_IP", "100.86.x.x")
 
 # Jetson Edge Device (Yahboom)
-JETSON_IP = os.environ.get("OPSHUB_JETSON_IP", "10.8.x.x")
-JETSON_NAME = os.environ.get("OPSHUB_JETSON_NAME", "jetson-host")
-JETSON_USER = os.environ.get("OPSHUB_JETSON_USER", "jetson")
+JETSON_IP = _device("jetson", "ip", "OPSHUB_JETSON_IP", "10.8.x.x")
+JETSON_NAME = _device("jetson", "name", "OPSHUB_JETSON_NAME", "jetson-host")
+JETSON_USER = _device("jetson", "user", "OPSHUB_JETSON_USER", "jetson")
 JETSON_SSH_PORT = 22
 
 def probe_ping(ip, timeout=2):
