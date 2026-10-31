@@ -16,6 +16,7 @@ data/projects.json
 data/device_allocation.json
 data/private_challenge.json
 data/private_aliases.json
+data/private_devices.json
 
 # 备份目录
 .tmp/
