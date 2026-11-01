@@ -68,6 +68,12 @@ ops schedule install
 ops schedule status
 ```
 
+## 体重管理本地接入
+
+「体重管理」Tab 嵌入 `weight-tracker/` 通用版，支持多使用者、目标体重、历史趋势、记录编辑和本机小组。无需注册或 Supabase，数据只写入当前浏览器的 `weight-tracker:universal:v1` 存储键；公开页面不携带任何个人体重记录。
+
+---
+
 ## VitaFlow 本地接入
 
 工作总台新增「VitaFlow 精力管家」Tab，可在本机或私有网络内直接嵌入 VitaFlow 单页应用：
