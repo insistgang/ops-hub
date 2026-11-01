@@ -21,6 +21,7 @@ function boot() {
   console.log("🚀 Ops-Hub 正在初始化启动...");
   initTheme();
   initTabs();
+  initVitaFlow();
   startLiveClock();
 
   if (window.__OPS_STATUS__) {
@@ -59,6 +60,47 @@ function safeCreateIcons() {
   } catch (e) {
     console.warn("Lucide icons init warning:", e);
   }
+}
+
+function initVitaFlow() {
+  const urlInput = document.getElementById("vitaflow-url");
+  const keyInput = document.getElementById("vitaflow-key");
+  const connectButton = document.getElementById("vitaflow-connect");
+  const frame = document.getElementById("vitaflow-frame");
+  const frameWrap = document.getElementById("vitaflow-frame-wrap");
+  const status = document.getElementById("vitaflow-status");
+  if (!urlInput || !keyInput || !connectButton || !frame || !frameWrap || !status) return;
+
+  const savedUrl = localStorage.getItem("ops_vitaflow_url");
+  if (savedUrl) {
+    try {
+      const parsed = new URL(savedUrl);
+      urlInput.value = `${parsed.origin}${parsed.pathname}`;
+      keyInput.value = parsed.searchParams.get("key") || "";
+      frame.src = savedUrl;
+      frameWrap.classList.remove("hidden");
+      status.textContent = "已载入上次使用的本地 VitaFlow 地址。";
+    } catch {
+      localStorage.removeItem("ops_vitaflow_url");
+    }
+  }
+
+  connectButton.addEventListener("click", () => {
+    try {
+      const target = new URL(urlInput.value.trim());
+      if (!["http:", "https:"].includes(target.protocol)) throw new Error("protocol");
+      const key = keyInput.value.trim();
+      if (key) target.searchParams.set("key", key);
+      else target.searchParams.delete("key");
+      localStorage.setItem("ops_vitaflow_url", target.toString());
+      frame.src = target.toString();
+      frameWrap.classList.remove("hidden");
+      status.textContent = "正在打开 VitaFlow；若页面为空，请确认本地同步服务正在运行。";
+      frame.scrollIntoView({ behavior: "smooth", block: "start" });
+    } catch {
+      status.textContent = "请输入完整的 http:// 或 https:// 本地地址。";
+    }
+  });
 }
 
 /* ---------- Day/Night Theme ---------- */

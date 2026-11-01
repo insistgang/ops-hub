@@ -68,6 +68,16 @@ ops schedule install
 ops schedule status
 ```
 
+## VitaFlow 本地接入
+
+工作总台新增「VitaFlow 精力管家」Tab，可在本机或私有网络内直接嵌入 VitaFlow 单页应用：
+
+1. 在 `../vitaflow` 启动 `node local-sync-server.mjs 8787`。
+2. 在 Ops-Hub 本地预览中打开 VitaFlow Tab，默认地址为 `http://127.0.0.1:8787/schedule-system-2.0.html`。
+3. 如需口令，使用 `node local-sync-server.mjs --print-token` 获取并填入，然后点击「在总台打开」。
+
+VitaFlow 数据仍由 `my-schedule.json` 和本地同步服务维护，Ops-Hub 不复制、不改写私人日程。地址和口令仅保存在当前浏览器的 `localStorage`，不进入公开仓库；公开页面不包含真实日程或幸福感记录。
+
 ---
 
 ## 📄 License
