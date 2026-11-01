@@ -1,0 +1,8 @@
+# Copying this file is optional. setup-private-remote.command writes the live
+# config to ~/.cloudflared/vitaflow.yml so credentials never enter this repo.
+tunnel: <TUNNEL_UUID>
+credentials-file: /Users/you/.cloudflared/<TUNNEL_UUID>.json
+ingress:
+  - hostname: vitaflow.example.com
+    service: http://127.0.0.1:8787
+  - service: http_status:404

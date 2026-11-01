@@ -1,0 +1,17 @@
+{
+  "name": "vitaflow",
+  "version": "2.0.0",
+  "description": "VitaFlow 维拓流 · 四账户精力管家：单文件日程系统 + 局域网同步服务器",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node local-sync-server.mjs",
+    "test": "node test-local-sync-server.mjs && node test-local-sync-client.mjs && node test-date-and-initial-data.mjs && node test-category-delete.mjs && node test-dashboard-stats.mjs && node test-strip-embedded.mjs && node test-html-escaping.mjs && node test-media-doc-modules.mjs && node test-idea-vault-module.mjs && node test-private-remote.mjs && node test-tailscale-private.mjs && node test-build-html.mjs && node test-html-syntax.mjs",
+    "build:html": "node build-html.mjs",
+    "sync-html": "node sync-json-into-html.mjs",
+    "setup": "git config filter.vitaflow-embed.clean \"node strip-embedded-data.mjs\" && git config filter.vitaflow-embed.smudge cat && git config filter.vitaflow-embed.required true"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
