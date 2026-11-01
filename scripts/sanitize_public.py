@@ -15,8 +15,7 @@ ops-hub 是公开仓库。本地 `data/` 目录保存真实数据（求职投递
 脱敏规则
 --------
 - `weight_challenge`（三人减重决战，含他人真名与体重相关数据）→ 整块移除
-- `career_summary.records`（求职投递台账，含公司名与含真名的简历文件名）→ 整块移除，
-  仅保留聚合计数
+- `career_summary.records` 只保留公司、岗位、阶段和日期。备注、薪资、简历文件名不进入公开页。
 - `projects_and_exams` 中的本地绝对路径 → 替换为相对占位
 - 所有 IP 地址 → 按 RFC 5737 / RFC 1918 保留段掩码为占位地址
 - 真实姓名 → 角色代号
@@ -86,6 +85,25 @@ def scrub_deep(obj, aliases):
     return obj
 
 
+_PHONE = re.compile(r"1[3-9]\d{9}")
+
+
+def public_career_records(records):
+    """Keep the board readable without notes, pay, or resume filenames."""
+    public_records = []
+    for record in records or []:
+        if not isinstance(record, dict):
+            continue
+        public_records.append({
+            "company": _PHONE.sub("", str(record.get("company") or "")),
+            "position": _PHONE.sub("", str(record.get("position") or "")),
+            "status": str(record.get("status") or ""),
+            "apply_date": str(record.get("apply_date") or "")[:10],
+            "priority": str(record.get("priority") or ""),
+        })
+    return public_records
+
+
 def build_public_status(status, aliases):
     """从本地真源快照裁剪出可公开的状态快照。"""
     public = json.loads(json.dumps(status, ensure_ascii=False))  # 深拷贝
@@ -93,10 +111,10 @@ def build_public_status(status, aliases):
     # 1. 移除整块敏感模块
     public.pop("weight_challenge", None)
 
-    # 2. 求职台账只留聚合计数，移除逐条记录
+    # 2. 求职台账只公开阶段，不公开备注、薪资和简历文件名
     career = public.get("career_summary")
     if isinstance(career, dict):
-        career.pop("records", None)
+        career["records"] = public_career_records(career.get("records"))
 
     # 3. 项目雷达移除本地绝对路径（scrub_deep 已处理，这里额外兜底删 path 字段）
     projects = public.get("projects_and_exams")
@@ -131,7 +149,7 @@ def build_public_status(status, aliases):
     meta["sanitized"] = True
     meta["sanitized_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     meta["sanitize_note"] = (
-        "公开版已移除真实投递记录、同事真名、内网与 Tailscale 地址、本地绝对路径与私人挑战数据。"
+        "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址、本地路径与私人挑战数据。"
     )
     return public
 

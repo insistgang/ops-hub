@@ -94,7 +94,7 @@
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
 
     <!-- 4 Hero Metric Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
       
       <!-- Card 1: Career Pipeline -->
       <div class="glass-panel p-4 rounded-2xl relative overflow-hidden group">
@@ -112,30 +112,17 @@
       <!-- Card 2: Exams Countdown -->
       <div class="glass-panel p-4 rounded-2xl relative overflow-hidden group border-rose-900/40">
         <div class="flex items-center justify-between text-zinc-400 mb-2">
-          <span class="text-xs font-semibold uppercase tracking-wider text-rose-300">教资考期冲刺</span>
-          <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400"></i>
+          <span class="text-xs font-semibold uppercase tracking-wider text-amber-300">教资初试</span>
+          <i data-lucide="scroll-text" class="w-4 h-4 text-amber-400"></i>
         </div>
         <div class="flex items-baseline gap-2">
-          <span id="metric-exam-days" class="text-3xl font-extrabold font-mono text-rose-400">-</span>
-          <span class="text-xs text-rose-300/80">天后笔试 (9/12)</span>
+          <span id="metric-exam-days" class="text-3xl font-extrabold font-mono text-amber-300">等成绩</span>
+          <span id="metric-exam-unit" class="text-xs text-amber-200/80">初试已结束</span>
         </div>
-        <p id="metric-exam-sub" class="text-xs text-zinc-400 mt-2 font-mono truncate">六级冲刺中</p>
+        <p id="metric-exam-sub" class="text-xs text-zinc-400 mt-2 font-mono truncate">等待初试成绩公布</p>
       </div>
 
-      <!-- Card 3: Weight Tracker Gateway -->
-      <div class="glass-panel p-4 rounded-2xl relative overflow-hidden group">
-        <div class="flex items-center justify-between text-zinc-400 mb-2">
-          <span class="text-xs font-semibold uppercase tracking-wider">秋季三人减重决战</span>
-          <i data-lucide="flame" class="w-4 h-4 text-amber-400"></i>
-        </div>
-        <div class="flex items-baseline gap-2">
-          <span id="metric-weight-day" class="text-3xl font-extrabold font-mono text-amber-400">D3</span>
-          <span class="text-xs text-zinc-400">/ 38 天决战</span>
-        </div>
-        <p id="metric-weight-sub" class="text-xs text-zinc-400 mt-2 font-mono truncate">早晚双测 · 真实记录</p>
-      </div>
-
-      <!-- Card 4: Tri-Device Topology -->
+      <!-- Card 3: Tri-Device Topology -->
       <div class="glass-panel p-4 rounded-2xl relative overflow-hidden group">
         <div class="flex items-center justify-between text-zinc-400 mb-2">
           <span class="text-xs font-semibold uppercase tracking-wider">三端异构算力</span>
@@ -180,7 +167,7 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
           <h3 class="text-lg font-bold text-white">求职投递管道与状态跟进</h3>
-          <p class="text-xs text-zinc-400">展示本总台维护的求职记录，尚未自动同步 Career-Copilot 投递台账</p>
+          <p class="text-xs text-zinc-400">来自 Career-Copilot 投递台账。公开页只显示公司、岗位和阶段。</p>
         </div>
         <div class="flex items-center gap-1 bg-zinc-900/90 p-1 rounded-xl border border-zinc-800 text-xs">
           <button data-filter="all" class="career-filter-btn px-3 py-1.5 rounded-lg font-medium bg-indigo-600 text-white transition-all">全部</button>

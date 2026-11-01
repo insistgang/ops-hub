@@ -7,8 +7,8 @@
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub",
     "sanitized": true,
-    "sanitized_at": "2026-11-01 21:00:07",
-    "sanitize_note": "公开版已移除真实投递记录、同事真名、内网与 Tailscale 地址、本地绝对路径与私人挑战数据。"
+    "sanitized_at": "2026-11-02 02:00:12",
+    "sanitize_note": "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址、本地路径与私人挑战数据。"
   },
   "topology": {
     "timestamp": "2026-11-01 21:00:07",
@@ -64,13 +64,219 @@
   },
   "career_summary": {
     "stats": {
-      "total": 6,
+      "total": 29,
       "interviewing": 0,
       "tests": 0,
-      "screening": 2,
-      "applied": 4,
-      "offer": 0
-    }
+      "screening": 3,
+      "applied": 11,
+      "offer": 1,
+      "preparing": 13
+    },
+    "records": [
+      {
+        "company": "施耐德电气 (Schneider Electric)",
+        "position": "AI 应用顾问 (2027新星计划)",
+        "status": "准备中",
+        "apply_date": "2026-08-27",
+        "priority": "high"
+      },
+      {
+        "company": "为恒智能科技股份有限公司",
+        "position": "AI Agent 工程师",
+        "status": "准备中",
+        "apply_date": "2026-08-27",
+        "priority": "high"
+      },
+      {
+        "company": "振石控股集团有限公司",
+        "position": "智能体研发工程师",
+        "status": "准备中",
+        "apply_date": "2026-08-27",
+        "priority": "medium"
+      },
+      {
+        "company": "上海芯圣电子股份有限公司",
+        "position": "AI 系统开发工程师 (VibeCoding)",
+        "status": "已投递",
+        "apply_date": "2026-08-26",
+        "priority": "medium"
+      },
+      {
+        "company": "上海航天局第八研究院 (802所/804所)",
+        "position": "武器装备现场调试 / 嵌入式软件",
+        "status": "已投递",
+        "apply_date": "2026-08-26",
+        "priority": "high"
+      },
+      {
+        "company": "南凌科技股份有限公司",
+        "position": "SASE / SD-WAN 测试开发",
+        "status": "已投递",
+        "apply_date": "2026-08-26",
+        "priority": "low"
+      },
+      {
+        "company": "英特尔中国 (Intel)",
+        "position": "2027 中国校招 · Agentic AI / 分布式 LLM 推理 / AI 框架",
+        "status": "准备中",
+        "apply_date": "2026-08-30",
+        "priority": "high"
+      },
+      {
+        "company": "海尔集团",
+        "position": "AI 算法工程师（变频）",
+        "status": "准备中",
+        "apply_date": "2026-08-30",
+        "priority": "high"
+      },
+      {
+        "company": "吉利控股集团",
+        "position": "G-TOP 计划 · 人工智能 / 智能驾驶等",
+        "status": "准备中",
+        "apply_date": "2026-08-30",
+        "priority": "medium"
+      },
+      {
+        "company": "拼多多集团 (PDD)",
+        "position": "AI Agent 研发工程师 / 云弧计划",
+        "status": "准备中",
+        "apply_date": "2026-08-30",
+        "priority": "medium"
+      },
+      {
+        "company": "字节跳动 Seed",
+        "position": "AI 搜索 Agent 算法工程师（2027 Seed 校招）",
+        "status": "准备中",
+        "apply_date": "2026-08-30",
+        "priority": "medium"
+      },
+      {
+        "company": "神州信息 (000555.SZ)",
+        "position": "27届提前批 AI Agent 工程师（上海）",
+        "status": "准备中",
+        "apply_date": "2026-08-30",
+        "priority": "high"
+      },
+      {
+        "company": "上海人工智能实验室",
+        "position": "星启计划 / 日常实习（大模型部署、Agent 相关）",
+        "status": "准备中",
+        "apply_date": "2026-08-30",
+        "priority": "medium"
+      },
+      {
+        "company": "卓繁信息",
+        "position": "后端开发 / AI 应用落地实习",
+        "status": "已录用",
+        "apply_date": "2026-08-30",
+        "priority": "high"
+      },
+      {
+        "company": "思源电气股份有限公司",
+        "position": "图像算法工程师 (2027届校招)",
+        "status": "已投递",
+        "apply_date": "2026-09-28",
+        "priority": "high"
+      },
+      {
+        "company": "极洞科技 (HOPO)",
+        "position": "感知算法工程师 (实习, 可转校招)",
+        "status": "已投递",
+        "apply_date": "2026-09-28",
+        "priority": "high"
+      },
+      {
+        "company": "上海保隆汽车科技股份有限公司",
+        "position": "信号处理算法初级工程师 (毫米波雷达, 2027届)",
+        "status": "已投递",
+        "apply_date": "2026-09-28",
+        "priority": "high"
+      },
+      {
+        "company": "上海东软载波微电子有限公司",
+        "position": "AI 应用工程师 (见习/实习岗, 黄浦-松江结对)",
+        "status": "已投递",
+        "apply_date": "2026-09-28",
+        "priority": "high"
+      },
+      {
+        "company": "上海吉祥航空股份有限公司",
+        "position": "IT 信息技术岗 (AI开发/AI产品方向, 2027校招)",
+        "status": "准备中",
+        "apply_date": "2026-09-28",
+        "priority": "high"
+      },
+      {
+        "company": "长鑫存储技术有限公司",
+        "position": "IT服务AI开发 (J21014, 2027校招)",
+        "status": "已投递",
+        "apply_date": "2026-10-19",
+        "priority": "high"
+      },
+      {
+        "company": "J&T极兔速递",
+        "position": "【集团】视觉算法管培生 (2027校招)",
+        "status": "已投递",
+        "apply_date": "2026-10-19",
+        "priority": "high"
+      },
+      {
+        "company": "J&T极兔速递",
+        "position": "【集团】大模型算法管培生 (2027校招)",
+        "status": "已投递",
+        "apply_date": "2026-10-19",
+        "priority": "high"
+      },
+      {
+        "company": "中国石化·茂名石化",
+        "position": "信息化管理储备岗 (2027校招, 硕士)",
+        "status": "暂停",
+        "apply_date": "2026-10-19",
+        "priority": "high"
+      },
+      {
+        "company": "上海集成电路研发中心有限公司（ICRD）",
+        "position": "算法工程师 / 软件开发工程师 (2027校招, 待选岗)",
+        "status": "准备中",
+        "apply_date": "2026-10-19",
+        "priority": "high"
+      },
+      {
+        "company": "海康机器人",
+        "position": "技术工程师（视觉技术，2027届国内营销上海专场）",
+        "status": "已投递",
+        "apply_date": "2026-10-19",
+        "priority": "high"
+      },
+      {
+        "company": "大华股份",
+        "position": "【研发中心】2027届AI应用开发工程师(J24400)",
+        "status": "准备中",
+        "apply_date": "2026-10-19",
+        "priority": "high"
+      },
+      {
+        "company": "合合信息",
+        "position": "Agent开发工程师（J14436，2027届校招）",
+        "status": "初筛",
+        "apply_date": "2026-10-29",
+        "priority": "high"
+      },
+      {
+        "company": "合合信息",
+        "position": "AI全栈开发工程师（J14388，2027届校招）",
+        "status": "初筛",
+        "apply_date": "2026-10-29",
+        "priority": "high"
+      },
+      {
+        "company": "合合信息",
+        "position": "FDE工程师（J14378，2027届校招）",
+        "status": "初筛",
+        "apply_date": "2026-10-29",
+        "priority": "high"
+      }
+    ]
   },
   "projects_and_exams": [
     {
@@ -121,10 +327,11 @@
       "category": "资格认证",
       "type": "exam",
       "target_date": "2026-09-12",
-      "status": "冲刺备考中 (已报名缴费)",
-      "next_action": "今日考试 · 高频考点突击与真题模拟",
+      "status": "笔试已结束，等待初试成绩",
+      "next_action": "等待初试成绩公布",
       "priority": "Critical",
-      "days_left": 0
+      "days_left": null,
+      "phase": "awaiting_result"
     },
     {
       "id": "e-cet6",
@@ -133,9 +340,9 @@
       "type": "exam",
       "target_date": "2026-12-12",
       "status": "日常积累与听力专项",
-      "next_action": "考前 41 天 · 核心考纲高频词汇与听力真题精听",
+      "next_action": "考前 40 天 · 核心考纲高频词汇与听力真题精听",
       "priority": "Medium",
-      "days_left": 41
+      "days_left": 40
     }
   ],
   "daily_checks": {

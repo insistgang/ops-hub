@@ -239,7 +239,6 @@ function renderHeader() {
 function renderHeroMetrics() {
   const career = globalStatus.career_summary || {};
   const stats = career.stats || {};
-  const weight = globalStatus.weight_challenge || {};
   const exams = (globalStatus.projects_and_exams || []).filter(p => p.type === "exam");
   const topo = globalStatus.topology || {};
   const win = topo.windows || {};
@@ -253,14 +252,17 @@ function renderHeroMetrics() {
   const jiaoshi = exams.find(e => e.id === "e-jiaoxi") || {};
   const cet6 = exams.find(e => e.id === "e-cet6") || {};
   const eDays = document.getElementById("metric-exam-days");
+  const eUnit = document.getElementById("metric-exam-unit");
   const eSub = document.getElementById("metric-exam-sub");
-  if (eDays) eDays.innerText = jiaoshi.days_left !== undefined ? jiaoshi.days_left : "-";
-  if (eSub) eSub.innerText = `教资9/12冲刺 ｜ 六级剩 ${cet6.days_left || 0} 天`;
-
-  const wDay = document.getElementById("metric-weight-day");
-  const wSub = document.getElementById("metric-weight-sub");
-  if (wDay) wDay.innerText = `D${weight.current_day || 3}`;
-  if (wSub) wSub.innerText = `决战剩余 ${weight.days_left || 0} 天 ｜ ${weight.members?.join(' · ')}`;
+  if (jiaoshi.phase === "awaiting_result") {
+    if (eDays) eDays.innerText = "等成绩";
+    if (eUnit) eUnit.innerText = "初试已结束";
+    if (eSub) eSub.innerText = `等待初试成绩 ｜ 六级剩 ${cet6.days_left || 0} 天`;
+  } else {
+    if (eDays) eDays.innerText = jiaoshi.days_left !== undefined && jiaoshi.days_left !== null ? jiaoshi.days_left : "-";
+    if (eUnit) eUnit.innerText = "天后笔试";
+    if (eSub) eSub.innerText = `六级剩 ${cet6.days_left || 0} 天`;
+  }
 
   const compLat = document.getElementById("metric-compute-lat");
   const compSub = document.getElementById("metric-compute-sub");
@@ -350,22 +352,23 @@ function renderProjectsRadar() {
     card.className = "glass-panel p-5 rounded-xl flex flex-col justify-between";
 
     if (isExam) {
-      const isUrgent = p.days_left <= 20;
+      const waiting = p.phase === "awaiting_result";
+      const isUrgent = !waiting && p.days_left !== null && p.days_left !== undefined && p.days_left <= 20;
       card.innerHTML = `
         <div>
           <div class="flex items-center justify-between mb-2">
             <span class="text-xs font-mono uppercase px-2 py-0.5 rounded ${isUrgent ? 'bg-rose-950 text-rose-300 border border-rose-800/60 danger-pulse' : 'bg-indigo-950 text-indigo-300 border border-indigo-800/60'}">
               ${esc(p.category)}
             </span>
-            <span class="text-xs text-slate-400 font-mono">考期: ${esc(p.target_date)}</span>
+            <span class="text-xs text-slate-400 font-mono">${waiting ? "笔试已结束" : "考期: " + esc(p.target_date)}</span>
           </div>
           <h4 class="text-base font-bold text-slate-100 mt-1">${esc(p.name)}</h4>
           <div class="my-4 flex items-baseline gap-2">
-            <span class="text-3xl font-extrabold font-mono ${isUrgent ? 'text-rose-400' : 'text-amber-400'}">${esc(p.days_left)}</span>
-            <span class="text-xs text-slate-400">天后开考</span>
+            <span class="text-3xl font-extrabold font-mono ${isUrgent ? 'text-rose-400' : 'text-amber-400'}">${waiting ? "等成绩" : esc(p.days_left)}</span>
+            <span class="text-xs text-slate-400">${waiting ? "初试成绩未出" : "天后开考"}</span>
           </div>
           <div class="bg-zinc-900/80 p-2.5 rounded-lg border border-zinc-800 text-xs text-slate-300">
-            <span class="text-indigo-400 font-semibold">下一步冲刺：</span>${esc(p.next_action)}
+            <span class="text-indigo-400 font-semibold">${waiting ? "当前：" : "下一步冲刺："}</span>${esc(p.next_action)}
           </div>
         </div>
       `;

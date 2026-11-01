@@ -32,6 +32,22 @@ class ExamNextActionTests(unittest.TestCase):
             "今日考试 · 高频考点突击与真题模拟",
         )
 
+    def test_awaiting_result_is_not_labeled_as_exam_day(self):
+        updated = collector.apply_exam_state({
+            "type": "exam",
+            "phase": "awaiting_result",
+            "target_date": "2026-09-12",
+            "next_action": "等待初试成绩公布",
+        }, today=date(2026, 11, 2))
+        self.assertIsNone(updated["days_left"])
+        self.assertEqual(updated["next_action"], "等待初试成绩公布")
+
+    def test_career_label_maps_copilot_stages(self):
+        self.assertEqual(collector.career_label({"status": "applied", "stage": "简历筛选-初筛进行中"}), "初筛")
+        self.assertEqual(collector.career_label({"status": "applied", "stage": "已投递"}), "已投递")
+        self.assertEqual(collector.career_label({"status": "todo", "stage": "准备投递"}), "准备中")
+        self.assertEqual(collector.career_label({"status": "offer", "stage": "已接受实习 Offer"}), "已录用")
+
     def test_jiaoxi_days_left_from_known_date(self):
         self.assertEqual(
             collector.calculate_days_left("2026-09-12", today=date(2026, 8, 30)),

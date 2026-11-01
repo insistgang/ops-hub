@@ -183,6 +183,63 @@ def calculate_days_left(target_date_str, today=None):
 _EXAM_COUNTDOWN_PREFIX = re.compile(r"^(?:考前\s*\d+\s*天|今日考试)[·•\s]*")
 
 
+COPILOT_APPLICATIONS = BASE_DIR.parent / "Career-Copilot" / "data" / "applications.json"
+
+
+def career_label(item):
+    """Map Career-Copilot stage text onto the ops-hub board labels."""
+    stage = str(item.get("stage") or "")
+    status = str(item.get("status") or "")
+    if status == "offer" or "Offer" in stage or "录用" in stage:
+        return "已录用"
+    if "初筛" in stage:
+        return "初筛"
+    if "暂停" in stage:
+        return "暂停"
+    if status == "applied" or "已投递" in stage or "邮件已发送" in stage:
+        return "已投递"
+    return "准备中"
+
+
+def load_career_records():
+    """Prefer the Career-Copilot ledger. Personal notes and resume filenames stay out."""
+    if COPILOT_APPLICATIONS.exists():
+        raw = load_json(COPILOT_APPLICATIONS, [])
+        records = []
+        for item in raw:
+            if not isinstance(item, dict):
+                continue
+            updated = str(item.get("last_updated") or "")[:10]
+            records.append({
+                "id": item.get("id"),
+                "company": item.get("company") or "",
+                "position": item.get("position") or "",
+                "status": career_label(item),
+                "priority": item.get("priority") or "",
+                "apply_date": updated,
+                "source": "Career-Copilot",
+            })
+        atomic_write_text(
+            DATA_DIR / "career_records.json",
+            json.dumps(records, ensure_ascii=False, indent=2) + "\n",
+        )
+        return records
+    return load_json(DATA_DIR / "career_records.json", [])
+
+
+def apply_exam_state(entry, today=None):
+    """Past written exams wait for scores. Future exams keep a live countdown."""
+    entry = dict(entry)
+    if entry.get("phase") == "awaiting_result":
+        entry["days_left"] = None
+        entry["next_action"] = (entry.get("next_action") or "等待初试成绩公布").strip()
+        return entry
+    days = calculate_days_left(entry.get("target_date", "2026-12-31"), today=today)
+    entry["days_left"] = days
+    entry["next_action"] = stamp_exam_next_action(entry.get("next_action"), days)
+    return entry
+
+
 def stamp_exam_next_action(action, days):
     """Rewrite exam next_action with a live countdown so hardcoded day counts cannot rot."""
     try:
@@ -200,7 +257,7 @@ def collect_all():
     network_probe = probe.probe_all()
 
     # 2. Career Records
-    career_list = load_json(DATA_DIR / "career_records.json", [])
+    career_list = load_career_records()
     
     career_stats = {
         "total": len(career_list),
@@ -218,9 +275,7 @@ def collect_all():
     for item in raw_projects:
         entry = dict(item)
         if entry.get("type") == "exam":
-            days = calculate_days_left(entry.get("target_date", "2026-12-31"))
-            entry["days_left"] = days
-            entry["next_action"] = stamp_exam_next_action(entry.get("next_action"), days)
+            entry = apply_exam_state(entry)
         else:
             path = entry.get("path")
             if path:
