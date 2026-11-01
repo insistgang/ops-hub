@@ -1,0 +1,27 @@
+# 访问口令：秘密，绝不提交
+sync-token.txt
+
+# Cloudflare 私有远程访问：真实配置和凭据只留在用户目录
+.cloudflared/
+cloudflare/config.yml
+cloudflare/*.json
+cloudflare/*.pem
+cloudflare/*.access-ready
+
+# 本地 IDE / 环境配置
+.claude/
+
+# 个人数据文件（运行时生成，非源码）
+my-schedule.json
+my-schedule.json.bak*
+
+# 迁移包产物：由 make-migration-package.command 随时可重新生成
+vitaflow-windows-*.zip
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志与临时文件
+*.log
+*.tmp

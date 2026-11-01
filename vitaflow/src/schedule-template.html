@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>VitaFlow 维拓流 · 四账户精力管家</title>
+    <!-- VITAFLOW_VENDOR_ASSETS -->
+    <!-- EMBEDDED_DATA_PLACEHOLDER: 此处会被注入当前所有数据，使单文件携带数据 -->
+    <!-- VITAFLOW_EMBEDDED_DATA -->
+    <!-- VITAFLOW_STYLES -->
+</head>
+<body>
+    <div class="container" id="mainPage">
+        <a class="skip-link" href="#dailyPlan">跳到日程与待办</a>
+        <header class="app-header">
+            <div>
+                <p class="app-kicker">YOUR PERSONAL ENERGY SPACE</p>
+                <h1>VitaFlow <span>维拓流</span></h1>
+                <p class="app-description">照顾好自己的精力，把时间留给重要的事。</p>
+            </div>
+            <nav class="section-nav" aria-label="主页快捷导航">
+                <a href="#energyOverview">精力概览</a>
+                <a href="#dailyPlan">日程待办</a>
+                <a href="#energyTrends">状态趋势</a>
+                <a href="#creativeSpace">创作与学习</a>
+            </nav>
+        </header>
+        <div class="user-profile">
+            <details class="profile-details">
+                <summary>我的精力画像 <span>查看个人介绍</span></summary>
+            <div class="user-name">🌸 回声 · 意义处理器</div>
+            <p class="user-intro">结构化审美·叙事表达·元认知操作<br>
+你从福建小城走到上海，从"被AI冲击"到成为驾驭AI的策略师。你的天赋是痛苦锻造的武器：将焦虑转化为思维导图，将迷茫写成故事。系统根据你的画像已自动校准警惕完美主义拖延，但相信你的三层防御机制也能被温柔安放。这里是你的私人精力操盘台。</p>
+            <div class="tags">
+                <span class="tag">🧠 结构化审美</span>
+                <span class="tag">✍️ 叙事表达</span>
+                <span class="tag">🔄 元认知操作</span>
+                <span class="tag">🎨 体验架构师</span>
+                <span class="tag">💡 AI策略师</span>
+            </div>
+
+            </details>
+            <!-- 数据备份 / 迁移 / 自动保存 工具栏 -->
+            <details class="data-tools">
+                <summary>
+                    <span>数据保险箱 <span class="summary-hint">备份、导入与保存</span></span>
+                    <span id="saveStatus" role="status" aria-live="polite">就绪</span>
+                </summary>
+                <div class="backup-actions">
+                    <button id="exportHtmlBtn" onclick="exportHtmlWithData()" style="background: linear-gradient(135deg, #c4679c, #8b5e9e); color: white; border: none; border-radius: 22px; padding: 10px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; box-shadow: 0 4px 12px rgba(196, 103, 156, 0.25);">
+                        📤 导出当前 HTML（含数据）
+                    </button>
+                    <button id="saveFileBtn" onclick="saveToOriginalFile()" style="background: linear-gradient(135deg, #a78bfa, #8b5cf6); color: white; border: none; border-radius: 22px; padding: 10px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; box-shadow: 0 4px 12px rgba(167, 139, 250, 0.25);">
+                        💾 直接保存到原文件
+                    </button>
+                    <button id="exportJsonBtn" onclick="exportJsonFile()" style="background: linear-gradient(135deg, #74ebd5, #9face6); color: white; border: none; border-radius: 22px; padding: 10px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; box-shadow: 0 4px 12px rgba(116, 235, 213, 0.25);">
+                        📤 导出 JSON
+                    </button>
+                    <button id="saveJsonBtn" onclick="saveToJsonFile()" style="background: linear-gradient(135deg, #22c55e, #14b8a6); color: white; border: none; border-radius: 22px; padding: 10px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);">
+                        💾 保存到 JSON
+                    </button>
+                    <button onclick="importFromHtmlFile()" style="background: rgba(255, 255, 255, 0.85); color: #8b5e9e; border: 1.5px solid #bc8fcf; border-radius: 22px; padding: 10px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">
+                        📥 从 HTML 导入数据
+                    </button>
+                    <button onclick="importFromJsonFile()" style="background: rgba(255, 255, 255, 0.85); color: #0f766e; border: 1.5px solid #5eead4; border-radius: 22px; padding: 10px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">
+                        📥 从 JSON 导入
+                    </button>
+                    <button id="autoSaveToggle" onclick="toggleAutoSave()" style="background: rgba(255, 255, 255, 0.85); color: #8b5e9e; border: 1.5px solid #bc8fcf; border-radius: 22px; padding: 10px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">
+                        ⏰ 自动保存: 开
+                    </button>
+                </div>
+                <div class="backup-help">
+                    💡 <strong>导出 HTML</strong> = 打包当前所有数据到一个新 HTML 文件，可换电脑继续用；<br>
+                    💡 <strong>保存到 JSON</strong> = 把网页里的最新记录写进 my-schedule.json，方便手机/电脑/平板互相导入；<br>
+                    💡 <strong>直接保存</strong> = 首次会选一次原文件，之后覆盖保存（仅 Edge/Chrome 支持）；<br>
+                    💡 <strong>从 HTML/JSON 导入</strong> = 完整恢复其他设备的备份，会替换当前 VitaFlow 数据。
+                </div>
+            </details>
+        </div>
+
+        <div class="section-heading" id="energyOverview"><h2>四账户精力</h2><p>点击账户，记录与回看自己的状态。</p></div>
+        <div class="accounts-grid">
+            <button type="button" class="account-card" onclick="openDetail('physical')">
+                <span class="account-icon">🏃</span>
+                <span class="account-title">体能账户</span>
+                <span class="account-score" id="physicalScore">85</span>
+                <span class="trend-badge">↑ 5% 本周</span>
+            </button>
+            <button type="button" class="account-card" onclick="openDetail('emotional')">
+                <span class="account-icon">❤️</span>
+                <span class="account-title">情感账户</span>
+                <span class="account-score" id="emotionalScore">78</span>
+                <span class="trend-badge">↓ 2% 本周</span>
+            </button>
+            <button type="button" class="account-card" onclick="openDetail('focus')">
+                <span class="account-icon">🎯</span>
+                <span class="account-title">思维账户</span>
+                <span class="account-score" id="focusScore">92</span>
+                <span class="trend-badge">↑ 3% 本周</span>
+            </button>
+            <button type="button" class="account-card" onclick="openDetail('meaning')">
+                <span class="account-icon">🌟</span>
+                <span class="account-title">意志账户</span>
+                <span class="account-score" id="meaningScore">88</span>
+                <span class="trend-badge">↑ 8% 本周</span>
+            </button>
+        </div>
+
+        <div class="section-heading" id="dailyPlan" tabindex="-1"><h2>日程与待办</h2><p>选一个日期，安排当天的行动。</p></div>
+        <div class="row-split">
+            <div class="calendar-panel">
+                <div class="month-nav">
+                    <button class="month-btn" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i> 上月</button>
+                    <span class="current-month" id="currentMonth">2026年4月</span>
+                    <button class="month-btn" onclick="changeMonth(1)">下月 <i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="weekdays"><div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div></div>
+                <div class="calendar-grid" id="calendar"></div>
+            </div>
+
+            <div class="todo-panel">
+                <h3 class="panel-title"><i class="fas fa-tasks"></i> 今日待办</h3>
+                <div class="todo-input-area">
+                    <div class="account-add-btns">
+                        <button class="account-add-btn active" data-account="physical" onclick="selectAddAccount('physical')">🏃 体能</button>
+                        <button class="account-add-btn" data-account="emotional" onclick="selectAddAccount('emotional')">❤️ 情感</button>
+                        <button class="account-add-btn" data-account="focus" onclick="selectAddAccount('focus')">🧠 思维</button>
+                        <button class="account-add-btn" data-account="meaning" onclick="selectAddAccount('meaning')">🔥 意志</button>
+                    </div>
+                    <div class="todo-input-group">
+                        <input type="text" id="todoInput" aria-label="待办内容" placeholder="输入今日待办...">
+                        <select class="happy-select" id="happySelect" aria-label="这项待办的幸福感评分">
+                            <option value="1">😣</option><option value="3">😕</option><option value="5">😐</option>
+                            <option value="7" selected>😊</option><option value="9">😄</option><option value="10">🤩</option>
+                        </select>
+                        <button class="add-btn" onclick="addTodo()">添加</button>
+                    </div>
+                </div>
+                <div class="todo-list" id="todoList"></div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <button type="button" class="stat-card" onclick="openDetail('streak')">
+                <span class="stat-value" id="streakDays">0</span>
+                <span class="stat-label">🔥 连续打卡</span>
+            </button>
+            <button type="button" class="stat-card" onclick="openDetail('tasks')">
+                <span class="stat-value" id="completedTasks">0</span>
+                <span class="stat-label">✅ 累计完成</span>
+            </button>
+            <button type="button" class="stat-card" onclick="openDetail('avg')">
+                <span class="stat-value" id="avgScore">86</span>
+                <span class="stat-label">📊 平均得分</span>
+            </button>
+        </div>
+
+        <div style="margin-top: 28px;">
+            <h3 class="panel-title"><i class="fas fa-list-check"></i> 📋 待办事项看板</h3>
+            <div class="responsive-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div style="background: rgba(255, 250, 252, 0.9); border-radius: 24px; padding: 20px; border: 1px solid #ffe2f0; max-height: 350px;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                        <span style="font-size: 1.3rem;">📝</span>
+                        <h4 style="font-size: 1.1rem; font-weight: 700; color: #6a4a7a;">未完成</h4>
+                        <span style="margin-left: auto; background: rgba(232, 138, 76, 0.2); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; color: #e88a4c;" id="todoPendingCount">0</span>
+                    </div>
+                    <div id="todoKanbanPending" style="max-height: 260px; overflow-y: auto; padding-right: 8px;"></div>
+                </div>
+                <div style="background: rgba(250, 255, 252, 0.9); border-radius: 24px; padding: 20px; border: 1px solid #d4f5e8; max-height: 350px;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                        <span style="font-size: 1.3rem;">✅</span>
+                        <h4 style="font-size: 1.1rem; font-weight: 700; color: #4a8a5a;">已完成</h4>
+                        <span style="margin-left: auto; background: rgba(74, 222, 128, 0.2); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; color: #22c55e;" id="todoCompletedCount">0</span>
+                    </div>
+                    <div id="todoKanbanCompleted" style="max-height: 260px; overflow-y: auto; padding-right: 8px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-section" id="energyTrends" style="margin-top: 28px;">
+            <h3 class="panel-title"><i class="fas fa-chart-line"></i> 精力趋势分析</h3>
+            <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+                <span style="font-size: 0.9rem; color: #8b7a7a;">选择时间区间：</span>
+                <input type="date" id="trendStartDate" aria-label="趋势开始日期" min="2026-01-01" max="2030-12-31">
+                <span style="color: #8b5e9e;">至</span>
+                <input type="date" id="trendEndDate" aria-label="趋势结束日期" min="2026-01-01" max="2030-12-31">
+                <button class="add-btn" style="background: linear-gradient(135deg, #8b5e9e, #6a4a7a);" onclick="renderAllTrendCharts()">📊 更新所有图表</button>
+            </div>
+            <div class="responsive-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+                <div style="background: rgba(255, 250, 252, 0.9); border-radius: 20px; padding: 16px; border: 1px solid #ffe2f0;">
+                    <h4 style="color: #e88a4c; font-size: 0.9rem; margin-bottom: 8px;">🏃 体能得分趋势</h4>
+                    <div style="height: 140px;"><canvas id="physicalTrendChart"></canvas></div>
+                </div>
+                <div style="background: rgba(255, 250, 252, 0.9); border-radius: 20px; padding: 16px; border: 1px solid #ffe2f0;">
+                    <h4 style="color: #c4679c; font-size: 0.9rem; margin-bottom: 8px;">❤️ 情感得分趋势</h4>
+                    <div style="height: 140px;"><canvas id="emotionalTrendChart"></canvas></div>
+                </div>
+                <div style="background: rgba(255, 250, 252, 0.9); border-radius: 20px; padding: 16px; border: 1px solid #ffe2f0;">
+                    <h4 style="color: #8b5e9e; font-size: 0.9rem; margin-bottom: 8px;">🧠 思维得分趋势</h4>
+                    <div style="height: 140px;"><canvas id="focusTrendChart"></canvas></div>
+                </div>
+                <div style="background: rgba(255, 250, 252, 0.9); border-radius: 20px; padding: 16px; border: 1px solid #ffe2f0;">
+                    <h4 style="color: #a78bfa; font-size: 0.9rem; margin-bottom: 8px;">🔥 意志得分趋势</h4>
+                    <div style="height: 140px;"><canvas id="meaningTrendChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 28px;">
+            <h3 class="panel-title"><i class="fas fa-smile"></i> 情感标记看板</h3>
+            <div class="emotion-layout">
+                <div style="flex: 1; background: rgba(255, 250, 252, 0.9); border-radius: 24px; padding: 20px; border: 1px solid #ffe2f0;">
+                    <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+                        <select id="emotionYear" aria-label="情感看板年份" onchange="renderEmotionBoard()">
+                            <option value="2026">2026年</option>
+                            <option value="2027">2027年</option>
+                            <option value="2028">2028年</option>
+                            <option value="2029">2029年</option>
+                            <option value="2030">2030年</option>
+                        </select>
+                        <select id="emotionMonth" aria-label="情感看板月份" onchange="renderEmotionBoard()">
+                            <option value="0">1月</option><option value="1">2月</option><option value="2">3月</option><option value="3">4月</option>
+                            <option value="4">5月</option><option value="5">6月</option><option value="6">7月</option><option value="7">8月</option>
+                            <option value="8">9月</option><option value="9">10月</option><option value="10">11月</option><option value="11">12月</option>
+                        </select>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;" id="emotionBoard"></div>
+                </div>
+                <div style="flex: 1; background: rgba(255, 250, 252, 0.9); border-radius: 24px; padding: 20px; border: 1px solid #ffe2f0;">
+                    <h4 style="color: #c4679c; font-size: 1rem; margin-bottom: 16px;">📝 情绪波动记录</h4>
+                    <div style="margin-bottom: 16px;">
+                        <label style="font-size: 0.9rem; color: #6a4a5a; margin-bottom: 8px; display: block;">关联时间（可选）</label>
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            <input type="date" id="emotionStartDate" aria-label="情绪记录开始日期" min="2026-01-01" max="2030-12-31" style="flex: 1; min-width: 120px;">
+                            <span style="color: #8b5e9e; align-self: center;">至</span>
+                            <input type="date" id="emotionEndDate" aria-label="情绪记录结束日期" min="2026-01-01" max="2030-12-31" style="flex: 1; min-width: 120px;">
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <label style="font-size: 0.9rem; color: #6a4a5a; margin-bottom: 8px; display: block;">记录情绪波动原因</label>
+                        <textarea id="emotionNotes" aria-label="情绪波动原因" style="width: 100%; background: rgba(255, 255, 255, 0.8); border: 1px solid rgba(200, 160, 200, 0.3); border-radius: 16px; padding: 14px; color: #3a2a47; font-size: 0.95rem; min-height: 200px; resize: vertical; outline: none;" placeholder="记录情绪波动的原因...&#10;&#10;例如：&#10;- 本周工作压力较大，周三情绪低落&#10;- 周五和朋友聚会，心情很好&#10;- 周末休息充足，精力充沛&#10;- 学习了新技能，感觉很有成就感&#10;- 和家人通话，感受到温暖与支持"></textarea>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                        <button class="add-btn" style="background: linear-gradient(135deg, #c4679c, #9c5a8e);" onclick="saveEmotionNotes()">💾 保存记录</button>
+                    </div>
+                    <div style="border-top: 1px solid rgba(200, 160, 200, 0.3); padding-top: 16px;">
+                        <h5 style="color: #8b7a7a; font-size: 0.9rem; margin-bottom: 12px;">📋 历史记录</h5>
+                        <div id="emotionNotesList" style="max-height: 200px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="goal-section">
+            <div class="calendar-panel">
+                <h3 class="panel-title"><i class="fas fa-rocket"></i> 目标拆解</h3>
+                <div class="goal-input-area">
+                    <input type="text" id="goalInput" aria-label="中长期目标" placeholder="输入中长期目标（如：成为AI时代的产品策略师）...">
+                    <button class="add-btn" onclick="generateGoalSuggestions()">🎯 AI拆解</button>
+                </div>
+                <div id="goalSuggestions" class="goal-suggestions" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div class="media-section" id="creativeSpace">
+            <h3 class="panel-title"><i class="fas fa-pen-fancy"></i> 自媒体运营中心</h3>
+            <div class="media-grid">
+                <button type="button" class="media-card" onclick="openMediaDetail('writing')">
+                    <span class="media-icon">✍️</span>
+                    <span class="media-title">小小号写作中</span>
+                    <span class="media-count" id="writingCount">0 个文档</span>
+                </button>
+                <button type="button" class="media-card" onclick="openMediaDetail('lazyy')">
+                    <span class="media-icon">😴</span>
+                    <span class="media-title">OMG摆烂运营中</span>
+                    <span class="media-count" id="lazyyCount">0 个想法</span>
+                </button>
+                <button type="button" class="media-card" onclick="openMediaDetail('ads')">
+                    <span class="media-icon">💰</span>
+                    <span class="media-title">接广告赚钱钱钱</span>
+                    <span class="media-count" id="adsCount">0 个记录</span>
+                </button>
+                <button type="button" class="media-card" onclick="openMediaDetail('ideas')">
+                    <span class="media-icon">💡</span>
+                    <span class="media-title">新的想法和探索</span>
+                    <span class="media-count" id="ideasCount">0 个灵感</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 自媒体运营日历模块 -->
+        <div class="media-section" style="margin-top: 28px;">
+            <h3 class="panel-title"><i class="fas fa-calendar-alt"></i> 📅 自媒体运营日历</h3>
+            <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;">
+                <span style="font-size: 0.9rem; color: #8b7a7a;">选择时间区间：</span>
+                <input type="date" id="mediaCalendarStartDate" aria-label="运营日历开始日期" onchange="renderMediaCalendar()">
+                <span style="color: #8b5e9e;">至</span>
+                <input type="date" id="mediaCalendarEndDate" aria-label="运营日历结束日期" onchange="renderMediaCalendar()">
+                <button class="add-btn" style="background: linear-gradient(135deg, #c4679c, #8b5e9e);" onclick="renderMediaCalendar()">📊 更新日历</button>
+                <button class="add-btn" style="background: linear-gradient(135deg, #667eea, #764ba2);" onclick="renderMediaCalendarStats()">📈 查看统计</button>
+            </div>
+            <div id="mediaCalendarContainer" style="background: rgba(255, 250, 252, 0.9); border-radius: 24px; padding: 20px; border: 1px solid rgba(200, 160, 200, 0.3); overflow-x: auto;">
+                <div id="mediaCalendarTable"></div>
+            </div>
+            <div id="mediaCalendarStatsContainer" style="margin-top: 20px; display: none;">
+                <div style="background: rgba(255, 250, 252, 0.9); border-radius: 24px; padding: 20px; border: 1px solid rgba(200, 160, 200, 0.3);">
+                    <h4 style="color: #6a4a5a; font-size: 1rem; margin-bottom: 16px;">📊 更新数量统计</h4>
+                    <div style="height: 200px;"><canvas id="mediaCalendarStatsChart"></canvas></div>
+                    <div class="responsive-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 16px;">
+                        <div style="text-align: center; padding: 12px; background: rgba(255, 179, 71, 0.1); border-radius: 12px;">
+                            <div style="font-size: 0.8rem; color: #8b7a7a;">抖音</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #ffb347;" id="mediaStatsDouyin">0</div>
+                        </div>
+                        <div style="text-align: center; padding: 12px; background: rgba(196, 103, 156, 0.1); border-radius: 12px;">
+                            <div style="font-size: 0.8rem; color: #8b7a7a;">网易</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #c4679c;" id="mediaStatsWangyi">0</div>
+                        </div>
+                        <div style="text-align: center; padding: 12px; background: rgba(139, 94, 158, 0.1); border-radius: 12px;">
+                            <div style="font-size: 0.8rem; color: #8b7a7a;">大号</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #8b5e9e;" id="mediaStatsDahao">0</div>
+                        </div>
+                        <div style="text-align: center; padding: 12px; background: rgba(167, 139, 250, 0.1); border-radius: 12px;">
+                            <div style="font-size: 0.8rem; color: #8b7a7a;">小号</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #a78bfa;" id="mediaStatsXiaohao">0</div>
+                        </div>
+                        <div style="text-align: center; padding: 12px; background: rgba(232, 138, 76, 0.1); border-radius: 12px;">
+                            <div style="font-size: 0.8rem; color: #8b7a7a;">小小号</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #e88a4c;" id="mediaStatsXiaoxiaohao">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="media-section">
+            <h3 class="panel-title"><i class="fas fa-graduation-cap"></i> 我学学学</h3>
+            <div class="media-grid">
+                <button type="button" class="media-card" onclick="openIdeasTab('analysis')">
+                    <span class="media-icon">🎯</span>
+                    <span class="media-title">对标分析</span>
+                    <span class="media-count" id="benchmarkCount">0 个笔记</span>
+                </button>
+                <button type="button" class="media-card" onclick="openIdeasTab('ip')">
+                    <span class="media-icon">💼</span>
+                    <span class="media-title">IP商业分析</span>
+                    <span class="media-count" id="businessCount">0 个笔记</span>
+                </button>
+                <button type="button" class="media-card" onclick="openIdeasTab('skills')">
+                    <span class="media-icon">🎨</span>
+                    <span class="media-title">新技能学习</span>
+                    <span class="media-count" id="skillsCount">0 个笔记</span>
+                </button>
+                <button type="button" class="media-card" onclick="openDeepSeekDetail()">
+                    <span class="media-icon">🤖</span>
+                    <span class="media-title">聊点什么呢</span>
+                    <span class="media-count" id="deepseekCount">0 个文档</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="media-section">
+            <h3 class="panel-title"><i class="fas fa-book-open"></i> 文学创作类中心</h3>
+            <div class="media-grid">
+                <button type="button" class="media-card" onclick="openLiteratureDetail()">
+                    <span class="media-icon">📚</span>
+                    <span class="media-title">创作灵感库</span>
+                    <span class="media-count" id="literatureCount">0 个文档</span>
+                </button>
+                <button type="button" class="media-card" onclick="openNovelOutlineDetail()">
+                    <span class="media-icon">🗺️</span>
+                    <span class="media-title">小说大纲</span>
+                    <span class="media-count" id="novelOutlineCount">0 个大纲</span>
+                </button>
+                <button type="button" class="media-card" onclick="openReadingNoteDetail()">
+                    <span class="media-icon">📖</span>
+                    <span class="media-title">读书笔记</span>
+                    <span class="media-count" id="readingNoteCount">0 个笔记</span>
+                </button>
+                <button type="button" class="media-card" onclick="openFilmDetail()">
+                    <span class="media-icon">🎬</span>
+                    <span class="media-title">电影鉴赏</span>
+                    <span class="media-count" id="filmCount">0 个笔记</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="calendar-panel" style="margin-top: 28px;">
+            <h3 class="panel-title"><i class="fas fa-clock"></i> 番茄钟专注记录</h3>
+            <div id="pomodoroTimer" style="text-align: center; margin-bottom: 16px; padding: 20px; background: linear-gradient(135deg, rgba(139, 94, 158, 0.1), rgba(106, 74, 122, 0.1)); border-radius: 20px; display: none;">
+                <div id="timerDisplay" style="font-size: 3rem; font-weight: 700; color: #8b5e9e; font-family: monospace;">25:00</div>
+                <div id="timerStatus" style="font-size: 1rem; color: #8b7a7a; margin-top: 8px;">专注中...</div>
+            </div>
+            <div class="pomodoros-grid" id="pomodoroGrid"></div>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <button class="add-btn" style="background: linear-gradient(135deg, #8b5e9e, #6a4a7a);" onclick="startPomodoro()" id="startPomodoroBtn">🍅 开始专注 (25分钟)</button>
+                <button class="add-btn" style="background: rgba(200, 100, 100, 0.3); display: none;" onclick="stopPomodoro()" id="stopPomodoroBtn">⏹ 停止</button>
+                <button class="add-btn" style="background: linear-gradient(135deg, #74ebd5, #9face6);" onclick="openDetail('pomodoro')">📊 查看详细记录</button>
+            </div>
+        </div>
+
+        <div class="calendar-panel" style="margin-top: 28px;">
+            <h3 class="panel-title"><i class="fas fa-sync-alt"></i> 每周复盘</h3>
+            <div class="goal-input-area">
+                <input type="date" id="reviewStartDate" aria-label="复盘开始日期">
+                <span style="color: #8b5e9e; font-weight: 600;">至</span>
+                <input type="date" id="reviewEndDate" aria-label="复盘结束日期">
+                <button class="add-btn" style="background: linear-gradient(135deg, #667eea, #764ba2);" onclick="addWeeklyReview()">+ 添加复盘周</button>
+            </div>
+            <div id="reviewList"></div>
+        </div>
+    </div>
+
+    <!-- 体能账户详情页 -->
+    <div class="detail-page" id="physicalPage">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> 返回主页</button>
+        <div class="detail-header">
+            <div class="detail-icon">🏃</div>
+            <h2 class="detail-title physical-theme">体能账户</h2>
+            <div class="progress-ring">
+                <svg viewBox="0 0 100 100">
+                    <circle class="bg" cx="50" cy="50" r="42"/>
+                    <circle class="fg" cx="50" cy="50" r="42" stroke="#e88a4c" stroke-dasharray="264" stroke-dashoffset="40"/>
+                </svg>
+                <div class="center"><div class="number physical-theme" id="physicalProgress">0</div><div class="label">当前能量</div></div>
+            </div>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('physical', 'theory')">📚 理论</button>
+            <button class="tab-btn" onclick="switchTab('physical', 'trend')">📈 趋势</button>
+            <button class="tab-btn" onclick="switchTab('physical', 'record')">✍️ 记录</button>
+            <button class="tab-btn" onclick="switchTab('physical', 'guide')">💡 引导</button>
+            <button class="tab-btn" onclick="switchTab('physical', 'history')">📝 历史</button>
+        </div>
+        <div id="physical-theory" class="tab-content active">
+            <div class="theory-card">
+                <div class="theory-title"><i class="fas fa-book"></i> Loehr 精力金字塔</div>
+                <div class="theory-text">体能是精力管理的基础。根据吉姆·洛尔的精力管理理论，体能包括身体能量，通过规律的运动、充足的睡眠和均衡的饮食来维持。体能账户的核心是：精力不是消耗品，而是可以通过锻炼不断积累和恢复的资源。</div>
+            </div>
+        </div>
+        <div id="physical-trend" class="tab-content"><div class="chart-container"><canvas id="physicalChart"></canvas></div></div>
+        <div id="physical-record" class="tab-content">
+            <div class="record-form">
+                <div class="form-group">
+                    <label class="form-label">今日得分 (0-100)</label>
+                    <input type="range" class="form-range" id="physicalScoreInput" min="0" max="100" value="85" oninput="updateScorePreview('physical', this.value)">
+                    <div style="text-align: center; font-size: 1.5rem; font-weight: 700; color: #e88a4c; margin-top: 8px;" id="physicalPreview">85</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">日期</label>
+                    <input type="date" class="form-input" id="physicalDateInput">
+                </div>
+                <button class="add-btn" style="width: 100%; background: linear-gradient(135deg, #e88a4c, #d470a0);" onclick="saveRecord('physical')">保存记录</button>
+            </div>
+        </div>
+        <div id="physical-guide" class="tab-content">
+            <div class="responsive-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                <div class="guide-card" style="background: linear-gradient(135deg, rgba(232, 138, 76, 0.1), rgba(212, 112, 160, 0.1));">
+                    <div class="theory-title"><i class="fas fa-wind"></i> 呼吸训练</div>
+                    <div style="text-align: center; padding: 20px;">
+                        <div id="breathCircle" style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #e88a4c, #d470a0); margin: 0 auto 16px; transition: all 3s ease-in-out;"></div>
+                        <div id="breathInstruction" style="font-size: 1.2rem; color: #e88a4c; font-weight: 600;">准备开始...</div>
+                        <div id="breathCount" style="font-size: 2rem; color: #6a4a7a; font-weight: 700; margin-top: 8px;">0</div>
+                    </div>
+                    <button class="add-btn" style="width: 100%; background: linear-gradient(135deg, #e88a4c, #d470a0);" onclick="startBreathing()">🌬️ 开始3-6呼吸法</button>
+                </div>
+
+                <div class="guide-card" style="background: linear-gradient(135deg, rgba(74, 222, 128, 0.1), rgba(52, 211, 153, 0.1));">
+                    <div class="theory-title"><i class="fas fa-clock"></i> 间歇训练计时器</div>
+                    <div style="text-align: center; padding: 16px;">
+                        <div id="intervalTimer" style="font-size: 2.5rem; font-weight: 700; color: #4ade80; font-family: monospace;">25:00</div>
+                        <div id="intervalStatus" style="font-size: 1rem; color: #6a4a7a; margin-top: 8px;">准备开始</div>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <button class="add-btn" style="flex: 1; background: linear-gradient(135deg, #4ade80, #22c55e);" onclick="startIntervalTraining()">▶️ 开始训练</button>
+                        <button class="add-btn" style="flex: 1; background: rgba(200, 100, 100, 0.3);" onclick="stopIntervalTraining()">⏹️ 停止</button>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #6a4a7a; padding: 0 8px;">
+                        <p style="margin-bottom: 4px;"><strong>💡 间歇训练建议：</strong></p>
+                        <ul style="margin: 0; padding-left: 16px;">
+                            <li>热身5分钟</li>
+                            <li>高强度运动30秒</li>
+                            <li>休息1分钟</li>
+                            <li>重复8-10次</li>
+                            <li>每周3-5次</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="guide-card" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1)); grid-column: span 2;">
+                    <div class="theory-title"><i class="fas fa-utensils"></i> 饮食记录</div>
+                    <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+                        <div style="flex: 1;">
+                            <label class="form-label" style="font-size: 0.9rem;">选择日期</label>
+                            <input type="date" class="form-input" id="foodDate" style="margin-bottom: 12px;">
+                            <label class="form-label" style="font-size: 0.9rem;">饮水量 (ml)</label>
+                            <input type="number" class="form-input" id="waterIntake" placeholder="输入饮水量" style="margin-bottom: 8px;">
+                            <button class="add-btn" style="width: 100%; background: linear-gradient(135deg, #3b82f6, #8b5cf6);" onclick="saveWaterIntake()">💧 记录饮水</button>
+                            <div style="margin-top: 12px; text-align: center;">
+                                <div style="font-size: 2rem; font-weight: 700; color: #3b82f6;" id="waterProgress">0</div>
+                                <div style="font-size: 0.9rem; color: #8b7a7a;">/ 1800ml</div>
+                            </div>
+                        </div>
+                        <div style="flex: 1;">
+                            <label class="form-label" style="font-size: 0.9rem;">饮食分类</label>
+                            <div style="display: flex; flex-wrap: gap: 8px; margin-bottom: 12px;">
+                                <button class="add-btn" style="background: #4ade80; margin: 4px;" onclick="addFood('healthy')">🥗 健康</button>
+                                <button class="add-btn" style="background: #fbbf24; margin: 4px;" onclick="addFood('moderate')">🍕 中等</button>
+                                <button class="add-btn" style="background: #f87171; margin: 4px;" onclick="addFood('unhealthy')">🍟 不健康</button>
+                            </div>
+                            <div style="height: 120px;">
+                                <canvas id="foodChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="border-top: 1px solid rgba(139, 92, 246, 0.2); padding-top: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <span style="font-size: 0.9rem; color: #6a4a7a;">📋 历史记录</span>
+                            <button class="add-btn" style="background: rgba(139, 92, 246, 0.2); font-size: 0.8rem;" onclick="renderFoodHistory()">🔄 刷新</button>
+                        </div>
+                        <div id="foodHistoryList" style="max-height: 150px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="physical-history" class="tab-content">
+            <div class="responsive-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                <div class="guide-card" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));">
+                    <div class="theory-title"><i class="fas fa-tint"></i> 💧 饮水记录看板</div>
+                    <div style="max-height: 300px; overflow-y: auto;">
+                        <div id="physicalWaterBoard"></div>
+                    </div>
+                </div>
+                <div class="guide-card" style="background: linear-gradient(135deg, rgba(74, 222, 128, 0.1), rgba(52, 211, 153, 0.1));">
+                    <div class="theory-title"><i class="fas fa-utensils"></i> 🍽️ 饮食记录看板</div>
+                    <div style="max-height: 300px; overflow-y: auto;">
+                        <div id="physicalFoodBoard"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 情感账户详情页 -->
+    <div class="detail-page" id="emotionalPage">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> 返回主页</button>
+        <div class="detail-header">
+            <div class="detail-icon">❤️</div>
+            <h2 class="detail-title emotional-theme">情感账户</h2>
+            <div class="progress-ring">
+                <svg viewBox="0 0 100 100">
+                    <circle class="bg" cx="50" cy="50" r="42"/>
+                    <circle class="fg" cx="50" cy="50" r="42" stroke="#c4679c" stroke-dasharray="264" stroke-dashoffset="58"/>
+                </svg>
+                <div class="center"><div class="number emotional-theme" id="emotionalProgress">0</div><div class="label">当前能量</div></div>
+            </div>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('emotional', 'theory')">📚 理论</button>
+            <button class="tab-btn" onclick="switchTab('emotional', 'trend')">📈 趋势</button>
+            <button class="tab-btn" onclick="switchTab('emotional', 'record')">✍️ 记录</button>
+            <button class="tab-btn" onclick="switchTab('emotional', 'guide')">💡 引导</button>
+            <button class="tab-btn" onclick="switchTab('emotional', 'history')">📝 历史</button>
+        </div>
+        <div id="emotional-theory" class="tab-content active">
+            <div class="theory-card">
+                <div class="theory-title"><i class="fas fa-book"></i> 积极心理学拓展建构理论</div>
+                <div class="theory-text">积极情绪不仅是结果，更是资源。根据弗雷德里克森的拓展建构理论，积极情绪能拓展我们的思维视野和行动资源。情感账户的核心是：通过记录和感恩，主动积累积极情绪体验。</div>
+            </div>
+        </div>
+        <div id="emotional-trend" class="tab-content"><div class="chart-container"><canvas id="emotionalChart"></canvas></div></div>
+        <div id="emotional-record" class="tab-content">
+            <div class="record-form">
+                <div class="form-group">
+                    <label class="form-label">今日得分 (0-100)</label>
+                    <input type="range" class="form-range" id="emotionalScoreInput" min="0" max="100" value="78" oninput="updateScorePreview('emotional', this.value)">
+                    <div style="text-align: center; font-size: 1.5rem; font-weight: 700; color: #c4679c; margin-top: 8px;" id="emotionalPreview">78</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">日期</label>
+                    <input type="date" class="form-input" id="emotionalDateInput">
+                </div>
+                <button class="add-btn" style="width: 100%; background: linear-gradient(135deg, #c4679c, #9c5a8e);" onclick="saveRecord('emotional')">保存记录</button>
+            </div>
+        </div>
+        <div id="emotional-guide" class="tab-content">
+            <div class="responsive-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                <div class="guide-card" style="background: linear-gradient(135deg, rgba(196, 103, 156, 0.1), rgba(156, 90, 142, 0.1));">
+                    <div class="theory-title"><i class="fas fa-comment"></i> 三明治批评法</div>
+                    <div style="margin-bottom: 12px;">
+                        <label class="form-label" style="font-size: 0.9rem;">真诚肯定</label>
+                        <input type="text" class="form-input" id="sandwichPositive" placeholder="描述优点...">
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label class="form-label" style="font-size: 0.9rem;">建设性建议</label>
+                        <input type="text" class="form-input" id="sandwichSuggestion" placeholder="提出改进方向...">
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label class="form-label" style="font-size: 0.9rem;">鼓励支持</label>
+                        <input type="text" class="form-input" id="sandwichEncourage" placeholder="表达信心...">
+                    </div>
+                    <button class="add-btn" style="width: 100%; background: linear-gradient(135deg, #c4679c, #9c5a8e);" onclick="saveSandwich()">💾 保存模板</button>
+                    <div style="margin-top: 12px; border-top: 1px solid rgba(196, 103, 156, 0.2); padding-top: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 0.85rem; color: #6a4a7a;">📋 历史模板</span>
+                            <button class="add-btn" style="background: rgba(196, 103, 156, 0.2); font-size: 0.75rem;" onclick="renderSandwichHistory()">🔄 查看</button>
+                        </div>
+                        <div id="sandwichHistoryList" style="max-height: 120px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+
+                <div class="guide-card" style="background: linear-gradient(135deg, rgba(167, 139, 250, 0.1), rgba(139, 92, 246, 0.1));">
+                    <div class="theory-title"><i class="fas fa-users"></i> 社会支持图谱</div>
+                    <div style="margin-bottom: 12px;">
+                        <label class="form-label" style="font-size: 0.9rem;">联系人姓名</label>
+                        <input type="text" class="form-input" id="supportName" placeholder="输入姓名">
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label class="form-label" style="font-size: 0.9rem;">关系类型</label>
+                        <select class="form-input" id="supportType">
+                            <option value="family">👨‍👩‍👧 亲情</option>
+                            <option value="friend">👫 友情</option>
+                            <option value="love">💕 爱情</option>
+                            <option value="work">💼 工作</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label class="form-label" style="font-size: 0.9rem;">亲密度 (1-10)</label>
+                        <input type="range" class="form-range" id="supportIntimacy" min="1" max="10" value="5">
+                        <div style="text-align: center; color: #8b5cf6;">亲密度: <span id="intimacyValue">5</span></div>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label class="form-label" style="font-size: 0.9rem;">备注</label>
+                        <input type="text" class="form-input" id="supportNote" placeholder="输入备注信息...">
+                    </div>
+                    <button class="add-btn" style="width: 100%; background: linear-gradient(135deg, #a78bfa, #8b5cf6);" onclick="saveSupport()">➕ 添加联系人</button>
+                    <div style="margin-top: 12px; border-top: 1px solid rgba(167, 139, 250, 0.2); padding-top: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 0.85rem; color: #6a4a7a;">📋 联系人列表</span>
+                            <button class="add-btn" style="background: rgba(167, 139, 250, 0.2); font-size: 0.75rem;" onclick="renderSupportHistory()">🔄 查看</button>
+                        </div>
+                        <div id="supportHistoryList" style="max-height: 100px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+
+                <div class="guide-card" style="background: linear-gradient(135deg, rgba(244, 114, 182, 0.1), rgba(236, 72, 153, 0.1)); grid-column: span 2;">
+                    <div class="theory-title"><i class="fas fa-heart"></i> 情感再生活动库</div>
+                    <div class="responsive-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                        <button class="add-btn" style="background: rgba(244, 114, 182, 0.3);" onclick="recordActivity('sing')">🎤 唱歌</button>
+                        <button class="add-btn" style="background: rgba(244, 114, 182, 0.3);" onclick="recordActivity('dance')">💃 跳舞</button>
+                        <button class="add-btn" style="background: rgba(244, 114, 182, 0.3);" onclick="recordActivity('garden')">🌱 园艺</button>
+                        <button class="add-btn" style="background: rgba(244, 114, 182, 0.3);" onclick="recordActivity('read')">📚 读书</button>
+                        <button class="add-btn" style="background: rgba(244, 114, 182, 0.3);" onclick="recordActivity('park')">🌳 逛公园</button>
+                        <button class="add-btn" style="background: rgba(244, 114, 182, 0.3);" onclick="recordActivity('museum')">🏛️ 博物馆</button>
+                        <button class="add-btn" style="background: rgba(244, 114, 182, 0.3);" onclick="recordActivity('music')">🎵 听音乐</button>
+                        <button class="add-btn" style="background: rgba(244, 114, 182, 0.3);" onclick="recordActivity('meditate')">🧘 冥想</button>
+                    </div>
+                    <div style="margin-top: 12px; border-top: 1px solid rgba(244, 114, 182, 0.2); padding-top: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9rem; color: #8b7a7a;">📋 活动记录</span>
+                            <button class="add-btn" style="background: rgba(244, 114, 182, 0.2); font-size: 0.8rem;" onclick="renderActivityHistory()">🔄 刷新</button>
+                        </div>
+                        <div id="activityHistoryList" style="max-height: 100px; overflow-y: auto; margin-top: 8px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="emotional-history" class="tab-content">
+            <div class="responsive-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                <div class="guide-card" style="background: linear-gradient(135deg, rgba(196, 103, 156, 0.1), rgba(156, 90, 142, 0.1));">
+                    <div class="theory-title"><i class="fas fa-comment"></i> 🗣️ 三明治批评法记录</div>
+                    <div style="max-height: 350px; overflow-y: auto;">
+                        <div id="emotionalSandwichBoard"></div>
+                    </div>
+                </div>
+                <div class="guide-card" style="background: linear-gradient(135deg, rgba(167, 139, 250, 0.1), rgba(139, 92, 246, 0.1));">
+                    <div class="theory-title"><i class="fas fa-users"></i> 👥 社会支持图谱</div>
+                    <div style="max-height: 350px; overflow-y: auto;">
+                        <div id="emotionalSupportBoard"></div>
+                    </div>
+                </div>
+                <div class="guide-card" style="background: linear-gradient(135deg, rgba(244, 114, 182, 0.1), rgba(236, 72, 153, 0.1));">
+                    <div class="theory-title"><i class="fas fa-heart"></i> 🎨 情感再生活动</div>
+                    <div style="max-height: 350px; overflow-y: auto;">
+                        <div id="emotionalActivityBoard"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 思维账户详情页 -->
+    <div class="detail-page" id="focusPage">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> 返回主页</button>
+        <div class="detail-header">
+            <div class="detail-icon">🧠</div>
+            <h2 class="detail-title focus-theme">思维账户</h2>
+            <div class="progress-ring">
+                <svg viewBox="0 0 100 100">
+                    <circle class="bg" cx="50" cy="50" r="42"/>
+                    <circle class="fg" cx="50" cy="50" r="42" stroke="#8b5e9e" stroke-dasharray="264" stroke-dashoffset="21"/>
+                </svg>
+                <div class="center"><div class="number focus-theme" id="focusProgress">0</div><div class="label">当前能量</div></div>
+            </div>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('focus', 'theory')">📚 理论</button>
+            <button class="tab-btn" onclick="switchTab('focus', 'trend')">📈 趋势</button>
+            <button class="tab-btn" onclick="switchTab('focus', 'record')">✍️ 记录</button>
+            <button class="tab-btn" onclick="switchTab('focus', 'guide')">💡 引导</button>
+            <button class="tab-btn" onclick="switchTab('focus', 'history')">📝 历史</button>
+        </div>
+        <div id="focus-theory" class="tab-content active">
+            <div class="theory-card">
+                <div class="theory-title"><i class="fas fa-book"></i> 心流理论与深度工作</div>
+                <div class="theory-text">深度专注是最高质量的思维能量。根据契克森米哈赖的心流理论，当挑战与技能匹配时，我们会进入完全沉浸的状态。专注账户的核心是：保护深度工作时间，减少碎片化，保持高专注度的积累。</div>
+            </div>
+        </div>
+        <div id="focus-trend" class="tab-content"><div class="chart-container"><canvas id="focusChart"></canvas></div></div>
+        <div id="focus-record" class="tab-content">
+            <div class="record-form">
+                <div class="form-group">
+                    <label class="form-label">今日得分 (0-100)</label>
+                    <input type="range" class="form-range" id="focusScoreInput" min="0" max="100" value="92" oninput="updateScorePreview('focus', this.value)">
+                    <div style="text-align: center; font-size: 1.5rem; font-weight: 700; color: #8b5e9e; margin-top: 8px;" id="focusPreview">92</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">日期</label>
+                    <input type="date" class="form-input" id="focusDateInput">
+                </div>
+                <button class="add-btn" style="width: 100%; background: linear-gradient(135deg, #8b5e9e, #6a4a7a);" onclick="saveRecord('focus')">保存记录</button>
+            </div>
+        </div>
+        <div id="focus-guide" class="tab-content">
+            <div class="responsive-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                <div class="guide-card" style="background: linear-gradient(135deg, rgba(139, 94, 158, 0.1), rgba(106, 74, 122, 0.1));">
+                    <div class="theory-title"><i class="fas fa-clock"></i> 活动转换计时器</div>
+                    <div style="text-align: center; padding: 16px;">
+                        <div id="switchTimer" style="font-size: 2.5rem; font-weight: 700; color: #8b5e9e; font-family: monospace;">90:00</div>
+                        <div id="switchStatus" style="font-size: 1rem; color: #6a4a7a; margin-top: 8px;">工作中...</div>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <button class="add-btn" style="flex: 1; background: linear-gradient(135deg, #8b5e9e, #6a4a7a);" onclick="startSwitchTimer()">▶️ 开始计时</button>
+                        <button class="add-btn" style="flex: 1; background: rgba(200, 100, 100, 0.3);" onclick="stopSwitchTimer()">⏹️ 停止</button>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #6a4a7a; padding: 0 8px;">
+                        <p style="margin-bottom: 4px;"><strong>💡 建议：</strong></p>
+                        <ul style="margin: 0; padding-left: 16px;">
+                            <li>每90-120分钟切换活动</li>
+                            <li>从脑力转体力活动</li>
+                            <li>避免长时间单一思维</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="guide-card" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(196, 103, 156, 0.1));">
+                    <div class="theory-title"><i class="fas fa-ban"></i> 大脑放空区</div>
+                    <div style="text-align: center; padding: 20px;">
+                        <div id="focusLockIcon" style="font-size: 3rem; margin-bottom: 12px;">🔓</div>
+                        <div id="focusLockStatus" style="font-size: 1rem; color: #6a4a7a;">未锁定</div>
+                    </div>
+                    <button class="add-btn" style="width: 100%; background: linear-gradient(135deg, #ec4899, #c4679c);" onclick="toggleFocusLock()">🔐 专注锁定</button>
+                    <div style="margin-top: 12px; font-size: 0.8rem; color: #6a4a7a; padding: 0 8px;">
+                        <p>开启后：禁止刷手机，专注当前任务</p>
+                    </div>
+                </div>
+
+                <div class="guide-card" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(107, 70, 193, 0.1)); grid-column: span 2;">
+                    <div class="theory-title"><i class="fas fa-book-open"></i> 每日反思模板</div>
+                    <div class="responsive-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                        <div>
+                            <label class="form-label" style="font-size: 0.9rem;">🎯 今日挑战（上班途中思考）</label>
+                            <textarea class="form-input" id="reflectionChallenge" placeholder="今天工作中最大的挑战是什么？如何应对？" style="min-height: 80px;"></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.9rem;">💡 今日收获</label>
+                            <textarea class="form-input" id="reflectionGain" placeholder="今天学到了什么新知识或新技能？" style="min-height: 80px;"></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.9rem;">❌ 今日不足</label>
+                            <textarea class="form-input" id="reflectionWeak" placeholder="今天哪里可以做得更好？" style="min-height: 80px;"></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.9rem;">📝 明日计划</label>
+                            <textarea class="form-input" id="reflectionTomorrow" placeholder="明天最重要的三件事是什么？" style="min-height: 80px;"></textarea>
+                        </div>
+                    </div>
+                    <button class="add-btn" style="width: 100%; background: linear-gradient(135deg, #8b5cf6, #6b46c1); margin-top: 12px;" onclick="saveReflection()">💾 保存反思</button>
+                    <div style="margin-top: 12px; border-top: 1px solid rgba(139, 92, 246, 0.2); padding-top: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9rem; color: #8b7a7a;">📋 反思记录</span>
+                            <button class="add-btn" style="background: rgba(139, 92, 246, 0.2); font-size: 0.8rem;" onclick="renderReflectionHistory()">🔄 刷新</button>
+                        </div>
+                        <div id="reflectionHistoryList" style="max-height: 120px; overflow-y: auto; margin-top: 8px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="focus-history" class="tab-content">
+            <div class="guide-card" style="background: linear-gradient(135deg, rgba(139, 94, 158, 0.1), rgba(106, 74, 122, 0.1));">
+                <div class="theory-title"><i class="fas fa-book-open"></i> 📝 每日反思记录看板</div>
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <div id="focusReflectionBoard"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 意志账户详情页 -->
+    <div class="detail-page" id="meaningPage">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> 返回主页</button>
+        <div class="detail-header">
+            <div class="detail-icon">🔥</div>
+            <h2 class="detail-title meaning-theme">意志账户</h2>
+            <div class="progress-ring">
+                <svg viewBox="0 0 100 100">
+                    <circle class="bg" cx="50" cy="50" r="42"/>
+                    <circle class="fg" cx="50" cy="50" r="42" stroke="#a78bfa" stroke-dasharray="264" stroke-dashoffset="32"/>
+                </svg>
+                <div class="center"><div class="number meaning-theme" id="meaningProgress">0</div><div class="label">当前能量</div></div>
+            </div>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('meaning', 'theory')">📚 理论</button>
+            <button class="tab-btn" onclick="switchTab('meaning', 'trend')">📈 趋势</button>
+            <button class="tab-btn" onclick="switchTab('meaning', 'record')">✍️ 记录</button>
+            <button class="tab-btn" onclick="switchTab('meaning', 'guide')">💡 引导</button>
+            <button class="tab-btn" onclick="switchTab('meaning', 'history')">📝 历史</button>
+        </div>
+        <div id="meaning-theory" class="tab-content active">
+            <div class="theory-card">
+                <div class="theory-title"><i class="fas fa-book"></i> 自我决定理论与价值观行动</div>
+                <div class="theory-text">意义感来自自主、胜任、关联三种基本心理需求的满足。根据自我决定理论，当我们的行动与内在价值观一致时，会获得最深层的满足感。意义账户的核心是：将日常行动与深层价值观连接。</div>
+            </div>
+        </div>
+        <div id="meaning-trend" class="tab-content"><div class="chart-container"><canvas id="meaningChart"></canvas></div></div>
+        <div id="meaning-record" class="tab-content">
+            <div class="record-form">
+                <div class="form-group">
+                    <label class="form-label">今日得分 (0-100)</label>
+                    <input type="range" class="form-range" id="meaningScoreInput" min="0" max="100" value="88" oninput="updateScorePreview('meaning', this.value)">
+                    <div style="text-align: center; font-size: 1.5rem; font-weight: 700; color: #a78bfa; margin-top: 8px;" id="meaningPreview">88</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">日期</label>
+                    <input type="date" class="form-input" id="meaningDateInput">
+                </div>
+                <button class="add-btn" style="width: 100%; background: linear-gradient(135deg, #a78bfa, #8b6bda);" onclick="saveRecord('meaning')">保存记录</button>
+            </div>
+        </div>
+        <div id="meaning-guide" class="tab-content">
+            <div class="responsive-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                <div class="guide-card" style="background: linear-gradient(135deg, rgba(167, 139, 250, 0.1), rgba(139, 92, 246, 0.1));">
+                    <div class="theory-title"><i class="fas fa-heart"></i> 人生意义三问</div>
+                    <div style="margin-bottom: 12px;">
+                        <label class="form-label" style="font-size: 0.9rem;">1. 早上起床的兴奋度 (1-10)</label>
+                        <input type="range" class="form-range" id="meaningQ1" min="1" max="10" value="5" oninput="updateMeaningScore()">
+                        <div style="text-align: center; color: #a78bfa;">得分: <span id="meaningQ1Value">5</span></div>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label class="form-label" style="font-size: 0.9rem;">2. 享受过程的程度 (1-10)</label>
+                        <input type="range" class="form-range" id="meaningQ2" min="1" max="10" value="5" oninput="updateMeaningScore()">
+                        <div style="text-align: center; color: #a78bfa;">得分: <span id="meaningQ2Value">5</span></div>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label class="form-label" style="font-size: 0.9rem;">3. 价值取向责任感 (1-10)</label>
+                        <input type="range" class="form-range" id="meaningQ3" min="1" max="10" value="5" oninput="updateMeaningScore()">
+                        <div style="text-align: center; color: #a78bfa;">得分: <span id="meaningQ3Value">5</span></div>
+                    </div>
+                    <div style="text-align: center; padding: 12px; background: rgba(167, 139, 250, 0.2); border-radius: 12px;">
+                        <div style="font-size: 2rem; font-weight: 700; color: #a78bfa;" id="meaningTotalScore">15</div>
+                        <div style="font-size: 0.9rem; color: #6a4a7a;" id="meaningInterpretation">目标感一般</div>
+                    </div>
+                    <button class="add-btn" style="width: 100%; background: linear-gradient(135deg, #a78bfa, #8b5cf6); margin-top: 12px;" onclick="saveMeaningQuiz()">💾 保存评估</button>
+                    <div style="margin-top: 12px; border-top: 1px solid rgba(167, 139, 250, 0.2); padding-top: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 0.85rem; color: #6a4a7a;">📋 评估历史</span>
+                            <button class="add-btn" style="background: rgba(167, 139, 250, 0.2); font-size: 0.75rem;" onclick="renderMeaningQuizHistory()">🔄 查看</button>
+                        </div>
+                        <div id="meaningQuizHistoryList" style="max-height: 80px; overflow-y: auto;"></div>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <canvas id="meaningQuizChart" style="max-height: 100px;"></canvas>
+                    </div>
+                </div>
+
+                <div class="guide-card" style="background: linear-gradient(135deg, rgba(232, 138, 76, 0.1), rgba(212, 112, 160, 0.1));">
+                    <div class="theory-title"><i class="fas fa-star"></i> 价值观澄清</div>
+                    <div style="margin-bottom: 12px;">
+                        <label class="form-label" style="font-size: 0.9rem;">💭 临终前最想做的三件事</label>
+                        <textarea class="form-input" id="valueDeathbed" placeholder="写下你临终前最想完成的三件事..." style="min-height: 60px;"></textarea>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label class="form-label" style="font-size: 0.9rem;">🏆 最敬重的人的三个品质</label>
+                        <textarea class="form-input" id="valueAdmire" placeholder="写下你最敬重的人的三个品质..." style="min-height: 60px;"></textarea>
+                    </div>
+                    <button class="add-btn" style="width: 100%; background: linear-gradient(135deg, #e88a4c, #d470a0);" onclick="saveValues()">💾 保存价值观</button>
+                    <div style="margin-top: 12px; border-top: 1px solid rgba(232, 138, 76, 0.2); padding-top: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 0.85rem; color: #6a4a7a;">📋 价值观历史</span>
+                            <button class="add-btn" style="background: rgba(232, 138, 76, 0.2); font-size: 0.75rem;" onclick="renderValuesHistory()">🔄 查看</button>
+                        </div>
+                        <div id="valuesHistoryList" style="max-height: 80px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+
+                <div class="guide-card" style="background: linear-gradient(135deg, rgba(74, 222, 128, 0.1), rgba(52, 211, 153, 0.1)); grid-column: span 2;">
+                    <div class="theory-title"><i class="fas fa-flag"></i> 仪式感创建器</div>
+                    <div class="responsive-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                        <div>
+                            <label class="form-label" style="font-size: 0.9rem;">🕐 时间</label>
+                            <input type="text" class="form-input" id="ritualTime" placeholder="如：早上7点">
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.9rem;">📍 地点</label>
+                            <input type="text" class="form-input" id="ritualPlace" placeholder="如：书房">
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.9rem;">✨ 动作</label>
+                            <input type="text" class="form-input" id="ritualAction" placeholder="如：点燃蜡烛">
+                        </div>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <label class="form-label" style="font-size: 0.9rem;">📝 仪式描述</label>
+                        <textarea class="form-input" id="ritualDesc" placeholder="描述这个仪式的意义和感受..." style="min-height: 60px;"></textarea>
+                    </div>
+                    <div style="display: flex; gap: 12px; margin-top: 12px;">
+                        <button class="add-btn" style="flex: 1; background: linear-gradient(135deg, #4ade80, #22c55e);" onclick="saveRitual()">➕ 创建仪式</button>
+                        <button class="add-btn" style="flex: 1; background: rgba(74, 222, 128, 0.3);" onclick="renderRitualList()">📋 查看仪式</button>
+                    </div>
+                    <div id="ritualList" style="margin-top: 12px; max-height: 100px; overflow-y: auto;"></div>
+                </div>
+            </div>
+        </div>
+        <div id="meaning-history" class="tab-content">
+            <div class="guide-card" style="margin-bottom: 20px; background: linear-gradient(135deg, rgba(167,139,250,0.1), rgba(139,92,246,0.1));">
+                <div class="theory-title"><i class="fas fa-chart-line"></i> ❓ 人生意义三问趋势</div>
+                <div class="chart-container" style="height: 200px;">
+                    <canvas id="meaningQuizHistoryChart"></canvas>
+                </div>
+            </div>
+            <div class="responsive-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                <div class="guide-card" style="background: linear-gradient(135deg, rgba(167, 139, 250, 0.1), rgba(139, 92, 246, 0.1));">
+                    <div class="theory-title"><i class="fas fa-heart"></i> ❓ 人生意义三问记录</div>
+                    <div style="max-height: 350px; overflow-y: auto;">
+                        <div id="meaningQuizBoard"></div>
+                    </div>
+                </div>
+                <div class="guide-card" style="background: linear-gradient(135deg, rgba(232, 138, 76, 0.1), rgba(212, 112, 160, 0.1));">
+                    <div class="theory-title"><i class="fas fa-star"></i> 💎 价值观澄清记录</div>
+                    <div style="max-height: 350px; overflow-y: auto;">
+                        <div id="meaningValuesBoard"></div>
+                    </div>
+                </div>
+                <div class="guide-card" style="background: linear-gradient(135deg, rgba(74, 222, 128, 0.1), rgba(52, 211, 153, 0.1));">
+                    <div class="theory-title"><i class="fas fa-flag"></i> ✨ 仪式感记录</div>
+                    <div style="max-height: 350px; overflow-y: auto;">
+                        <div id="meaningRitualBoard"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 连续打卡详情页 -->
+    <div class="detail-page" id="streakPage">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> 返回主页</button>
+        <div class="detail-header">
+            <div class="detail-icon">🔥</div>
+            <h2 class="detail-title streak-theme">连续打卡看板</h2>
+            <div class="progress-ring">
+                <svg viewBox="0 0 100 100">
+                    <circle class="bg" cx="50" cy="50" r="42"/>
+                    <circle class="fg" cx="50" cy="50" r="42" stroke="#ffb347" stroke-dasharray="264" stroke-dashoffset="70"/>
+                </svg>
+                <div class="center"><div class="number streak-theme" id="streakProgress">0</div><div class="label">连续天数</div></div>
+            </div>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('streak', 'record')">✍️ 打卡记录</button>
+            <button class="tab-btn" onclick="switchTab('streak', 'trend')">📈 打卡趋势</button>
+            <button class="tab-btn" onclick="switchTab('streak', 'analysis')">📊 数据分析</button>
+        </div>
+        <div id="streak-record" class="tab-content active">
+            <div class="record-form">
+                <div class="form-group">
+                    <label class="form-label">今日打卡</label>
+                    <input type="date" class="form-input" id="streakDateInput">
+                </div>
+                <button class="add-btn" style="width: 100%; background: linear-gradient(135deg, #ffb347, #ff6b9d);" onclick="recordStreak()">打卡！</button>
+            </div>
+            <div class="history-list" id="streakHistoryList"></div>
+        </div>
+        <div id="streak-trend" class="tab-content"><div class="chart-container"><canvas id="streakChart"></canvas></div></div>
+        <div id="streak-analysis" class="tab-content">
+            <div class="guide-card">
+                <div class="theory-title"><i class="fas fa-chart-pie"></i> 打卡分析</div>
+                <ul class="guide-list">
+                    <li><i class="fas fa-star"></i> 你的最长连续打卡：<span id="streakLongest">0天</span></li>
+                    <li><i class="fas fa-calendar-check"></i> 本月打卡率：<span id="streakMonthRate">0%</span></li>
+                    <li><i class="fas fa-clock"></i> 最常打卡时段：<span id="streakCommonTime">暂无数据</span></li>
+                    <li><i class="fas fa-trophy"></i> 继续保持，你的三层防御机制正在强化！</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 完成任务详情页 -->
+    <div class="detail-page" id="tasksPage">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> 返回主页</button>
+        <div class="detail-header">
+            <div class="detail-icon">✅</div>
+            <h2 class="detail-title tasks-theme">完成任务看板</h2>
+            <div class="progress-ring">
+                <svg viewBox="0 0 100 100">
+                    <circle class="bg" cx="50" cy="50" r="42"/>
+                    <circle class="fg" cx="50" cy="50" r="42" stroke="#74ebd5" stroke-dasharray="264" stroke-dashoffset="50"/>
+                </svg>
+                <div class="center"><div class="number tasks-theme" id="tasksProgress">0</div><div class="label">累计完成</div></div>
+            </div>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('tasks', 'all')">📋 全部任务</button>
+            <button class="tab-btn" onclick="switchTab('tasks', 'trend')">📈 趋势分析</button>
+            <button class="tab-btn" onclick="switchTab('tasks', 'distribution')">🎯 分布统计</button>
+        </div>
+        <div id="tasks-all" class="tab-content active">
+            <div class="history-list" id="allTasksList"></div>
+        </div>
+        <div id="tasks-trend" class="tab-content"><div class="chart-container"><canvas id="tasksChart"></canvas></div></div>
+        <div id="tasks-distribution" class="tab-content">
+            <div class="guide-card">
+                <div class="theory-title"><i class="fas fa-chart-pie"></i> 任务分布</div>
+                <ul class="guide-list">
+                    <li><i class="fas fa-running"></i> 体能任务：12个</li>
+                    <li><i class="fas fa-heart"></i> 情绪任务：10个</li>
+                    <li><i class="fas fa-bullseye"></i> 思维任务：13个</li>
+                    <li><i class="fas fa-star"></i> 意志任务：7个</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 平均得分详情页 -->
+    <div class="detail-page" id="avgPage">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> 返回主页</button>
+        <div class="detail-header">
+            <div class="detail-icon">📊</div>
+            <h2 class="detail-title avg-theme">平均得分看板</h2>
+            <div class="progress-ring">
+                <svg viewBox="0 0 100 100">
+                    <circle class="bg" cx="50" cy="50" r="42"/>
+                    <circle class="fg" cx="50" cy="50" r="42" stroke="#667eea" stroke-dasharray="264" stroke-dashoffset="38"/>
+                </svg>
+                <div class="center"><div class="number avg-theme" id="avgProgress">0</div><div class="label">平均得分</div></div>
+            </div>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('avg', 'trend')">📈 得分趋势</button>
+            <button class="tab-btn" onclick="switchTab('avg', 'compare')">🆚 账户对比</button>
+            <button class="tab-btn" onclick="switchTab('avg', 'insights')">💡 深度洞察</button>
+        </div>
+        <div id="avg-trend" class="tab-content active"><div class="chart-container"><canvas id="avgChart"></canvas></div></div>
+        <div id="avg-compare" class="tab-content"><div class="chart-container"><canvas id="compareChart"></canvas></div></div>
+        <div id="avg-insights" class="tab-content">
+            <div class="guide-card">
+                <div class="theory-title"><i class="fas fa-lightbulb"></i> 基于你的画像的洞察</div>
+                <ul class="guide-list">
+                    <li><i class="fas fa-brain"></i> 你的思维账户表现最佳，继续保护深度创作时间</li>
+                    <li><i class="fas fa-heart"></i> 情感账户需要更多关注，建议增加感恩日记频率</li>
+                    <li><i class="fas fa-anchor"></i> 意志账户稳定且上升，说明你的价值观行动有效</li>
+                    <li><i class="fas fa-snowflake"></i> 警惕完美主义，允许状态波动，温柔安放你的三层防御</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 写作详情页 -->
+    <div class="detail-page" id="writingPage">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> 返回主页</button>
+        <div class="detail-header">
+            <div class="detail-icon">✍️</div>
+            <h2 class="detail-title" style="background: linear-gradient(135deg, #e88a4c, #d470a0); -webkit-background-clip: text; background-clip: text; color: transparent;">小小号写作中</h2>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchMediaTab('writing', 'list')">📝 文档列表</button>
+            <button class="tab-btn" onclick="switchMediaTab('writing', 'editor')">✍️ 写作</button>
+        </div>
+        <div id="writing-list" class="tab-content active">
+            <div class="record-form" style="margin-bottom: 16px;">
+                <div class="form-group">
+                    <label class="form-label">新建文档标题</label>
+                    <input type="text" class="form-input" id="writingTitleInput" placeholder="输入文档标题...">
+                </div>
+                <button class="add-btn" style="width: 100%; background: linear-gradient(135deg, #e88a4c, #d470a0);" onclick="createWriting()">+ 创建新文档</button>
+            </div>
+            <div id="writingDocsList"></div>
+        </div>
+        <div id="writing-editor" class="tab-content">
+            <div style="margin-bottom: 16px;">
+                <input type="text" class="form-input" id="writingDocTitle" placeholder="文档标题" style="font-size: 1.2rem; font-weight: 600; margin-bottom: 12px;">
+            </div>
+            <textarea class="text-editor" id="writingContent" placeholder="开始写作吧...在这里记录你的灵感、想法和故事。"></textarea>
+            <div style="margin-top: 12px; display: flex; gap: 12px;">
+                <button class="add-btn" style="background: linear-gradient(135deg, #e88a4c, #d470a0);" onclick="saveWriting()">💾 保存</button>
+                <button class="add-btn" style="background: rgba(200, 160, 200, 0.3);" onclick="switchMediaTab('writing', 'list')">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 摆烂运营详情页 -->
+    <div class="detail-page" id="lazyyPage">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> 返回主页</button>
+        <div class="detail-header">
+            <div class="detail-icon">😴</div>
+            <h2 class="detail-title" style="background: linear-gradient(135deg, #f093fb, #f5576c); -webkit-background-clip: text; background-clip: text; color: transparent;">OMG摆烂运营中</h2>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchMediaTab('lazyy', 'list')">💤 想法列表</button>
+            <button class="tab-btn" onclick="switchMediaTab('lazyy', 'editor')">✍️ 记录</button>
+        </div>
+        <div id="lazyy-list" class="tab-content active">
+            <div class="record-form" style="margin-bottom: 16px;">
+                <div class="form-group">
+                    <label class="form-label">新想法标题</label>
+                    <input type="text" class="form-input" id="lazyyTitleInput" placeholder="输入想法标题...">
+                </div>
+                <button class="add-btn" style="width: 100%; background: linear-gradient(135deg, #f093fb, #f5576c);" onclick="createLazyy()">+ 记录想法</button>
+            </div>
+            <div id="lazyyDocsList"></div>
+        </div>
+        <div id="lazyy-editor" class="tab-content">
+            <input type="text" class="form-input" id="lazyyDocTitle" placeholder="想法标题" style="font-size: 1.2rem; font-weight: 600; margin-bottom: 12px;">
+            <textarea class="text-editor" id="lazyyContent" placeholder="详细记录你的摆烂运营想法..."></textarea>
+            <div style="margin-top: 12px; display: flex; gap: 12px;">
+                <button class="add-btn" style="background: linear-gradient(135deg, #f093fb, #f5576c);" onclick="saveLazyy()">💾 保存</button>
+                <button class="add-btn" style="background: rgba(200, 160, 200, 0.3);" onclick="switchMediaTab('lazyy', 'list')">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 接广告详情页 -->
+    <div class="detail-page" id="adsPage">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> 返回主页</button>
+        <div class="detail-header">
+            <div class="detail-icon">💰</div>
+            <h2 class="detail-title" style="background: linear-gradient(135deg, #11998e, #38ef7d); -webkit-background-clip: text; background-clip: text; color: transparent;">接广告赚钱钱钱钱</h2>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchMediaTab('ads', 'list')">💵 记录列表</button>
+            <button class="tab-btn" onclick="switchMediaTab('ads', 'editor')">✍️ 记录</button>
+        </div>
+        <div id="ads-list" class="tab-content active">
+            <div class="record-form" style="margin-bottom: 16px;">
+                <div class="form-group">
+                    <label class="form-label">广告记录标题</label>
+                    <input type="text" class="form-input" id="adsTitleInput" placeholder="输入记录标题（品牌名/合作类型）...">
+                </div>
+                <button class="add-btn" style="width: 100%; background: linear-gradient(135deg, #11998e, #38ef7d);" onclick="createAds()">+ 添加记录</button>
+            </div>
+            <div id="adsDocsList"></div>
+        </div>
+        <div id="ads-editor" class="tab-content">
+            <input type="text" class="form-input" id="adsDocTitle" placeholder="广告合作标题" style="font-size: 1.2rem; font-weight: 600; margin-bottom: 12px;">
+            <textarea class="text-editor" id="adsContent" placeholder="记录广告合作详情：品牌名、报价、沟通进度、落地情况等..."></textarea>
+            <div style="margin-top: 12px; display: flex; gap: 12px;">
+                <button class="add-btn" style="background: linear-gradient(135deg, #11998e, #38ef7d);" onclick="saveAds()">💾 保存</button>
+                <button class="add-btn" style="background: rgba(200, 160, 200, 0.3);" onclick="switchMediaTab('ads', 'list')">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新想法详情页 -->
+    <div class="detail-page" id="ideasPage">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> 返回主页</button>
+        <div class="detail-header">
+            <div class="detail-icon">💡</div>
+            <h2 class="detail-title" style="background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; background-clip: text; color: transparent;">新的想法和探索</h2>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchMediaTab('ideas', 'list')">💡 灵感列表</button>
+            <button class="tab-btn" onclick="switchMediaTab('ideas', 'vault')">🧺 想法仓库</button>
+            <button class="tab-btn" onclick="switchMediaTab('ideas', 'analysis')">🎯 对标分析</button>
+            <button class="tab-btn" onclick="switchMediaTab('ideas', 'ip')">💼 IP商业分析</button>
+            <button class="tab-btn" onclick="switchMediaTab('ideas', 'skills')">📚 新技能学习</button>
+        </div>
+        <div id="ideas-list" class="tab-content active">
+            <div class="record-form" style="margin-bottom: 16px;">
+                <div class="form-group">
+                    <label class="form-label">灵感标题</label>
+                    <input type="text" class="form-input" id="ideasTitleInput" placeholder="输入灵感标题...">
+                </div>
+                <button class="add-btn" style="width: 100%; background: linear-gradient(135deg, #667eea, #764ba2);" onclick="createIdeas()">+ 记录灵感</button>
+            </div>
+            <div id="ideasDocsList"></div>
+        </div>
+        <div id="ideas-editor" class="tab-content">
+            <input type="text" class="form-input" id="ideasDocTitle" placeholder="灵感标题" style="font-size: 1.2rem; font-weight: 600; margin-bottom: 12px;">
+            <textarea class="text-editor" id="ideasContent" placeholder="详细记录你的新想法和探索方向..."></textarea>
+            <div style="margin-top: 12px; display: flex; gap: 12px;">
+                <button class="add-btn" style="background: linear-gradient(135deg, #667eea, #764ba2);" onclick="saveIdeas()">💾 保存</button>
+                <button class="add-btn" style="background: rgba(200, 160, 200, 0.3);" onclick="switchMediaTab('ideas', 'list')">取消</button>
+            </div>
+        </div>
+        <div id="ideas-vault" class="tab-content">
+            <div class="idea-vault-layout">
+                <div class="idea-vault-column">
+                    <div class="idea-vault-panel">
+                        <div class="idea-vault-panel-title">
+                            <span>1. 收集箱</span>
+                            <span class="idea-vault-kicker">先存原话</span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">想法</label>
+                            <textarea class="idea-vault-textarea" id="ideaVaultIdea" placeholder="一句原话就行，不用润色。"></textarea>
+                        </div>
+                        <div class="idea-vault-mini-grid">
+                            <div class="form-group">
+                                <label class="form-label">触发它的原因</label>
+                                <textarea class="idea-vault-textarea compact" id="ideaVaultTrigger" placeholder="来自对话、文章、经历、问题..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">它可能属于哪个主题</label>
+                                <input type="text" class="form-input" id="ideaVaultMotif" list="ideaVaultMotifList" placeholder="可留空">
+                                <datalist id="ideaVaultMotifList"></datalist>
+                            </div>
+                        </div>
+                        <div class="idea-vault-mini-grid">
+                            <div class="form-group">
+                                <label class="form-label">我还不确定的地方</label>
+                                <textarea class="idea-vault-textarea compact" id="ideaVaultUncertainty" placeholder="卡在哪里、缺什么证据..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">下一步</label>
+                                <textarea class="idea-vault-textarea compact" id="ideaVaultNextStep" placeholder="查资料、问人、做小实验..."></textarea>
+                            </div>
+                        </div>
+                        <button class="add-btn" style="width: 100%; background: linear-gradient(135deg, #667eea, #38bdf8);" onclick="createIdeaVaultFragment()">+ 收进仓库</button>
+                    </div>
+
+                    <div class="idea-vault-panel">
+                        <div class="idea-vault-panel-title">
+                            <span>2. 想法母题</span>
+                            <span id="ideaVaultMotifCount" class="idea-vault-kicker">0 个</span>
+                        </div>
+                        <div class="idea-vault-input-row">
+                            <input type="text" class="form-input" id="ideaVaultMotifName" placeholder="新增母题">
+                            <button class="add-btn" style="background: linear-gradient(135deg, #11998e, #38ef7d);" onclick="addIdeaVaultMotif()">添加</button>
+                        </div>
+                        <div id="ideaVaultMotifs" class="idea-vault-list compact-list"></div>
+                    </div>
+                </div>
+
+                <div class="idea-vault-column">
+                    <div class="idea-vault-panel">
+                        <div class="idea-vault-panel-title">
+                            <span>收集箱碎片</span>
+                            <span id="ideaVaultInboxCount" class="idea-vault-kicker">0 条</span>
+                        </div>
+                        <div id="ideaVaultInbox" class="idea-vault-list"></div>
+                    </div>
+
+                    <div class="idea-vault-panel">
+                        <div class="idea-vault-panel-title">
+                            <span>3. 可推进条目</span>
+                            <span id="ideaVaultActionCount" class="idea-vault-kicker">0 条</span>
+                        </div>
+                        <div class="idea-vault-action-form">
+                            <select class="form-select" id="ideaVaultActionSource"></select>
+                            <select class="form-select" id="ideaVaultActionType">
+                                <option>问题</option>
+                                <option>假设</option>
+                                <option>待验证点</option>
+                                <option>行动任务</option>
+                                <option>文章/产品/方案骨架</option>
+                            </select>
+                            <input type="text" class="form-input" id="ideaVaultActionTitle" placeholder="可推进条目">
+                            <textarea class="idea-vault-textarea compact" id="ideaVaultActionNext" placeholder="下一步怎么验证或推进"></textarea>
+                            <button class="add-btn" style="width: 100%; background: linear-gradient(135deg, #e88a4c, #d470a0);" onclick="createIdeaVaultAction()">+ 变成可推进条目</button>
+                        </div>
+                        <div id="ideaVaultActions" class="idea-vault-list compact-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="ideas-analysis" class="tab-content">
+            <div style="margin-bottom: 16px;">
+                <button class="add-btn" style="background: linear-gradient(135deg, #667eea, #764ba2);" onclick="addAnalysisItem()">+ 添加创作者分析</button>
+            </div>
+            <div id="analysisList"></div>
+        </div>
+        <div id="ideas-ip" class="tab-content">
+            <div style="margin-bottom: 16px;">
+                <button class="add-btn" style="background: linear-gradient(135deg, #11998e, #38ef7d);" onclick="addIPItem()">+ 添加商业分析</button>
+            </div>
+            <div id="ipList"></div>
+        </div>
+        <div id="ideas-skills" class="tab-content">
+            <div style="margin-bottom: 16px;">
+                <button class="add-btn" style="background: linear-gradient(135deg, #e88a4c, #d470a0);" onclick="addSkillItem()">+ 添加学习技能</button>
+            </div>
+            <div id="skillsList"></div>
+        </div>
+    </div>
+
+    <!-- 番茄钟详情页 -->
+    <div class="detail-page" id="pomodoroPage">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> 返回主页</button>
+        <div class="detail-header">
+            <div class="detail-icon">🍅</div>
+            <h2 class="detail-title" style="background: linear-gradient(135deg, #8b5e9e, #6a4a7a); -webkit-background-clip: text; background-clip: text; color: transparent;">番茄钟专注记录</h2>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchMediaTab('pomodoro', 'stats')">📊 统计数据</button>
+            <button class="tab-btn" onclick="switchMediaTab('pomodoro', 'history')">📝 历史记录</button>
+        </div>
+        <div id="pomodoro-stats" class="tab-content active">
+            <div class="guide-card">
+                <div class="theory-title"><i class="fas fa-chart-bar"></i> 本周专注统计</div>
+                <ul class="guide-list">
+                    <li><i class="fas fa-fire"></i> 总专注次数：<strong id="pomodoroTotalCount">0</strong> 次</li>
+                    <li><i class="fas fa-clock"></i> 总专注时长：<strong id="pomodoroTotalTime">0</strong> 分钟</li>
+                    <li><i class="fas fa-calendar"></i> 日均专注：<strong id="pomodoroAvgCount">0</strong> 次</li>
+                    <li><i class="fas fa-trophy"></i> 最长连续专注：<strong id="pomodoroBestStreak">0</strong> 天</li>
+                </ul>
+            </div>
+            <div class="chart-container"><canvas id="pomodoroChart"></canvas></div>
+        </div>
+        <div id="pomodoro-history" class="tab-content">
+            <div id="pomodoroHistoryList"></div>
+        </div>
+    </div>
+
+    <!-- 每周复盘详情页 -->
+    <div class="detail-page" id="reviewDetailPage">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> 返回主页</button>
+        <div class="detail-header">
+            <div class="detail-icon">🔄</div>
+            <h2 class="detail-title" style="background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; background-clip: text; color: transparent;">复盘详情</h2>
+        </div>
+        <div id="reviewDetailContent"></div>
+    </div>
+
+    <!-- DeepSeek聊什么详情页 -->
+    <div class="detail-page" id="deepseekPage">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> 返回主页</button>
+        <div class="detail-header">
+            <div class="detail-icon">🤖</div>
+            <h2 class="detail-title" style="background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; background-clip: text; color: transparent;">又在和DeepSeek聊什么</h2>
+        </div>
+        <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+            <div class="goal-input-area" style="flex: 1;">
+                <input type="text" id="deepseekSearch" placeholder="🔍 关键词搜索文档...">
+                <button class="add-btn" onclick="searchDeepSeekDocs()" style="background: linear-gradient(135deg, #667eea, #764ba2);">搜索</button>
+            </div>
+        </div>
+        <div style="display: flex; gap: 20px;">
+            <div style="flex: 0 0 280px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="color: #6a4a7a; font-weight: 600; font-size: 1rem;">📚 合集分类</h3>
+                    <button class="add-btn" style="padding: 6px 12px; font-size: 0.8rem; background: linear-gradient(135deg, #667eea, #764ba2);" onclick="addDeepSeekCategory()">+ 新建</button>
+                </div>
+                <div id="deepseekCategories" style="background: rgba(255,255,255,0.5); border-radius: 16px; padding: 12px;"></div>
+            </div>
+            <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="color: #6a4a7a; font-weight: 600; font-size: 1rem;" id="deepseekCurrentTitle">📝 全部文档</h3>
+                    <button class="add-btn" style="background: linear-gradient(135deg, #667eea, #764ba2);" onclick="openDeepSeekEditor()">+ 新建文档</button>
+                </div>
+                <div id="deepseekDocs" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文学创作类中心 -->
+    <div class="detail-page" id="literaturePage">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> 返回主页</button>
+        <div class="detail-header">
+            <div class="detail-icon">📚</div>
+            <h2 class="detail-title" style="background: linear-gradient(135deg, #e88a4c, #d470a0); -webkit-background-clip: text; background-clip: text; color: transparent;">文学创作类中心</h2>
+        </div>
+        <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+            <div class="goal-input-area" style="flex: 1;">
+                <input type="text" id="literatureSearch" placeholder="🔍 关键词搜索文档...">
+                <button class="add-btn" onclick="searchLiteratureDocs()" style="background: linear-gradient(135deg, #e88a4c, #d470a0);">搜索</button>
+            </div>
+        </div>
+        <div style="display: flex; gap: 20px;">
+            <div style="flex: 0 0 280px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="color: #6a4a7a; font-weight: 600; font-size: 1rem;">📚 合集分类</h3>
+                    <button class="add-btn" style="padding: 6px 12px; font-size: 0.8rem; background: linear-gradient(135deg, #e88a4c, #d470a0);" onclick="addLiteratureCategory()">+ 新建</button>
+                </div>
+                <div id="literatureCategories" style="background: rgba(255,255,255,0.5); border-radius: 16px; padding: 12px;"></div>
+            </div>
+            <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="color: #6a4a7a; font-weight: 600; font-size: 1rem;" id="literatureCurrentTitle">📝 全部文档</h3>
+                    <button class="add-btn" style="background: linear-gradient(135deg, #e88a4c, #d470a0);" onclick="openLiteratureEditor()">+ 新建文档</button>
+                </div>
+                <div id="literatureDocs" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 小说大纲 -->
+    <div class="detail-page" id="novelOutlinePage">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> 返回主页</button>
+        <div class="detail-header">
+            <div class="detail-icon">🗺️</div>
+            <h2 class="detail-title" style="background: linear-gradient(135deg, #e88a4c, #d470a0); -webkit-background-clip: text; background-clip: text; color: transparent;">小说大纲构建器</h2>
+        </div>
+        <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+            <div class="goal-input-area" style="flex: 1;">
+                <input type="text" id="novelSearch" placeholder="🔍 搜索小说大纲...">
+                <button class="add-btn" onclick="searchNovelOutlines()" style="background: linear-gradient(135deg, #e88a4c, #d470a0);">搜索</button>
+            </div>
+        </div>
+        <div style="display: flex; gap: 20px;">
+            <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="color: #6a4a7a; font-weight: 600; font-size: 1rem;">📖 我的小说大纲</h3>
+                    <button class="add-btn" style="background: linear-gradient(135deg, #e88a4c, #d470a0);" onclick="openNovelOutlineEditor()">+ 创建新小说</button>
+                </div>
+                <div id="novelOutlineList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 学习模块 - 对标分析/IP商业分析/新技能学习 -->
+    <div class="detail-page" id="learningPage">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> 返回主页</button>
+        <div class="detail-header">
+            <div class="detail-icon" id="learningIcon">🎯</div>
+            <h2 class="detail-title" id="learningPageTitle" style="background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; background-clip: text; color: transparent;">学习笔记</h2>
+        </div>
+        <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+            <div class="goal-input-area" style="flex: 1;">
+                <input type="text" id="learningSearch" placeholder="🔍 搜索笔记...">
+                <button class="add-btn" onclick="searchLearningNotes()" style="background: linear-gradient(135deg, #667eea, #764ba2);">搜索</button>
+            </div>
+        </div>
+        <div style="display: flex; gap: 20px;">
+            <div style="flex: 0 0 280px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="color: #6a4a7a; font-weight: 600; font-size: 1rem;">📚 分类</h3>
+                    <button class="add-btn" style="padding: 6px 12px; font-size: 0.8rem; background: linear-gradient(135deg, #667eea, #764ba2);" onclick="addLearningCategory()">+ 新建</button>
+                </div>
+                <div id="learningCategories" style="background: rgba(255,255,255,0.5); border-radius: 16px; padding: 12px;"></div>
+            </div>
+            <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="color: #6a4a7a; font-weight: 600; font-size: 1rem;" id="learningCurrentTitle">📝 全部笔记</h3>
+                    <button class="add-btn" style="background: linear-gradient(135deg, #667eea, #764ba2);" onclick="openLearningEditor()">+ 新建笔记</button>
+                </div>
+                <div id="learningNotes" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 读书笔记 -->
+    <div class="detail-page" id="readingNotePage">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> 返回主页</button>
+        <div class="detail-header">
+            <div class="detail-icon">📖</div>
+            <h2 class="detail-title" style="background: linear-gradient(135deg, #74ebd5, #9face6); -webkit-background-clip: text; background-clip: text; color: transparent;">读书笔记</h2>
+        </div>
+        <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+            <div class="goal-input-area" style="flex: 1;">
+                <input type="text" id="readingSearch" placeholder="🔍 搜索书籍笔记...">
+                <button class="add-btn" onclick="searchReadingNotes()" style="background: linear-gradient(135deg, #74ebd5, #9face6);">搜索</button>
+            </div>
+        </div>
+        <div style="display: flex; gap: 20px;">
+            <div style="flex: 0 0 280px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="color: #6a4a7a; font-weight: 600; font-size: 1rem;">📚 书籍分类</h3>
+                    <button class="add-btn" style="padding: 6px 12px; font-size: 0.8rem; background: linear-gradient(135deg, #74ebd5, #9face6);" onclick="addReadingCategory()">+ 新建</button>
+                </div>
+                <div id="readingCategories" style="background: rgba(255,255,255,0.5); border-radius: 16px; padding: 12px;"></div>
+            </div>
+            <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="color: #6a4a7a; font-weight: 600; font-size: 1rem;" id="readingCurrentTitle">📝 全部笔记</h3>
+                    <button class="add-btn" style="background: linear-gradient(135deg, #74ebd5, #9face6);" onclick="openReadingEditor()">+ 新建笔记</button>
+                </div>
+                <div id="readingNotes" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 电影鉴赏 -->
+    <div class="detail-page" id="filmPage">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> 返回主页</button>
+        <div class="detail-header">
+            <div class="detail-icon">🎬</div>
+            <h2 class="detail-title" style="background: linear-gradient(135deg, #e88a4c, #d470a0); -webkit-background-clip: text; background-clip: text; color: transparent;">电影鉴赏</h2>
+        </div>
+        <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+            <div class="goal-input-area" style="flex: 1;">
+                <input type="text" id="filmSearch" placeholder="🔍 搜索电影笔记...">
+                <button class="add-btn" onclick="searchFilmNotes()" style="background: linear-gradient(135deg, #e88a4c, #d470a0);">搜索</button>
+            </div>
+        </div>
+        <div style="display: flex; gap: 20px;">
+            <div style="flex: 0 0 280px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="color: #6a4a7a; font-weight: 600; font-size: 1rem;">🎞️ 电影分类</h3>
+                    <button class="add-btn" style="padding: 6px 12px; font-size: 0.8rem; background: linear-gradient(135deg, #e88a4c, #d470a0);" onclick="addFilmCategory()">+ 新建</button>
+                </div>
+                <div id="filmCategories" style="background: rgba(255,255,255,0.5); border-radius: 16px; padding: 12px;"></div>
+            </div>
+            <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="color: #6a4a7a; font-weight: 600; font-size: 1rem;" id="filmCurrentTitle">📝 全部笔记</h3>
+                    <button class="add-btn" style="background: linear-gradient(135deg, #e88a4c, #d470a0);" onclick="openFilmEditor()">+ 新建笔记</button>
+                </div>
+                <div id="filmNotes" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VITAFLOW_APP_SCRIPT -->
+</body>
+</html>

@@ -45,6 +45,7 @@ Desktop/个人工具/ops-hub/
 │   ├── memory_rules.js        # memory_rules.json 的 JS 镜像
 │   └── device_allocation.json # 三端设备任务分工与项目流转矩阵
 ├── ops                        # 可执行全局 CLI 入口（Python 3 编写，无第三方库依赖）
+├── vitaflow/                  # 本地 VitaFlow 精力管家源码与独立同步服务；my-schedule.json、口令和备份不进入仓库
 ├── scripts/
 │   ├── probe.py               # 三端网络与硬件服务 Level 2 探针脚本 (Mac+Win+Jetson)
 │   ├── collector.py           # 全量数据汇总、原子写入、跨天归档与 GitOps 自动提交推送核心
