@@ -22,6 +22,7 @@ function boot() {
   initTheme();
   initTabs();
   initVitaFlow();
+  initWeightTracker();
   startLiveClock();
 
   if (window.__OPS_STATUS__) {
@@ -60,6 +61,11 @@ function safeCreateIcons() {
   } catch (e) {
     console.warn("Lucide icons init warning:", e);
   }
+}
+
+function initWeightTracker() {
+  const frame = document.getElementById("weight-frame");
+  if (frame && !frame.getAttribute("src")) frame.src = "weight-tracker/index.html";
 }
 
 function initVitaFlow() {

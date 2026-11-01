@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="在自己的节奏里记录体重，查看变化。数据保存在当前浏览器。">
+  <title>WeightTracker · 日常体重记录</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/store.js" defer></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">跳到主要内容</a>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="应用导航">
+      <a class="brand" href="#overview" aria-label="WeightTracker 首页">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 28 28" fill="none"><path d="M5 7.5h18v15H5z" stroke="currentColor" stroke-width="1.5"/><path d="M9 7.5a5 5 0 0 1 10 0M14 12v3m-4.5 3h9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+        <span>WeightTracker<span class="brand-subtitle">日常体重记录</span></span>
+      </a>
+      <nav class="main-nav" aria-label="页面分区">
+        <a class="nav-link" href="#overview"><span aria-hidden="true">01</span> 概览</a>
+        <a class="nav-link" href="#new-entry"><span aria-hidden="true">02</span> 记录体重</a>
+        <a class="nav-link" href="#history"><span aria-hidden="true">03</span> 历史记录</a>
+        <a class="nav-link" href="#groups"><span aria-hidden="true">04</span> 本机小组</a>
+      </nav>
+      <div class="sidebar-note">
+        <span class="small-label">A LITTLE, EVERY DAY</span>
+        <p>每一次记录，<br>都让变化更清楚。</p>
+        <div class="note-rule"></div>
+        <span>按自己的节奏来。</span>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <span class="workspace-label">我的记录空间</span>
+        <span class="storage-label"><span class="status-dot" aria-hidden="true"></span>本机体验，数据保存在本浏览器</span>
+      </header>
+
+      <main id="main-content" class="main-content">
+        <section id="overview" class="overview-section" aria-labelledby="page-title">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">YOUR EVERYDAY RECORD</p>
+              <h1 id="page-title">把变化，记下来。</h1>
+              <p class="page-intro">从一条体重记录开始，慢慢看见自己的变化。</p>
+            </div>
+            <div class="profile-switcher">
+              <label for="profile-select">当前使用者</label>
+              <div class="profile-controls">
+                <select id="profile-select" aria-describedby="profile-summary"><option value="">请先创建使用者</option></select>
+                <button id="profile-edit" class="icon-button" type="button" title="编辑当前使用者" aria-label="编辑当前使用者"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m12.7 3.2 4.1 4.1M3 17l4.1-.8L16.6 6.7a1.5 1.5 0 0 0 0-2.1l-1.2-1.2a1.5 1.5 0 0 0-2.1 0L3.8 12.9 3 17Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
+                <button id="profile-add" class="button button-primary" type="button"><span aria-hidden="true">＋</span> 新建使用者</button>
+              </div>
+              <p id="profile-summary" class="field-hint">各使用者的记录分开保存，可在本机切换查看。</p>
+            </div>
+          </div>
+
+          <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+
+          <div id="empty-state" class="welcome-card">
+            <div class="welcome-icon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M7 7.5h18v19H7zM12 7.5V5h8v2.5M12 14h8M12 19h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div><h2>给自己建一个记录空间</h2><p>点击右上方「新建使用者」，填写昵称，就可以开始记录。目标体重可以稍后再设。</p></div>
+            <span class="welcome-detail">无需填写真实姓名</span>
+          </div>
+
+          <div class="stats-grid" aria-label="体重记录摘要">
+            <article class="stat-card stat-card-current"><span class="stat-label">最近体重</span><p class="stat-value"><span id="latest-value">--</span><span class="unit">kg</span></p><span class="stat-caption">以最近一次记录为准</span></article>
+            <article class="stat-card"><span class="stat-label">目标体重</span><p class="stat-value"><span id="goal-value">--</span><span class="unit">kg</span></p><span class="stat-caption">按自己的需要设置</span></article>
+            <article class="stat-card"><span class="stat-label">与首次记录相比</span><p class="stat-value"><span id="change-value">--</span><span class="unit">kg</span></p><span class="stat-caption">关注变化，不急于下结论</span></article>
+            <article class="stat-card"><span class="stat-label">已记录</span><p class="stat-value"><span id="entry-count">0</span><span class="unit">次</span></p><span class="stat-caption">每一条都是自己的足迹</span></article>
+          </div>
+        </section>
+
+        <div class="content-grid">
+          <section class="panel trend-panel" aria-labelledby="trend-title">
+            <div class="panel-header"><div><p class="eyebrow">THE BIGGER PICTURE</p><h2 id="trend-title">体重趋势</h2></div><span class="panel-tag">按记录日期</span></div>
+            <div id="chart-container" class="chart-container" aria-label="体重变化图表"><div id="chart-empty" class="chart-empty"><svg viewBox="0 0 80 48" fill="none" aria-hidden="true"><path d="M4 42h72M6 5v37" stroke="currentColor" stroke-width="1.3"/><path d="m15 32 14-9 14 5 15-13 14 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="72" cy="19" r="3" fill="currentColor"/></svg><p>还没有体重记录</p><span>保存记录后，变化会在这里展开。</span></div></div>
+            <p class="panel-footnote">体重会随测量时间和身体状态波动，尽量在相近条件下记录。</p>
+          </section>
+
+          <section id="new-entry" class="panel entry-panel" aria-labelledby="form-title">
+            <div class="panel-header"><div><p class="eyebrow">ONE SMALL STEP</p><h2 id="form-title">记录一次体重</h2></div><span class="entry-mark" aria-hidden="true">＋</span></div>
+            <p id="record-subtitle" class="section-description">只需要日期与体重，其他的随意。</p>
+            <form id="record-form">
+              <input id="record-id" type="hidden" value="">
+              <div class="field"><label for="record-date">记录日期</label><input id="record-date" name="date" type="date" required></div>
+              <div class="field"><label for="record-weight">体重</label><div class="input-with-unit"><input id="record-weight" name="weight" type="number" inputmode="decimal" min="1" max="500" step="0.1" placeholder="例如 68.5" required><span aria-hidden="true">kg</span></div></div>
+              <div class="field"><label for="record-note">备注 <span class="optional">选填</span></label><textarea id="record-note" name="note" rows="2" maxlength="300" placeholder="记下这次测量的时间、状态，或一句想法。"></textarea></div>
+              <div class="form-actions"><button id="record-submit" class="button button-primary" type="submit">保存记录 <span aria-hidden="true">↗</span></button><button id="record-cancel" class="button button-secondary" type="button" hidden>取消编辑</button></div>
+              <p class="form-note">记录仅保存在当前浏览器，换设备不会自动同步。</p>
+            </form>
+          </section>
+        </div>
+
+        <section id="history" class="panel history-panel" aria-labelledby="history-title">
+          <div class="panel-header"><div><p class="eyebrow">YOUR OWN TIMELINE</p><h2 id="history-title">历史记录</h2></div><span id="records-summary" class="history-summary">按日期查看每一次记录</span></div>
+          <div id="record-list" class="record-list" aria-live="polite"><div class="list-empty"><span class="empty-line" aria-hidden="true"></span><p>暂时没有记录</p><span>保存第一条体重后，会显示在这里。</span></div></div>
+        </section>
+        <section id="groups" class="panel groups-panel" aria-labelledby="groups-title">
+          <div class="panel-header"><div><p class="eyebrow">A LITTLE COMPANY</p><h2 id="groups-title">一起记录，也保留自己的空间</h2></div><button id="group-create" class="button button-secondary" type="button">创建小组 <span aria-hidden="true">＋</span></button></div>
+          <p class="group-description">本机模拟，小组不跨设备同步，体重默认不展示。可以切换使用者，体验加入或退出同一个小组。</p>
+          <div id="group-list" class="group-list"><p class="group-empty">还没有小组。创建使用者后，可以体验本机小组。</p></div>
+        </section>
+        <footer class="page-footer"><span>WeightTracker · 日常记录</span><span>从今天开始，也刚刚好。</span></footer>
+      </main>
+    </div>
+  </div>
+
+  <dialog id="profile-dialog" class="profile-dialog" aria-labelledby="profile-dialog-title" aria-describedby="profile-dialog-description">
+    <form id="profile-form" method="dialog">
+      <div class="dialog-heading"><div><p class="eyebrow">A SPACE FOR YOU</p><h2 id="profile-dialog-title">新建使用者</h2></div><button id="profile-cancel" class="icon-button" type="button" data-close-dialog aria-label="关闭使用者设置">×</button></div>
+      <p id="profile-dialog-description" class="section-description">使用昵称即可。在这台设备上，每位使用者都有自己的记录。</p>
+      <div class="field"><label for="profile-name">昵称</label><input id="profile-name" name="name" type="text" maxlength="30" placeholder="你希望怎么称呼自己" autocomplete="off" required autofocus></div>
+      <div class="field"><label for="profile-goal">目标体重 <span class="optional">选填</span></label><div class="input-with-unit"><input id="profile-goal" name="goal" type="number" inputmode="decimal" min="1" max="500" step="0.1" placeholder="可以稍后再设置"><span aria-hidden="true">kg</span></div></div>
+      <p class="dialog-note">这是本机使用者切换，不是账号登录。同一浏览器中的人可以切换查看。</p>
+      <div class="form-actions"><button id="profile-save" class="button button-primary" type="submit">创建记录空间 <span aria-hidden="true">↗</span></button></div>
+    </form>
+  </dialog>
+  <dialog id="group-dialog" class="profile-dialog" aria-labelledby="group-dialog-title" aria-describedby="group-dialog-description">
+    <form id="group-form" method="dialog">
+      <div class="dialog-heading"><div><p class="eyebrow">A LITTLE COMPANY</p><h2 id="group-dialog-title">创建本机小组</h2></div><button id="group-cancel" class="icon-button" type="button" data-close-dialog aria-label="关闭小组设置">×</button></div>
+      <p id="group-dialog-description" class="section-description">给一起记录的人留一个位置。小组仅在当前浏览器内模拟使用。</p>
+      <div class="field"><label for="group-name">小组名称</label><input id="group-name" name="name" type="text" maxlength="40" placeholder="例如：一起坚持记录" autocomplete="off" required></div>
+      <p class="dialog-note">体重默认不展示给小组；创建后，当前使用者会加入这个小组。</p>
+      <div class="form-actions"><button class="button button-primary" type="submit">创建并加入 <span aria-hidden="true">↗</span></button></div>
+    </form>
+  </dialog>
+  <noscript><div class="noscript-note">请开启浏览器的 JavaScript，以创建使用者和保存体重记录。</div></noscript>
+</body>
+</html>
