@@ -3,22 +3,22 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "1.2.1",
-    "last_synced": "2026-11-01 21:00:07",
+    "last_synced": "2026-11-02 09:14:20",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub",
     "sanitized": true,
-    "sanitized_at": "2026-11-02 02:00:12",
+    "sanitized_at": "2026-11-02 09:14:20",
     "sanitize_note": "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址、本地路径与私人挑战数据。"
   },
   "topology": {
-    "timestamp": "2026-11-01 21:00:07",
+    "timestamp": "2026-11-02 09:14:20",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.x.x",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
       "battery": "100%",
       "power_state": "AC Power",
-      "load_avg": "2.82 4.24 5.43",
+      "load_avg": "3.49 3.98 3.22",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -30,15 +30,15 @@
       "device": "Windows 性能主机 (i5-12600KF, 32GB, RTX 4070S 12GB)",
       "ip": "100.98.x.x",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
-      "status": "Online",
-      "latency_ms": 782.4,
+      "status": "Offline",
+      "latency_ms": null,
       "ssh_port": 22,
-      "ssh_active": true,
+      "ssh_active": false,
       "smb_port": 445,
-      "smb_active": true,
+      "smb_active": false,
       "services": [
-        "SSH Remote (Active :22)",
-        "SMB Storage (Active :445)",
+        "SSH Remote (Standby)",
+        "SMB Storage (Standby)",
         "CUDA 12 Compute",
         "Tailscale Mesh"
       ]
@@ -60,7 +60,7 @@
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": 782.4
+    "mesh_latency_ms": null
   },
   "career_summary": {
     "stats": {
@@ -69,8 +69,7 @@
       "tests": 0,
       "screening": 3,
       "applied": 11,
-      "offer": 1,
-      "preparing": 13
+      "offer": 1
     },
     "records": [
       {
@@ -316,22 +315,22 @@
       "next_action": "YOLOv11 违建检测实验数据整理与正文推进",
       "priority": "Critical",
       "git_available": false,
-      "commit_hash": "LOCAL",
-      "commit_time": "2026-10-14 23:29",
-      "commit_msg": "本地代码活跃 (更新于 2026-10-14 23:29)",
-      "branch": "local"
+      "commit_hash": "-",
+      "commit_time": "-",
+      "commit_msg": "路径不存在",
+      "branch": "-"
     },
     {
       "id": "e-jiaoxi",
       "name": "教师资格证 (教资笔试)",
       "category": "资格认证",
       "type": "exam",
+      "phase": "awaiting_result",
       "target_date": "2026-09-12",
       "status": "笔试已结束，等待初试成绩",
       "next_action": "等待初试成绩公布",
       "priority": "Critical",
-      "days_left": null,
-      "phase": "awaiting_result"
+      "days_left": null
     },
     {
       "id": "e-cet6",
@@ -346,7 +345,7 @@
     }
   ],
   "daily_checks": {
-    "date": "2026-11-01",
+    "date": "2026-11-02",
     "checks": {
       "起了": false,
       "动了": false,
@@ -374,6 +373,15 @@
       },
       {
         "date": "2026-10-31",
+        "checks": {
+          "起了": false,
+          "动了": false,
+          "写了": false,
+          "关了": false
+        }
+      },
+      {
+        "date": "2026-11-01",
         "checks": {
           "起了": false,
           "动了": false,
