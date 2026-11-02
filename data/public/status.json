@@ -3,22 +3,22 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "1.2.1",
-    "last_synced": "2026-11-02 09:14:20",
+    "last_synced": "2026-11-02 21:07:53",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub",
     "sanitized": true,
-    "sanitized_at": "2026-11-02 09:14:20",
+    "sanitized_at": "2026-11-02 21:07:53",
     "sanitize_note": "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址、本地路径与私人挑战数据。"
   },
   "topology": {
-    "timestamp": "2026-11-02 09:14:20",
+    "timestamp": "2026-11-02 21:07:53",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.x.x",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
       "battery": "100%",
-      "power_state": "AC Power",
-      "load_avg": "3.49 3.98 3.22",
+      "power_state": "Discharging (Battery)",
+      "load_avg": "11.23 13.13 10.22",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
