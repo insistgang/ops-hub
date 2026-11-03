@@ -3,22 +3,22 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "1.2.1",
-    "last_synced": "2026-11-02 21:07:53",
+    "last_synced": "2026-11-03 09:06:11",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub",
     "sanitized": true,
-    "sanitized_at": "2026-11-02 21:07:53",
+    "sanitized_at": "2026-11-03 09:06:11",
     "sanitize_note": "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址、本地路径与私人挑战数据。"
   },
   "topology": {
-    "timestamp": "2026-11-02 21:07:53",
+    "timestamp": "2026-11-03 09:06:11",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.x.x",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "100%",
+      "battery": "50%",
       "power_state": "Discharging (Battery)",
-      "load_avg": "11.23 13.13 10.22",
+      "load_avg": "33.26 15.35 10.79",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -339,13 +339,13 @@
       "type": "exam",
       "target_date": "2026-12-12",
       "status": "日常积累与听力专项",
-      "next_action": "考前 40 天 · 核心考纲高频词汇与听力真题精听",
+      "next_action": "考前 39 天 · 核心考纲高频词汇与听力真题精听",
       "priority": "Medium",
-      "days_left": 40
+      "days_left": 39
     }
   ],
   "daily_checks": {
-    "date": "2026-11-02",
+    "date": "2026-11-03",
     "checks": {
       "起了": false,
       "动了": false,
@@ -382,6 +382,15 @@
       },
       {
         "date": "2026-11-01",
+        "checks": {
+          "起了": false,
+          "动了": false,
+          "写了": false,
+          "关了": false
+        }
+      },
+      {
+        "date": "2026-11-02",
         "checks": {
           "起了": false,
           "动了": false,
