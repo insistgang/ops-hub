@@ -3,22 +3,22 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "1.2.1",
-    "last_synced": "2026-11-03 09:06:11",
+    "last_synced": "2026-11-03 21:00:09",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub",
     "sanitized": true,
-    "sanitized_at": "2026-11-03 09:06:11",
+    "sanitized_at": "2026-11-03 21:00:09",
     "sanitize_note": "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址、本地路径与私人挑战数据。"
   },
   "topology": {
-    "timestamp": "2026-11-03 09:06:11",
+    "timestamp": "2026-11-03 21:00:09",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.x.x",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "50%",
+      "battery": "64%",
       "power_state": "Discharging (Battery)",
-      "load_avg": "33.26 15.35 10.79",
+      "load_avg": "4.86 4.40 3.98",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -30,15 +30,15 @@
       "device": "Windows 性能主机 (i5-12600KF, 32GB, RTX 4070S 12GB)",
       "ip": "100.98.x.x",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
-      "status": "Offline",
-      "latency_ms": null,
+      "status": "Online",
+      "latency_ms": 946.4,
       "ssh_port": 22,
-      "ssh_active": false,
+      "ssh_active": true,
       "smb_port": 445,
-      "smb_active": false,
+      "smb_active": true,
       "services": [
-        "SSH Remote (Standby)",
-        "SMB Storage (Standby)",
+        "SSH Remote (Active :22)",
+        "SMB Storage (Active :445)",
         "CUDA 12 Compute",
         "Tailscale Mesh"
       ]
@@ -60,7 +60,7 @@
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": null
+    "mesh_latency_ms": 946.4
   },
   "career_summary": {
     "stats": {
