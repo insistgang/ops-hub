@@ -3,22 +3,22 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "1.2.1",
-    "last_synced": "2026-11-05 09:00:09",
+    "last_synced": "2026-11-05 21:00:09",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub",
     "sanitized": true,
-    "sanitized_at": "2026-11-05 09:00:09",
+    "sanitized_at": "2026-11-05 21:00:09",
     "sanitize_note": "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址、本地路径与私人挑战数据。"
   },
   "topology": {
-    "timestamp": "2026-11-05 09:00:09",
+    "timestamp": "2026-11-05 21:00:09",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.x.x",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
       "battery": "100%",
       "power_state": "AC Power",
-      "load_avg": "1.12 1.88 1.89",
+      "load_avg": "2.96 2.29 1.68",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -30,15 +30,15 @@
       "device": "Windows 性能主机 (i5-12600KF, 32GB, RTX 4070S 12GB)",
       "ip": "100.98.x.x",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
-      "status": "Offline",
-      "latency_ms": null,
+      "status": "Online",
+      "latency_ms": 805.7,
       "ssh_port": 22,
-      "ssh_active": false,
+      "ssh_active": true,
       "smb_port": 445,
-      "smb_active": false,
+      "smb_active": true,
       "services": [
-        "SSH Remote (Standby)",
-        "SMB Storage (Standby)",
+        "SSH Remote (Active :22)",
+        "SMB Storage (Active :445)",
         "CUDA 12 Compute",
         "Tailscale Mesh"
       ]
@@ -60,15 +60,15 @@
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": null
+    "mesh_latency_ms": 805.7
   },
   "career_summary": {
     "stats": {
-      "total": 29,
+      "total": 47,
       "interviewing": 0,
       "tests": 0,
       "screening": 3,
-      "applied": 11,
+      "applied": 24,
       "offer": 1
     },
     "records": [
@@ -159,8 +159,8 @@
       {
         "company": "上海人工智能实验室",
         "position": "星启计划 / 日常实习（大模型部署、Agent 相关）",
-        "status": "准备中",
-        "apply_date": "2026-08-30",
+        "status": "已投递",
+        "apply_date": "2026-11-05",
         "priority": "medium"
       },
       {
@@ -236,15 +236,15 @@
       {
         "company": "上海集成电路研发中心有限公司（ICRD）",
         "position": "算法工程师 / 软件开发工程师 (2027校招, 待选岗)",
-        "status": "准备中",
-        "apply_date": "2026-10-19",
+        "status": "已投递",
+        "apply_date": "2026-11-05",
         "priority": "high"
       },
       {
         "company": "海康机器人",
         "position": "技术工程师（视觉技术，2027届国内营销上海专场）",
         "status": "已投递",
-        "apply_date": "2026-10-19",
+        "apply_date": "2026-11-05",
         "priority": "high"
       },
       {
@@ -258,22 +258,148 @@
         "company": "合合信息",
         "position": "Agent开发工程师（J14436，2027届校招）",
         "status": "初筛",
-        "apply_date": "2026-10-29",
+        "apply_date": "2026-11-05",
         "priority": "high"
       },
       {
         "company": "合合信息",
         "position": "AI全栈开发工程师（J14388，2027届校招）",
         "status": "初筛",
-        "apply_date": "2026-10-29",
+        "apply_date": "2026-11-05",
         "priority": "high"
       },
       {
         "company": "合合信息",
         "position": "FDE工程师（J14378，2027届校招）",
         "status": "初筛",
-        "apply_date": "2026-10-29",
+        "apply_date": "2026-11-05",
         "priority": "high"
+      },
+      {
+        "company": "芯慧微电子 (CWISE)",
+        "position": "大模型推理加速工程师 / 嵌入式软件工程师 (2027硕士校招)",
+        "status": "已投递",
+        "apply_date": "2026-11-05",
+        "priority": "high"
+      },
+      {
+        "company": "上海宏英智能科技股份有限公司",
+        "position": "产品软件工程师 / 系统开发工程师 (2027校招)",
+        "status": "已投递",
+        "apply_date": "2026-11-05",
+        "priority": "high"
+      },
+      {
+        "company": "AI4S 科理新序（Scinetics）",
+        "position": "Scientific Agent / Auto-Research Engineer",
+        "status": "已投递",
+        "apply_date": "2026-11-05",
+        "priority": "high"
+      },
+      {
+        "company": "上海赢富仪器科技 (赢富集团)",
+        "position": "算法工程师 (2027校招)",
+        "status": "已投递",
+        "apply_date": "2026-11-05",
+        "priority": "medium"
+      },
+      {
+        "company": "上海良信电器股份有限公司 (良信集团)",
+        "position": "2027WIN计划校园招聘 - 技术型销售",
+        "status": "准备中",
+        "apply_date": "2026-11-05",
+        "priority": "low"
+      },
+      {
+        "company": "宁德时代 (CATL)",
+        "position": "2027届全球校园招聘（已投2个志愿，具体岗位待确认）",
+        "status": "已投递",
+        "apply_date": "2026-11-05",
+        "priority": "high"
+      },
+      {
+        "company": "阶跃星辰 (StepFun)",
+        "position": "2027届大模型与多模态/Agent算法工程师",
+        "status": "已投递",
+        "apply_date": "2026-11-05",
+        "priority": "high"
+      },
+      {
+        "company": "天空智算互联网科技（上海）有限责任公司 (SpaceAIC)",
+        "position": "2027届大模型微调与智能体(Agent)算法研发工程师",
+        "status": "已投递",
+        "apply_date": "2026-11-05",
+        "priority": "high"
+      },
+      {
+        "company": "OPPO（校内熊老师内推通道）",
+        "position": "硕士算法实习生（多模态理解后训练 / 小模型与轻量化方向）",
+        "status": "已投递",
+        "apply_date": "2026-11-05",
+        "priority": "high"
+      },
+      {
+        "company": "高知特 (Cognizant)",
+        "position": "后端开发工程师（2027届校招·上海）",
+        "status": "已投递",
+        "apply_date": "2026-11-05",
+        "priority": "high"
+      },
+      {
+        "company": "上海葡萄城科技有限公司 (GrapeCity)",
+        "position": "软件工程师（2027届应届生·AI赋能医疗数字化方向）",
+        "status": "已投递",
+        "apply_date": "2026-11-05",
+        "priority": "high"
+      },
+      {
+        "company": "吉姆西半导体科技股份有限公司",
+        "position": "软件开发工程师（2027届校招·上海/无锡）",
+        "status": "已投递",
+        "apply_date": "2026-11-05",
+        "priority": "high"
+      },
+      {
+        "company": "微步在线 (ThreatBook)",
+        "position": "2027届 AI安全算法 / 大模型威胁情报研发",
+        "status": "准备中",
+        "apply_date": "2026-11-05",
+        "priority": "high"
+      },
+      {
+        "company": "酷睿程 (CARIZON · 大众×地平线合资智驾)",
+        "position": "2027届 算法类（深度学习/视觉感知）/ 软件研发",
+        "status": "准备中",
+        "apply_date": "2026-11-05",
+        "priority": "high"
+      },
+      {
+        "company": "普渡机器人 (Pudu Robotics)",
+        "position": "2027届 算法类（计算机视觉/具身智能）/ 软件类",
+        "status": "准备中",
+        "apply_date": "2026-11-05",
+        "priority": "high"
+      },
+      {
+        "company": "得物 App (Poizon)",
+        "position": "2027届 技术类（大模型/Agent编排/算法与后端研发）",
+        "status": "准备中",
+        "apply_date": "2026-11-05",
+        "priority": "high"
+      },
+      {
+        "company": "携程集团 (Trip.com)",
+        "position": "2027届 LLM算法工程师 / AI Agent方向开发工程师",
+        "status": "准备中",
+        "apply_date": "2026-11-05",
+        "priority": "high"
+      },
+      {
+        "company": "安克创新 (Anker Innovations)",
+        "position": "2027届 具身智能 / 研发技术类（AI算法与嵌入式软件）",
+        "status": "准备中",
+        "apply_date": "2026-11-05",
+        "priority": "medium"
       }
     ]
   },
