@@ -3,22 +3,22 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "1.2.1",
-    "last_synced": "2026-11-05 21:00:09",
+    "last_synced": "2026-11-06 11:14:51",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub",
     "sanitized": true,
-    "sanitized_at": "2026-11-05 21:00:09",
+    "sanitized_at": "2026-11-06 11:14:51",
     "sanitize_note": "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址、本地路径与私人挑战数据。"
   },
   "topology": {
-    "timestamp": "2026-11-05 21:00:09",
+    "timestamp": "2026-11-06 11:14:51",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.x.x",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "100%",
-      "power_state": "AC Power",
-      "load_avg": "2.96 2.29 1.68",
+      "battery": "1%",
+      "power_state": "Charging",
+      "load_avg": "52.62 12.79 5.54",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -30,15 +30,15 @@
       "device": "Windows 性能主机 (i5-12600KF, 32GB, RTX 4070S 12GB)",
       "ip": "100.98.x.x",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
-      "status": "Online",
-      "latency_ms": 805.7,
+      "status": "Offline",
+      "latency_ms": null,
       "ssh_port": 22,
-      "ssh_active": true,
+      "ssh_active": false,
       "smb_port": 445,
-      "smb_active": true,
+      "smb_active": false,
       "services": [
-        "SSH Remote (Active :22)",
-        "SMB Storage (Active :445)",
+        "SSH Remote (Standby)",
+        "SMB Storage (Standby)",
         "CUDA 12 Compute",
         "Tailscale Mesh"
       ]
@@ -49,18 +49,18 @@
       "user": "jetson",
       "role": "边缘感知节点 // 端侧视觉与机器人感知部署",
       "network_type": "局域网 (LAN Only)",
-      "status": "LAN Standby",
-      "latency_ms": null,
+      "status": "Online",
+      "latency_ms": 13.0,
       "ssh_port": 22,
-      "ssh_active": false,
+      "ssh_active": true,
       "services": [
-        "SSH 访问 (Standby)",
+        "SSH 访问 (Active :22)",
         "NVIDIA JetPack 6 / Tegra R36",
         "CUDA Edge Runtime",
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": 805.7
+    "mesh_latency_ms": null
   },
   "career_summary": {
     "stats": {
@@ -465,13 +465,13 @@
       "type": "exam",
       "target_date": "2026-12-12",
       "status": "日常积累与听力专项",
-      "next_action": "考前 37 天 · 核心考纲高频词汇与听力真题精听",
+      "next_action": "考前 36 天 · 核心考纲高频词汇与听力真题精听",
       "priority": "Medium",
-      "days_left": 37
+      "days_left": 36
     }
   ],
   "daily_checks": {
-    "date": "2026-11-05",
+    "date": "2026-11-06",
     "checks": {
       "起了": false,
       "动了": false,
@@ -535,6 +535,15 @@
       },
       {
         "date": "2026-11-04",
+        "checks": {
+          "起了": false,
+          "动了": false,
+          "写了": false,
+          "关了": false
+        }
+      },
+      {
+        "date": "2026-11-05",
         "checks": {
           "起了": false,
           "动了": false,
