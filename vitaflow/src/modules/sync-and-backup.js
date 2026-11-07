@@ -101,7 +101,10 @@
             if (!el && document.body) {
                 el = document.createElement('div');
                 el.id = 'localSyncDiagnostic';
-                el.style.cssText = 'position:fixed;right:14px;bottom:14px;z-index:9999;max-width:280px;padding:9px 12px;border-radius:14px;font-size:12px;line-height:1.4;box-shadow:0 8px 24px rgba(40,20,50,.18);background:rgba(255,255,255,.95);border:1px solid rgba(180,140,190,.35);color:#5a3a66;';
+                // 总台内挂 absolute，避免浮动层飘出原生工作区压到别的 Tab；
+                // 独立页仍用 fixed，保持原来的贴角提示。
+                const anchor = isNativeWorkspace() ? 'absolute' : 'fixed';
+                el.style.cssText = 'position:' + anchor + ';right:14px;bottom:14px;z-index:9999;max-width:280px;padding:9px 12px;border-radius:14px;font-size:12px;line-height:1.4;box-shadow:0 8px 24px rgba(40,20,50,.18);background:rgba(255,255,255,.95);border:1px solid rgba(180,140,190,.35);color:#5a3a66;';
                 document.body.appendChild(el);
             }
             if (el) {
@@ -263,14 +266,33 @@
             Storage.prototype.__vitaflowSyncPatched = true;
         }
 
-        function isLocalSyncPossible() {
-            const browserOnly = /(?:^|[?&])mode=browser(?:&|$)/.test(location.search || '');
-            return !browserOnly && (location.protocol === 'http:' || location.protocol === 'https:');
+        function isNativeWorkspace() {
+            return typeof document !== 'undefined' && !!document.body && document.body.id === 'vitaflow-native';
         }
 
-        async function initLocalSync() {
-            if (!isLocalSyncPossible()) {
-                showLocalSyncDiagnostic('当前浏览器本机保存（未启用跨设备同步）');
+        // 自动探测只允许发生在「明确是私有服务」的场景：
+        //   - 显式带访问口令（?key=...）的地址；
+        //   - 本机回环地址（私有服务默认跑在 127.0.0.1 / localhost）。
+        // 公开站（任何外部域名）一律不自动探测，否则每次打开都会因 /api/data 不存在而报错。
+        function isLocalSyncPossible() {
+            const search = location.search || '';
+            const browserOnly = /(?:^|[?&])mode=browser(?:&|$)/.test(search);
+            if (browserOnly) return false;
+            // 总台内必须由用户显式点「连接私有服务」才探测：
+            // 本地预览（ops serve 在 127.0.0.1）同样没有 /api/data，自动探测必然误报。
+            if (isNativeWorkspace()) return false;
+            if (!(location.protocol === 'http:' || location.protocol === 'https:')) return false;
+            if (/(?:^|[?&])key=/.test(search)) return true;
+            const host = String(location.hostname || '');
+            if (!host) return true; // 无 hostname 的环境（测试、特殊壳）保持既有行为
+            return host === '127.0.0.1' || host === 'localhost' || host === '::1' || host === '[::1]';
+        }
+
+        async function initLocalSync(options) {
+            const forced = !!(options && options.force);
+            if (!forced && !isLocalSyncPossible()) {
+                // 总台内已有自己的连接状态提示，这里不再叠加浮层
+                if (!isNativeWorkspace()) showLocalSyncDiagnostic('当前浏览器本机保存（未启用跨设备同步）');
                 return;
             }
             localSyncHasRemoteData = false;

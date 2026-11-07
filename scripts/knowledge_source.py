@@ -450,6 +450,190 @@ def parse_hard_nodes(knowledge_dir: Path = KNOWLEDGE_DIR, today: date | None = N
 
 
 # --------------------------------------------------------------------------
+# 项目台账  03-Projects/<项目名>/ 与顶层 .md
+# --------------------------------------------------------------------------
+
+PROJECTS_DIR = Path("03-Projects")
+PROJECT_SKIP = {"_backups", "Attachments", "node_modules", ".git", ".obsidian"}
+MAX_PROJECTS = 400
+# 目录里的说明/索引文件不是项目本身，混进来会把台账变成文档列表
+META_STEMS = {"agents", "claude", "readme", "index", "03-projects", "todo"}  # 实际上等于不截断：项目台账要完整列出，宁可长也不漏
+MAX_PROJECT_FILES = 2000
+DATE_PREFIX_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})-")
+FRONTMATTER_BLOCK = re.compile(r"\A---\s*\n.*?\n---\s*\n", re.S)
+
+
+def _collect_mtimes(directory: Path) -> tuple[list[float], int, bool]:
+    """收集目录下真实文件的 mtime。返回 (时间列表, 文件数, 是否触达上限)。"""
+    times: list[float] = []
+    count = 0
+    capped = False
+    for current, dirs, files in os.walk(directory):
+        dirs[:] = sorted(d for d in dirs if d not in PROJECT_SKIP and not d.startswith("."))
+        for name in files:
+            if name.startswith("."):
+                continue
+            count += 1
+            if count > MAX_PROJECT_FILES:
+                capped = True
+                break
+            try:
+                times.append((Path(current) / name).stat().st_mtime)
+            except OSError:
+                continue
+        if capped:
+            break
+    return times, count, capped
+
+
+def _first_line_text(path: Path, limit: int = 4000) -> str | None:
+    """取第一段可读文字：跳过 frontmatter、标题、图片、徽章、引用块与列表符号。"""
+    try:
+        text = path.read_text(encoding="utf-8")[:limit]
+    except (OSError, UnicodeDecodeError):
+        return None
+    text = FRONTMATTER_BLOCK.sub("", text)
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith(("#", "!", "[", ">", "|", "-", "```")):
+            continue
+        return _clip(_strip_md(stripped), 120) or None
+    return None
+
+
+def _iso(ts: float) -> str:
+    return datetime.fromtimestamp(ts).astimezone().isoformat(timespec="minutes")
+
+
+def _bulk_stamps(all_times: list[float]) -> dict[int, int]:
+    """识别「批量刷新」簇：同一分钟内大量文件同时变更，多半是同步/迁移工具。
+
+    人工不可能在一分钟内改上百个文件，这些时间戳会污染「最近改动」排序。
+    返回 {分钟内时间戳: 命中文件数}。
+    """
+    if len(all_times) < 20:
+        return {}
+    buckets: dict[int, int] = {}
+    for ts in all_times:
+        key = int(ts // 60)
+        buckets[key] = buckets.get(key, 0) + 1
+    threshold = max(20, int(len(all_times) * 0.08))
+    return {key: hit for key, hit in buckets.items() if hit >= threshold}
+
+
+def parse_projects(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
+    """抽取 03-Projects 的项目条目。全部取自文件系统事实，不推断进度。"""
+    root = knowledge_dir / PROJECTS_DIR
+    if not root.is_dir():
+        raise KnowledgeSourceError(f"缺少项目目录：{root}")
+
+    warnings: list[str] = []
+    gathered: list[dict] = []
+
+    for entry in sorted(root.iterdir()):
+        if entry.name.startswith(".") or entry.name in PROJECT_SKIP:
+            continue
+        if entry.is_file() and entry.stem.lower() in META_STEMS:
+            continue
+        try:
+            relative = (PROJECTS_DIR / entry.name).as_posix()
+            if entry.is_dir():
+                times, count, capped = _collect_mtimes(entry)
+                if capped:
+                    warnings.append(f"{entry.name} 超过 {MAX_PROJECT_FILES} 个文件，改动时间按已扫描部分计算")
+                summary = _first_line_text(entry / "README.md")
+                if summary is None:
+                    newest = sorted(
+                        (p for p in entry.rglob("*.md") if not p.name.startswith(".")),
+                        key=lambda p: p.stat().st_mtime,
+                        reverse=True,
+                    )[:1]
+                    summary = _first_line_text(newest[0]) if newest else None
+                gathered.append({
+                    "name": entry.name,
+                    "kind": "dir",
+                    "relative": relative,
+                    "times": times,
+                    "file_count": count,
+                    "summary": summary,
+                })
+            elif entry.suffix.lower() == ".md":
+                gathered.append({
+                    "name": entry.stem,
+                    "kind": "file",
+                    "relative": relative,
+                    "times": [entry.stat().st_mtime],
+                    "file_count": 1,
+                    "summary": _first_line_text(entry),
+                })
+        except OSError as exc:
+            warnings.append(f"{entry.name} 读取失败：{exc}")
+
+    if not gathered:
+        raise KnowledgeSourceError(f"{root} 下没有可投影的项目条目")
+
+    all_times = [ts for item in gathered for ts in item["times"]]
+    bulk = _bulk_stamps(all_times)
+    # 批量时间戳是正常的信息性说明，不是故障；放进 notes，避免污染页面上的故障提示
+    notes = [
+        f"{datetime.fromtimestamp(key * 60).astimezone().strftime('%Y-%m-%d %H:%M')} "
+        f"有 {bulk[key]} 个文件同时改动（疑似同步工具），排序时已忽略该时间"
+        for key in sorted(bulk, reverse=True)
+    ]
+
+    items: list[dict] = []
+    for item in gathered:
+        times = [ts for ts in item["times"] if int(ts // 60) not in bulk]
+        source = "file"
+        if not times:
+            times = item["times"]
+            source = "synced"
+        updated = _iso(max(times)) if times else None
+        hint = DATE_PREFIX_RE.match(item["name"])
+        items.append({
+            "name": item["name"],
+            "kind": item["kind"],
+            "relative": item.get("relative"),
+            "updated": updated,
+            "updated_source": source,
+            "date_hint": hint.group(1) if hint else None,
+            "file_count": item["file_count"],
+            "summary": item["summary"],
+        })
+
+    # 有文件名日期的按文件名日期排序（那是作者自己标的时间），否则按真实改动时间
+    # 同名条目（项目目录 + 同名笔记文件）只保留目录，避免台账里出现两份
+    merged: dict[str, dict] = {}
+    for item in items:
+        existing = merged.get(item["name"])
+        if existing is None:
+            merged[item["name"]] = item
+        elif existing["kind"] == "file" and item["kind"] == "dir":
+            merged[item["name"]] = item
+    items = list(merged.values())
+
+    def activity(item: dict) -> tuple[int, str, str]:
+        # 只有批量时间戳的项目无法判断真实活动时间，排到末尾而不是被顶到最前
+        # （reverse=True 降序，权重大的排前面）
+        if item["updated_source"] != "file" and not item["date_hint"]:
+            return (0, "", "")
+        day = item["date_hint"] or (item["updated"] or "")[:10]
+        return (1, day, item["updated"] or "")
+
+    items.sort(key=activity, reverse=True)
+
+    total = len(items)
+    return {
+        "file": str(PROJECTS_DIR),
+        "items": items[:MAX_PROJECTS],
+        "total": total,
+        "truncated": total > MAX_PROJECTS,
+        "warnings": warnings,
+        "notes": notes,
+    }
+
+
+# --------------------------------------------------------------------------
 # 汇总
 # --------------------------------------------------------------------------
 
@@ -466,6 +650,7 @@ def collect(knowledge_dir: Path | None = None, today: date | None = None) -> dic
         "today_plan": None,
         "wip": None,
         "hard_nodes": None,
+        "projects": None,
     }
 
     if not root.is_dir():
@@ -497,7 +682,17 @@ def collect(knowledge_dir: Path | None = None, today: date | None = None) -> dic
         degraded = True
         result["warnings"].append(f"硬节点：{exc}")
 
-    result["available"] = bool(result["today_plan"] or result["hard_nodes"] or result.get("wip"))
+    try:
+        projects = parse_projects(root)
+        result["projects"] = projects
+        result["warnings"].extend(projects["warnings"])
+    except KnowledgeSourceError as exc:
+        degraded = True
+        result["warnings"].append(f"项目台账：{exc}")
+
+    result["available"] = bool(
+        result["today_plan"] or result["hard_nodes"] or result.get("wip") or result.get("projects")
+    )
     result["degraded"] = degraded
     return result
 
@@ -522,6 +717,11 @@ def main(argv: list[str] | None = None) -> int:
                   + ("" if plan.get("is_today") else " [非今日，已回退]"))
         if nodes:
             print(f"硬节点: 活跃 {len(nodes.get('active', []))} 条 / 逾期 {len(nodes.get('overdue', []))} 条")
+        projects = data.get("projects") or {}
+        if projects:
+            print(f"项目: {projects.get('total')} 项（展示 {len(projects.get('items', []))} 项）")
+            for note in projects.get("notes", []):
+                print(f"  ℹ️  {note}")
         for warning in data.get("warnings", []):
             print(f"  ⚠️  {warning}")
         if data.get("error"):

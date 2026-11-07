@@ -177,7 +177,7 @@ function prefixReferences(html) {
 }
 
 export function buildNative() {
-  const sourceHtml = fs.readFileSync(path.join(directory, 'index.html'), 'utf8');
+  const sourceHtml = fs.readFileSync(path.join(directory, 'src', 'index.html'), 'utf8');
   const appSource = fs.readFileSync(path.join(directory, 'js/app.js'), 'utf8');
   const storeSource = fs.readFileSync(path.join(directory, 'js/store.js'), 'utf8');
   const runtimeSource = fs.readFileSync(path.join(directory, 'native-runtime.js'), 'utf8');

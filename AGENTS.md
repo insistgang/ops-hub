@@ -40,7 +40,9 @@ Desktop/个人工具/ops-hub/
 │   ├── vitaflow-today.js      # 今日的共享待办和精力摘要
 │   ├── site-style.js          # 网站风格独立偏好与跨标签同步
 │   ├── today.js               # 今日重点、昨日未完成衔接与浏览器按日存储
-│   └── knowledge-today.js     # 知识库只读投影渲染（私有快照缺失时整块隐藏）
+│   ├── life-today.js          # 体重与财务的今日摘要投影（只读工作区 API）
+│   ├── knowledge-today.js     # 知识库今日投影渲染（私有快照缺失时整块隐藏）
+│   └── knowledge-projects.js  # 知识库项目台账渲染（挂在项目雷达 Tab，无数据即隐藏）
 ├── data/                      # 本地真源与 public/ 脱敏产物；私有真源不进入 Git
 │   ├── status.json            # 探针自动汇总的运行时状态快照（三端延迟、时间戳、统计）
 │   ├── status.js              # status.json 的 JS 镜像（file:/// 零 CORS 预加载）
@@ -53,16 +55,17 @@ Desktop/个人工具/ops-hub/
 │   ├── knowledge.json         # 知识库只读投影快照（私有真源，不入库）
 │   └── private/knowledge.js   # 知识库快照的 JS 镜像（仅本机，公开站无此文件）
 ├── ops                        # 可执行全局 CLI 入口（Python 3 编写，无第三方库依赖）
+├── build.mjs                  # 统一构建/校验入口（零依赖，汇总三个原生工作区产物）
 │
 ├── 加载顺序：data/public/status.js → data/status.js → data/private/knowledge.js
 │   前两个同名全局变量后者覆盖前者，公开站 404 后自动回退到脱敏快照。
 ├── vitaflow/                  # 本地 VitaFlow 精力管家源码与独立同步服务；my-schedule.json、口令和备份不进入仓库
-├── weight-tracker/            # 通用体重记录前端；localStorage 本机保存，不使用原三人 Supabase
+├── weight-tracker/            # 通用体重记录前端；应用源码在 src/index.html，公开站不再发布独立页
 ├── finance/                   # 财务原生界面与只读适配；不包含私人账本或凭据
 ├── scripts/
 │   ├── probe.py               # 三端网络与硬件服务 Level 2 探针脚本 (Mac+Win+Jetson)
 │   ├── collector.py           # 全量数据汇总、原子写入、跨天归档与 GitOps 自动提交推送核心
-│   ├── knowledge_source.py    # knowledge 知识库只读解析器（今日计划 + 硬节点台账）
+│   ├── knowledge_source.py    # knowledge 知识库只读解析器（今日计划 + 硬节点台账 + 项目台账）
 │   └── com.insistgang.opshub.plist # macOS 原生 launchd 定时同步服务描述文件
 ├── tests/                     # 回归测试
 ├── LICENSE                    # MIT
@@ -95,6 +98,7 @@ Desktop/个人工具/ops-hub/
    - 毕业小论文 (`~/Desktop/论文与阅读/lunwen`)：违建 YOLOv11 主线 + E-PAS Sensors 改投。
    - 自动提取本地 Git 最新提交时间与 Commit 信息，展示 Next Action。
    - 考试倒计时：六级（2026-12）。
+   - 雷达下方「知识库项目台账」只读投影 `03-Projects`，规则见「知识库接入边界」。
 3. **Tab 3: 🧠 个人记忆与秩序中枢 (Personal Memory & Order Hub)**
    - 每日四勾：起了、动了、写了、关了（Web 点击打卡持久化在浏览器 localStorage、按日期隔离；CLI 写入 `daily_checks.json`，仍是跨设备真源）。
    - 场景契约：图书馆（思考/写作/Mac）vs 实验室（算力/充电/4070S/Jetson）vs 宿舍（关机恢复）。
@@ -115,10 +119,13 @@ Desktop/个人工具/ops-hub/
 - HTML 导出使用保留的独立源码，导入只刷新当前工作区；构建与测试不读写真实个人 JSON，公开产物不嵌入私人快照。修改 VitaFlow 源码后在其目录运行 `npm run build:html`（同时生成独立和原生版本）及 `npm test`，用 `--check` 核对原生产物。
 - 考试 `phase=result_recorded` 表示查分已办结；教资归档保留但不在网页展示，考试主卡仅取六级。私有分数不复制进公开快照。
 
+- 公开站不再提供 VitaFlow 独立版入口；`vitaflow/schedule-system-2.0.html` 仍是 `build-html.mjs` 的产物与私有同步服务入口，只用于本地与私有场景，不出现在总台导航。
+
 ### 知识库接入边界
 
 - **单向只读**：`/Users/insistgang/Documents/knowledge` 是唯一写入口，本仓库只读投影，任何回写都视为 bug。今日重点与四勾仍留在浏览器本地或 `daily_checks.json`，不污染知识库日记。
-- **真源白名单**：只解析 `01-Daily/今日计划/YYYY-MM-DD.md` 与 `00-Inbox/硬节点台账.md`。今日计划缺失时回退到最近一份并标记「非今日」；目录可用 `OPS_KNOWLEDGE_DIR` 覆盖，换机器不需要改代码。
+- **真源白名单**：只解析 `01-Daily/今日计划/YYYY-MM-DD.md`、`00-Inbox/硬节点台账.md` 与 `03-Projects/` 的目录及顶层 `.md`。今日计划缺失时回退到最近一份并标记「非今日」；目录可用 `OPS_KNOWLEDGE_DIR` 覆盖，换机器不需要改代码。
+- **项目台账只报事实**：只取名称、相对路径、真实改动时间、文件数与文档首段摘要，不推断进度、完成度或状态。台账列出全部项目（不再截断为前 12 项）；`AGENTS.md`/`CLAUDE.md`/`README.md`/`03-Projects.md` 等说明与索引文件不算项目，项目目录与同名笔记文件重复时只保留目录。同一分钟内大批文件同时变更视为同步工具批量刷新，不参与「最近活动」排序；只有批量时间戳的项目排在末尾。`03-Projects` 缺失或为空时写 warning 并置 `degraded`，不构造条目。渲染由 `js/knowledge-projects.js` 负责，挂在项目雷达 Tab 内，无数据时整块隐藏。
 - **失败不造假**：解析不到写 `warnings` 或 `available: false` 并给出原因，不构造占位行；知识库不存在不得拖垮硬件探针。
 - **口径以台账为准**：硬节点按「到期日 ≠ 决策日」计算提醒日，决策日仍在未来的节点不算逾期；处置列已写明闭环的不计入逾期。
 - **隐私**：`data/knowledge.json` 与 `data/private/` 已 git-ignore，`sanitize_public.py` 在中整块剔除 `knowledge` 段。公开站拿不到私有快照，页面自动隐藏该区块。
@@ -130,11 +137,12 @@ Desktop/个人工具/ops-hub/
 ### 网站风格
 
 - `ops_style` 保存 classic/paper/forest/mono，`ops_theme` 独立保存明暗；风格层使用 `html[data-ops-style]` 和 `--ops-*` 令牌，不改业务数据。
-- 修改样式时同时验证四套明暗与 320px／390px，三个原生工作区共用令牌与宿主页面滚动。
+- 风格切换器是 `index.html` 头部右侧、紧邻主题按钮的四个按钮（`[data-ops-style-option]`），不再是内容区下拉框。窄屏（<640px）显示单字、宽屏显示双字；当前项通过 `aria-pressed` 与 `.is-active` 双重标记。`#site-style-status` 保留 `role=status` 但视觉隐藏（`sr-only`），只做无障碍播报。
+- 修改样式时同时验证四套明暗与 320px／390px，三个原生工作区共用令牌与宿主页面滚动。头部在 320px 下已无同步胶囊（<640px 隐藏），改动头部布局时不要把它加回来。
 
 ### 体重与财务接入边界
 
-- 体重挂载 `#weight-native`，节点 ID 加 `weight-` 前缀；保留原 Store、`weight-tracker:universal:v1` 格式和独立版。禁止为整合清空、迁移或覆盖个人记录；同源旧 iframe 的记录直接沿用。
+- 体重挂载 `#weight-native`，节点 ID 加 `weight-` 前缀；保留原 Store 与 `weight-tracker:universal:v1` 格式。应用源码已归档到 `weight-tracker/src/index.html`，`build-native.mjs` 从该路径读取，公开站不再提供体重独立页。禁止为整合清空、迁移或覆盖个人记录；同源旧 iframe 的记录直接沿用。
 - 财务挂载 `#finance-native`，节点 ID 加 `finance-` 前缀，事件只通过命名空间暴露，不得覆盖 VitaFlow 的全局 UI 函数。源财务项目保持独立维护，本项目只包含中和私人内容后的界面与计算逻辑。
 - 财务 `src/template.html` 是无账本默认值的四区界面，`src/dashboard.js` 保留原计算和渲染，`src/runtime.js` 负责鉴权读取、校验、内存状态与隔离接口，`src/styles.css` 限定根与风格令牌。`build-native.mjs` 生成可直接托管的 JS/CSS；`tests/fixtures.mjs` 只服务隔离测试，构建不得读取它。
 - 财务沿用 `https://finance.insistgang.top` 的既有 Basic Auth；主动读取固定受保护 JSON，携带浏览器已有凭据，不接收或存储密码。账本只在页面内存中保留，不能嵌入构建、仓库、公开快照或 localStorage。
@@ -166,7 +174,9 @@ CLI 必须用标准 Python 3 实现，使用内置库，严禁强依赖任何第
 
 ## 6. 本地验证入口
 
+- 统一构建：`node build.mjs` 生成全部原生产物，`node build.mjs --check` 校验与源码一致。提交前必须让 `--check` 通过，不要只单独跑某个模块的构建——漏跑一个就会出现「源码改了、产物没变」的静默漂移。
 - Ops-Hub：`python3 -m unittest discover -s tests -p 'test_*.py'`。
+- 缓存版本：`tests/test_asset_versions.cjs` 会拦截「前端文件已改动但 `index.html` 未提升 `?v=`」的情况。
 - 前端与体重模块：`node --test tests/*.cjs weight-tracker/tests/*.cjs`；时间边界测试可在 `TZ=UTC` 下运行，确认仍按北京时间分日。
 - 语法：`node --check js/app.js`、`node --check js/today.js`、`node --check js/vitaflow.js`、`node --check js/vitaflow-today.js`、`node --check js/site-style.js`、`node --check js/life-today.js`。
 - 体重原生：`node weight-tracker/build-native.mjs`；一致性 `node weight-tracker/build-native.mjs --check`，回归已包含在上述体重 Node 测试中。

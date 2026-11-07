@@ -9,6 +9,23 @@
   const VALID_STYLES = new Set(Object.keys(STYLE_LABELS));
   let currentStyle = 'classic';
   let initialized = false;
+  let bound = false;
+
+  /* 顶部右侧的四个风格按钮；用 querySelectorAll 而不是缓存引用，
+     便于测试与后续增减风格时无需改动初始化逻辑。 */
+  function styleButtons() {
+    const nodes = document.querySelectorAll('[data-ops-style-option]');
+    return nodes ? Array.from(nodes) : [];
+  }
+
+  function syncControls(style) {
+    for (const button of styleButtons()) {
+      const option = button.dataset ? button.dataset.opsStyleOption : null;
+      const active = option === style;
+      if (button.setAttribute) button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      if (button.classList && button.classList.toggle) button.classList.toggle('is-active', active);
+    }
+  }
 
   function setStatus(message, state = 'info') {
     const element = document.getElementById('site-style-status');
@@ -23,9 +40,7 @@
     const previous = root.getAttribute('data-ops-style');
     currentStyle = normalized;
     root.setAttribute('data-ops-style', normalized);
-
-    const select = document.getElementById('site-style');
-    if (select) select.value = normalized;
+    syncControls(normalized);
 
     if (announce && previous !== normalized) {
       window.dispatchEvent(new CustomEvent('ops:style-changed', { detail: { style: normalized } }));
@@ -77,16 +92,19 @@
       applyStyle('classic');
     }
 
-    const select = document.getElementById('site-style');
-    if (select) select.addEventListener('change', event => setStyle(event.currentTarget.value));
+    if (!bound) {
+      bound = true;
+      for (const button of styleButtons()) {
+        button.addEventListener('click', () => setStyle(button.dataset ? button.dataset.opsStyleOption : null));
+      }
+    }
     window.addEventListener('storage', onStorage);
     return currentStyle;
   }
 
   function setStyle(style) {
     if (!VALID_STYLES.has(style)) {
-      const select = document.getElementById('site-style');
-      if (select) select.value = currentStyle;
+      syncControls(currentStyle);
       setStatus('风格值无效，已保持当前设置。', 'warning');
       return false;
     }

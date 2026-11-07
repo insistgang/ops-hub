@@ -94,12 +94,15 @@ export function buildNative(options = {}) {
   // Existing synchronization owns merge/revision/conflict decisions. Only prevent
   // its obsolete async continuations from mutating a newer native connection.
   for (const [name, next] of [['initLocalSync', 'function enableLocalSyncAfterInitialRender'], ['uploadLocalSyncData', 'function startLocalSyncDirtyWatcher'], ['fetchLocalSyncUpdates', 'function refreshVisibleData']]) {
-    const start = app.indexOf(`async function ${name}() {`);
+    const start = app.indexOf(`async function ${name}(`);
     const end = app.indexOf(next, start);
     assert.ok(start >= 0 && end > start, `VitaFlow sync boundary changed: ${name}`);
     let section = app.slice(start, end);
     assert.ok(section.includes('} catch (e) {'), `VitaFlow sync error boundary changed: ${name}`);
-    section = section.replace(`async function ${name}() {`, `async function ${name}() {\n            const nativeSyncGeneration = nativeContext.generation;`)
+    // 按函数头定位而不是写死签名：新增参数（如 initLocalSync(options)）不再打断构建
+    const brace = section.indexOf('{');
+    assert.ok(brace > 0, `VitaFlow sync boundary changed: ${name}`);
+    section = (section.slice(0, brace + 1) + '\n            const nativeSyncGeneration = nativeContext.generation;' + section.slice(brace + 1))
       .replace('} catch (e) {', '} catch (e) {\n                if (nativeSyncGeneration !== nativeContext.generation) return;');
     if (name === 'uploadLocalSyncData') {
       const marker = '} finally {\n                localSyncUploading = false;';

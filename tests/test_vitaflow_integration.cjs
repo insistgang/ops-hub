@@ -11,7 +11,9 @@ test('the complete app mounts in the host document and the home page exposes its
   assert.ok(html.includes('id="vita-today-accounts"'));
   assert.ok(html.includes('id="vita-today-todos"'));
   assert.ok(html.includes('vitaflow/native-workspace.js'));
-  for (const value of ['classic', 'paper', 'forest', 'mono']) assert.ok(html.includes('value="' + value + '"'));
+  for (const value of ['classic', 'paper', 'forest', 'mono']) {
+    assert.ok(html.includes('data-ops-style-option="' + value + '"'), '缺少风格按钮：' + value);
+  }
 });
 
 function setup(saved = {}, { failWrites = false, ready = true, connected = true, conflict = false } = {}) {

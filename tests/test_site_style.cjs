@@ -6,7 +6,27 @@ const vm = require('node:vm');
 
 const styleScript = fs.readFileSync(path.join(__dirname, '../js/site-style.js'), 'utf8');
 const styleCss = fs.readFileSync(path.join(__dirname, '../css/site-styles.css'), 'utf8');
+const indexHtml = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
 const styleNames = ['classic', 'paper', 'forest', 'mono'];
+
+function createButton(name) {
+  const classes = new Set();
+  return {
+    dataset: { opsStyleOption: name },
+    attributes: {},
+    classes,
+    listeners: {},
+    setAttribute(key, value) { this.attributes[key] = String(value); },
+    classList: {
+      toggle(token, force) {
+        if (force) classes.add(token); else classes.delete(token);
+      },
+      contains: token => classes.has(token),
+    },
+    addEventListener(type, callback) { (this.listeners[type] ||= []).push(callback); },
+    click() { for (const callback of this.listeners.click || []) callback({ currentTarget: this }); },
+  };
+}
 
 function createApp({ stored = {}, readyState = 'complete', getError = null, setError = null } = {}) {
   const root = {
@@ -15,14 +35,9 @@ function createApp({ stored = {}, readyState = 'complete', getError = null, setE
     setAttribute(name, value) { this.attributes[name] = String(value); },
     getAttribute(name) { return this.attributes[name] ?? null; },
   };
-  const select = {
-    value: '',
-    listeners: {},
-    addEventListener(type, callback) { (this.listeners[type] ||= []).push(callback); },
-    dispatch(type) { for (const callback of this.listeners[type] || []) callback({ target: this, currentTarget: this }); },
-  };
+  const buttons = styleNames.map(createButton);
   const status = { textContent: '', dataset: {} };
-  const elements = new Map([['site-style', select], ['site-style-status', status]]);
+  const elements = new Map([['site-style-status', status]]);
   const documentListeners = {};
   const windowListeners = {};
   const events = [];
@@ -43,6 +58,7 @@ function createApp({ stored = {}, readyState = 'complete', getError = null, setE
     readyState,
     documentElement: root,
     getElementById: id => elements.get(id) || null,
+    querySelectorAll: selector => (selector.includes('data-ops-style-option') ? buttons : []),
     addEventListener(type, callback) { (documentListeners[type] ||= []).push(callback); },
   };
   const window = {
@@ -63,7 +79,8 @@ function createApp({ stored = {}, readyState = 'complete', getError = null, setE
   vm.runInContext(styleScript, context, { filename: 'js/site-style.js' });
   context.OpsAppearance = window.OpsAppearance;
   return {
-    context, root, select, status, storage, writes, events, windowListeners, documentListeners,
+    context, root, buttons, status, storage, writes, events, windowListeners, documentListeners,
+    pressed: () => buttons.filter(button => button.attributes['aria-pressed'] === 'true').map(button => button.dataset.opsStyleOption),
     failGet(error = new Error('storage denied')) { getError = error; },
     failSet(error = new Error('quota exceeded')) { setError = error; },
     fireStorage(key, newValue) {
@@ -76,25 +93,33 @@ function createApp({ stored = {}, readyState = 'complete', getError = null, setE
   };
 }
 
+test('header exposes four style buttons and no leftover select', () => {
+  const matches = indexHtml.match(/data-ops-style-option="([^"]+)"/g) || [];
+  assert.deepEqual(matches.map(item => item.split('"')[1]), styleNames);
+  assert.doesNotMatch(indexHtml, /<select id="site-style"/, '下拉框应已被顶部按钮取代');
+  assert.match(indexHtml, /id="site-style-status"[^>]*class="sr-only"/, '状态播报需保留但视觉隐藏');
+});
+
 test('style script initializes after DOM readiness and restores a valid saved style', () => {
   const app = createApp({ stored: { ops_style: 'forest', ops_theme: 'light' }, readyState: 'loading' });
-  assert.equal(app.root.getAttribute('data-ops-style'), null, 'loading DOM should wait before binding the selector');
+  assert.equal(app.root.getAttribute('data-ops-style'), null, 'loading DOM should wait before binding the buttons');
   app.fireReady();
 
   assert.equal(app.context.OpsAppearance.getStyle(), 'forest');
   assert.equal(app.root.getAttribute('data-ops-style'), 'forest');
-  assert.equal(app.select.value, 'forest');
+  assert.deepEqual(app.pressed(), ['forest'], '当前风格按钮应处于按下态');
   assert.equal(app.root.className, 'dark', 'style restore must not modify the independent theme');
   assert.equal(app.storage.ops_theme, 'light');
 });
 
-test('style changes persist only ops_style, update the selector, and dispatch the public event', () => {
+test('clicking a style button persists only ops_style, updates pressed state, and dispatches the public event', () => {
   const app = createApp({ stored: { ops_theme: 'dark' } });
-  app.select.value = 'paper';
-  app.select.dispatch('change');
+  app.buttons[1].click();
 
   assert.equal(app.root.getAttribute('data-ops-style'), 'paper');
   assert.equal(app.context.OpsAppearance.getStyle(), 'paper');
+  assert.deepEqual(app.pressed(), ['paper']);
+  assert.ok(app.buttons[1].classes.has('is-active'), '激活按钮需要可见的高亮类');
   assert.equal(app.storage.ops_style, 'paper');
   assert.equal(app.storage.ops_theme, 'dark');
   assert.deepEqual(app.writes, [['ops_style', 'paper']]);
@@ -107,11 +132,12 @@ test('invalid stored and requested styles fall back to classic', () => {
   const app = createApp({ stored: { ops_style: 'unknown' } });
   assert.equal(app.context.OpsAppearance.getStyle(), 'classic');
   assert.equal(app.root.getAttribute('data-ops-style'), 'classic');
-  assert.equal(app.select.value, 'classic');
+  assert.deepEqual(app.pressed(), ['classic']);
   assert.match(app.status.textContent, /无效|经典/);
 
   assert.equal(app.context.OpsAppearance.setStyle('neon'), false);
   assert.equal(app.context.OpsAppearance.getStyle(), 'classic');
+  assert.deepEqual(app.pressed(), ['classic'], '无效输入后按钮状态应回到当前风格');
   assert.equal(app.storage.ops_style, 'unknown', 'invalid input should not replace the stored value');
 });
 
@@ -130,7 +156,7 @@ test('save failures leave the selected style active and show a visible warning',
 
   assert.equal(saved, false);
   assert.equal(app.root.getAttribute('data-ops-style'), 'mono');
-  assert.equal(app.select.value, 'mono');
+  assert.deepEqual(app.pressed(), ['mono']);
   assert.match(app.status.textContent, /保存失败/);
   assert.equal(app.events.filter(item => item.type === 'ops:style-changed').at(-1)?.detail?.style, 'mono');
 });
@@ -143,7 +169,7 @@ test('storage events from another tab update the style without writing or reacti
 
   app.fireStorage('ops_style', 'forest');
   assert.equal(app.context.OpsAppearance.getStyle(), 'forest');
-  assert.equal(app.select.value, 'forest');
+  assert.deepEqual(app.pressed(), ['forest']);
   assert.equal(app.writes.length, writeCount, 'remote changes should not be echoed back');
   assert.equal(app.events.filter(item => item.type === 'ops:style-changed').at(-1)?.detail?.style, 'forest');
 
@@ -156,7 +182,7 @@ test('initialization is idempotent', () => {
   app.context.OpsAppearance.init();
   app.context.OpsAppearance.init();
   assert.equal(app.windowListeners.storage.length, 1);
-  assert.equal(app.select.listeners.change.length, 1);
+  assert.equal(app.buttons[0].listeners.click.length, 1, '重复初始化不得重复绑定按钮');
 });
 
 test('four style presets each define light and dark tokens with visible design differences', () => {

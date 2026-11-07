@@ -277,9 +277,19 @@ html:not(.dark) .vitaflow-connection :is(summary,label) { color:#52525b; }
 html:not(.dark) .vitaflow-connection-fields input { background:#fff; color:#18181b; border-color:#d4d4d8; }
 @media (max-width:640px) { .vitaflow-connection-fields { grid-template-columns:minmax(0,1fr); } }
 
-.appearance-bar { display:flex; align-items:center; flex-wrap:wrap; gap:.5rem .8rem; margin:.8rem 0 1rem; color:var(--ops-muted,#a1a1aa); font-size:.8rem; }
-.appearance-bar select { background:var(--ops-surface,#18181b); color:var(--ops-text,#e4e4e7); border:1px solid var(--ops-border,#3f3f46); border-radius:var(--ops-radius,.6rem); padding:.4rem .7rem; }
-.appearance-bar #site-style-status { font-size:.75rem; }
+/* VitaFlow 原生工作区的定位上下文：内部 absolute 提示不能飘出本区 */
+#vitaflow-native { position: relative; }
+
+/* 顶部右侧的风格切换按钮组（替代原来的内容区下拉框） */
+.style-switch { display:flex; align-items:center; gap:2px; padding:2px; border:1px solid var(--ops-border,#3f3f46); border-radius:.6rem; background:var(--ops-surface-muted,#18181b); }
+.style-switch button { display:inline-flex; align-items:center; justify-content:center; min-width:1.9rem; padding:.3rem .4rem; border:0; border-radius:.4rem; background:transparent; color:var(--ops-muted,#a1a1aa); font-size:.72rem; line-height:1; cursor:pointer; transition:background .15s ease, color .15s ease; }
+.style-switch button:hover { color:var(--ops-text,#e4e4e7); background:var(--ops-surface,#27272a); }
+.style-switch button.is-active { background:var(--ops-accent,#6366f1); color:var(--ops-accent-contrast,#fff); }
+.style-switch button:focus-visible { outline:2px solid var(--ops-accent,#6366f1); outline-offset:2px; }
+@media (max-width: 639px) {
+  .style-switch { gap:1px; padding:1px; }
+  .style-switch button { min-width:1.55rem; padding:.25rem .3rem; font-size:.7rem; }
+}
 .today-side { display:grid; gap:1rem; align-content:start; }
 .today-life { margin-top:0; }
 .vita-summary-accounts { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.6rem; margin:1rem 0; }

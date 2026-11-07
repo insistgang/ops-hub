@@ -176,7 +176,7 @@
     nativeContext.origin = url.origin;
     nativeContext.key = String(key ?? '').trim();
     const generation = nativeContext.generation;
-    await initLocalSync();
+    await initLocalSync({ force: true });
     if (generation !== nativeContext.generation) return { connected: false, conflict: false };
     if (localSyncAvailable) enableLocalSyncAfterInitialRender();
     nativeRefresh();

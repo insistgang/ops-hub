@@ -184,7 +184,7 @@ test('native build is a root fragment with prefixed IDs and references, no neste
   assert.match(output.js, /weight-tracker:universal:v1/);
   assert.match(output.js, /createElementNS[\s\S]*\.bind\(realDocument\)/);
   assert.match(output.html, /id="weight-record-clear"[^>]*>清空输入/);
-  assert.doesNotMatch(require('node:fs').readFileSync(require('node:path').join(__dirname, '../index.html'), 'utf8'), /id="record-clear"/);
+  assert.doesNotMatch(require('node:fs').readFileSync(require('node:path').join(__dirname, '../src/index.html'), 'utf8'), /id="record-clear"/);
   assert.match(output.css, /#weight-native/);
   assert.match(output.css, /--ops-page/);
   assert.match(output.css, /#weight-native #weight-chart-container polyline \{ stroke: var\(--ops-accent/);

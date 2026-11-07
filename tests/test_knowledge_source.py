@@ -90,6 +90,8 @@ class KnowledgeSourceTests(unittest.TestCase):
         (self.root / "01-Daily" / "今日计划" / "2026-11-07.md").write_text(PLAN, encoding="utf-8")
         (self.root / "00-Inbox" / "硬节点台账.md").write_text(NODES, encoding="utf-8")
         (self.root / "00-Inbox" / "TODO.md").write_text(WIP_TODO, encoding="utf-8")
+        (self.root / "03-Projects" / "示例项目").mkdir(parents=True)
+        (self.root / "03-Projects" / "示例项目" / "README.md").write_text("# 示例项目\n\n一行说明。\n", encoding="utf-8")
         self.today = date(2026, 11, 7)
 
     def test_today_plan_items(self):
@@ -185,6 +187,7 @@ class KnowledgeSourceTests(unittest.TestCase):
         self.assertFalse(result["degraded"])
         self.assertEqual(len(result["today_plan"]["items"]), 2)
         self.assertTrue(result["hard_nodes"]["active"])
+        self.assertEqual(result["projects"]["total"], 1)
 
     def test_public_snapshot_drops_knowledge(self):
         status = {

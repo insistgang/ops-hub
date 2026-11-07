@@ -1,6 +1,7 @@
 /* VitaFlow is a native workspace in the same document and storage context. */
 function initVitaFlow() {
-  const ids = ['url', 'key', 'connect', 'status', 'builtin', 'open', 'source', 'native'];
+  // 注意：不再包含 'open'——独立版入口已移除，缺失的必需节点会让整个控制器静默罢工
+  const ids = ['url', 'key', 'connect', 'status', 'builtin', 'source', 'native'];
   const nodes = Object.fromEntries(ids.map(id => [id, document.getElementById('vitaflow-' + id)]));
   if (Object.values(nodes).some(node => !node) || nodes.native.dataset.opsHostBound) return;
   nodes.native.dataset.opsHostBound = 'true';
@@ -132,6 +133,15 @@ function initVitaFlow() {
     }
     hadConflict = !!summary.conflict;
   });
-  if (native()?.isReady()) ready();
-  else status('正在准备日程工具。');
+  // 原生模块在宿主脚本之前加载，可能在监听器注册前就已就绪，
+  // 这里等到 DOMContentLoaded 再补一次检查，避免状态行永远停在占位文案。
+  function settle(attempt = 0) {
+    if (native()?.isReady()) { ready(); return; }
+    if (attempt === 0) status('正在准备日程工具。');
+    // 原生模块可能晚于本脚本完成初始化，且它的就绪事件只发一次，
+    // 这里做有限重试，避免状态停永远留在占位文案、导航按钮一直禁用。
+    if (attempt < 40) setTimeout(() => settle(attempt + 1), 100);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => settle(), { once: true });
+  else settle();
 }
