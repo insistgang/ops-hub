@@ -634,6 +634,113 @@ def parse_projects(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
 
 
 # --------------------------------------------------------------------------
+# 财务月度复盘  06-Growth/Finance/YYYY-MM-financial-review.md
+# --------------------------------------------------------------------------
+
+FINANCE_DIR = Path("06-Growth") / "Finance"
+FINANCE_FILE_RE = re.compile(r"^(\d{4})-(\d{2})-(?:financial?-review|finance-review)")
+FINANCE_ROW_RE = re.compile(r"^\|(.+)\|\s*$")
+FINANCE_SEP_RE = re.compile(r"^:?-{2,}:?$")
+FINANCE_SECTIONS = {"本月概况": "summary", "支出结构": "expenses"}
+
+
+def _split_row(line: str) -> list[str]:
+    return [cell.strip() for cell in line.strip().strip("|").split("|")]
+
+
+def _is_separator(cells: list[str]) -> bool:
+    return bool(cells) and all(FINANCE_SEP_RE.match(cell.replace(" ", "")) for cell in cells)
+
+
+def _latest_finance_file(finance_dir: Path) -> Path | None:
+    candidates: list[tuple[str, Path]] = []
+    for entry in finance_dir.glob("*.md"):
+        match = FINANCE_FILE_RE.match(entry.name)
+        if match:
+            candidates.append((f"{match.group(1)}-{match.group(2)}", entry))
+    if not candidates:
+        return None
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    return candidates[0][1]
+
+
+def parse_finance(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
+    """抽取最近一份月度财务复盘的核心数字。只读，不推断、不改写口径。"""
+    finance_dir = knowledge_dir / FINANCE_DIR
+    if not finance_dir.is_dir():
+        raise KnowledgeSourceError(f"缺少财务复盘目录：{finance_dir}")
+
+    path = _latest_finance_file(finance_dir)
+    if path is None:
+        raise KnowledgeSourceError(f"{finance_dir} 下没有 YYYY-MM-*-review.md")
+
+    text = _read(path)
+    month = FINANCE_FILE_RE.match(path.name).group(0)[:7]
+
+    as_of = None
+    for line in text.splitlines():
+        if line.strip().startswith(">") and ("截至" in line or "更新于" in line):
+            as_of = _clip(line.strip().lstrip("> ").strip(), 160)
+            break
+
+    current: str | None = None
+    tables: dict[str, list[dict]] = {"summary": [], "expenses": []}
+    header: list[str] | None = None
+    warnings: list[str] = []
+
+    for line in text.splitlines():
+        heading = re.match(r"^##+\s*(?:[一二三四五六七八九十]+、)?\s*([^\s（(]+)", line.strip())
+        if heading:
+            title = heading.group(1)
+            current = FINANCE_SECTIONS.get(title)
+            header = None
+            continue
+        if current is None:
+            continue
+        match = FINANCE_ROW_RE.match(line.strip())
+        if not match:
+            if line.strip() and not line.strip().startswith(">"):
+                header = None
+            continue
+        cells = _split_row(line)
+        if _is_separator(cells):
+            continue
+        if header is None:
+            header = cells
+            continue
+        if len(cells) < 2:
+            continue
+        label = _strip_md(cells[0])
+        amount_raw = cells[1].replace(",", "")
+        try:
+            amount = float(amount_raw)
+        except ValueError:
+            warnings.append(f"{month} 财务：无法解析金额「{cells[1]}」（{label}）")
+            amount = None
+        row = {
+            "label": label,
+            "amount": amount,
+            "amount_raw": cells[1],
+            "note": _clip(_strip_md(cells[2]), 160) if len(cells) > 2 else "",
+        }
+        # 概况表用「项目」作表头列名，支出结构用「类别」
+        key = "label"
+        tables[current].append(row)
+
+    if not tables["summary"]:
+        warnings.append(f"{month} 财务复盘未解析到「本月概况」表格")
+
+    return {
+        "file": f"{FINANCE_DIR.as_posix()}/{path.name}",
+        "month": month,
+        "as_of": as_of,
+        "summary": tables["summary"],
+        "expenses": tables["expenses"],
+        "warnings": warnings,
+    }
+
+
+# --------------------------------------------------------------------------
 # 汇总
 # --------------------------------------------------------------------------
 
@@ -651,6 +758,7 @@ def collect(knowledge_dir: Path | None = None, today: date | None = None) -> dic
         "wip": None,
         "hard_nodes": None,
         "projects": None,
+        "finance": None,
     }
 
     if not root.is_dir():
@@ -690,8 +798,17 @@ def collect(knowledge_dir: Path | None = None, today: date | None = None) -> dic
         degraded = True
         result["warnings"].append(f"项目台账：{exc}")
 
+    try:
+        finance = parse_finance(root)
+        result["finance"] = finance
+        result["warnings"].extend(finance["warnings"])
+    except KnowledgeSourceError as exc:
+        degraded = True
+        result["warnings"].append(f"财务复盘：{exc}")
+
     result["available"] = bool(
-        result["today_plan"] or result["hard_nodes"] or result.get("wip") or result.get("projects")
+        result["today_plan"] or result["hard_nodes"] or result.get("wip")
+        or result.get("projects") or result.get("finance")
     )
     result["degraded"] = degraded
     return result
@@ -720,6 +837,9 @@ def main(argv: list[str] | None = None) -> int:
         projects = data.get("projects") or {}
         if projects:
             print(f"项目: {projects.get('total')} 项（展示 {len(projects.get('items', []))} 项）")
+        finance = data.get("finance") or {}
+        if finance:
+            print(f"财务: {finance.get('month')} · 概况 {len(finance.get('summary', []))} 行 · 支出 {len(finance.get('expenses', []))} 类")
             for note in projects.get("notes", []):
                 print(f"  ℹ️  {note}")
         for warning in data.get("warnings", []):

@@ -367,6 +367,17 @@
     </section>
 
     <section id="tab-finance" data-ops-workspace class="tab-content hidden space-y-4" aria-label="财务管理工作区">
+      <div id="knowledge-finance" class="glass-panel p-4 rounded-xl" hidden>
+        <div class="flex flex-wrap items-baseline justify-between gap-2 mb-1">
+          <h3 id="knowledge-finance-head" class="text-sm font-semibold text-white">知识库月度财务</h3>
+          <span class="text-[11px] text-zinc-500">只读投影 · 公开站不显示</span>
+        </div>
+        <p id="knowledge-finance-asof" class="text-[11px] text-zinc-500 leading-snug mb-2" hidden></p>
+        <div id="knowledge-finance-rows"></div>
+        <div id="knowledge-finance-expenses" class="flex flex-wrap gap-1.5 mt-2"></div>
+        <p id="knowledge-finance-source" class="text-[11px] text-zinc-500 mt-2"></p>
+      </div>
+
       <div id="finance-native"><p class="today-muted">正在准备财务工作区。</p></div>
     </section>
 
@@ -542,6 +553,7 @@
   <script src="js/life-today.js?v=1.0.0"></script>
   <script src="js/knowledge-today.js?v=1.2.0"></script>
   <script src="js/knowledge-projects.js?v=1.1.0"></script>
+  <script src="js/knowledge-finance.js?v=1.0.0"></script>
   <!-- app.js self-boots via its own readyState check; no manual boot() call here -->
 </body>
 </html>

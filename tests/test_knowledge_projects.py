@@ -135,3 +135,60 @@ class ParseProjectsTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class ParseFinanceTest(unittest.TestCase):
+    REVIEW = """# 2026-11 财务记录
+
+> 消费截至 2026-11-07；更新于2026-11-07 21:20（北京时间）。
+
+## 一、本月概况（消费截至 2026-11-07）
+
+| 项目 | 金额（元） | 口径与证据 |
+|---|---:|---|
+| 已记录支出合计 | 746.50 | 共12笔 |
+| 当前可用现金 | 43,014.00 | 含暂估 |
+
+## 二、支出结构
+
+| 类别 | 金额（元） | 明细与口径 |
+|---|---:|---|
+| 订阅AI | 468.00 | DeepSeek 充值 |
+| 合计 | 746.50 | 与流水一致 |
+"""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+        self.finance = self.root / "06-Growth" / "Finance"
+        self.finance.mkdir(parents=True)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_parses_latest_month_and_both_tables(self):
+        (self.finance / "2026-10-financial-review.md").write_text("# 旧\n", encoding="utf-8")
+        (self.finance / "2026-11-financial-review.md").write_text(self.REVIEW, encoding="utf-8")
+
+        result = knowledge_source.parse_finance(self.root)
+
+        self.assertEqual(result["month"], "2026-11")
+        self.assertEqual(len(result["summary"]), 2)
+        self.assertEqual(len(result["expenses"]), 2)
+        self.assertEqual(result["summary"][1]["amount"], 43014.0)
+        self.assertEqual(result["summary"][1]["amount_raw"], "43,014.00")
+        self.assertIn("截至", result["as_of"])
+        self.assertEqual(result["warnings"], [])
+
+    def test_amounts_are_not_rounded_or_recomputed(self):
+        (self.finance / "2026-11-financial-review.md").write_text(self.REVIEW, encoding="utf-8")
+        result = knowledge_source.parse_finance(self.root)
+        totals = [row["amount_raw"] for row in result["expenses"]]
+        self.assertEqual(totals, ["468.00", "746.50"])
+
+    def test_missing_directory_raises(self):
+        with self.assertRaises(knowledge_source.KnowledgeSourceError):
+            knowledge_source.parse_finance(self.root / "not-here")
+
+    def test_missing_review_file_raises(self):
+        with self.assertRaises(knowledge_source.KnowledgeSourceError):
+            knowledge_source.parse_finance(self.root)
