@@ -29,6 +29,8 @@ GITOPS_FILES = [
     "data/public/status.json",
     "data/public/status.js",
     "data/public/memory_rules.js",
+    "data/public/energy.json",
+    "data/public/energy.js",
 ]
 
 def load_json(path, default):
