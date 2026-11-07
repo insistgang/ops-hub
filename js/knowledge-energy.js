@@ -14,8 +14,14 @@
   if (!box) return;
 
   // 私有快照优先；公开站拿不到私有快照时回退到 data/public/energy.js（本人选择公开）。
-  const data = window.__OPS_KNOWLEDGE__;
-  const energy = (data && data.available === true ? data.energy : null) || window.__OPS_PUBLIC_ENERGY__ || null;
+  const privateEnergy = (() => {
+    const data = window.__OPS_KNOWLEDGE__;
+    return data && data.available === true ? data.energy : null;
+  })();
+
+  let rendered = false;
+
+  function render(energy) {
   const days = energy && Array.isArray(energy.days) ? energy.days.slice() : [];
   if (!days.length) {
     box.hidden = true;
@@ -90,4 +96,19 @@
   }
 
   box.hidden = false;
+  rendered = true;
+  } // render
+
+  const inline = privateEnergy || window.__OPS_PUBLIC_ENERGY__ || null;
+  if (inline) render(inline);
+
+  // energy.js 用固定 ?v= 加载会被浏览器长期缓存，每日同步改的是内容不是 URL。
+  // 线上改为直接取 energy.json（带时间戳、no-store）；file:// 或离线时 fetch 失败，
+  // 保留上面的内联数据，不报错、不显示假数据。
+  if (location.protocol === 'http:' || location.protocol === 'https:') {
+    fetch('data/public/energy.json?t=' + Date.now(), { cache: 'no-store' })
+      .then(response => (response.ok ? response.json() : null))
+      .then(fresh => { if (fresh && Array.isArray(fresh.days) && fresh.days.length) render(fresh); })
+      .catch(() => { if (!rendered) box.hidden = true; });
+  }
 })();
