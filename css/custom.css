@@ -293,3 +293,23 @@ html:not(.dark) .vitaflow-connection-fields input { background:#fff; color:#1818
 #vitaflow-native :is(#energyOverview, #dailyPlan, #energyTrends, #creativeSpace) { scroll-margin-top:140px; }
 @media (max-width:640px) { #vitaflow-native :is(#energyOverview, #dailyPlan, #energyTrends, #creativeSpace) { scroll-margin-top:190px; } }
 @media (max-width:640px) { .vita-summary-accounts { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+
+/* Native life workspaces share the host navigation, tokens, and page scrolling. */
+.workspace-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.8rem; }
+.workspace-heading h2 { font-size:1.2rem; font-weight:750; color:var(--ops-text); }
+.workspace-heading > a { font-size:.8rem; color:var(--ops-accent); }
+.workspace-actions { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem; font-size:.8rem; color:var(--ops-accent); }
+.workspace-actions button { padding:.5rem .75rem; border:1px solid var(--ops-border); border-radius:var(--ops-radius); background:var(--ops-surface); }
+.workspace-navigation { position:sticky; top:64px; z-index:30; display:flex; flex-wrap:wrap; gap:.5rem; padding:.65rem 0; background:var(--ops-page); border-bottom:1px solid var(--ops-border); }
+.workspace-navigation button { padding:.5rem .8rem; border:1px solid var(--ops-border); border-radius:var(--ops-radius); background:var(--ops-surface); color:var(--ops-text); font-size:.8rem; }
+.workspace-navigation button:focus-visible, .workspace-heading a:focus-visible { outline:2px solid var(--ops-accent); outline-offset:3px; }
+#weight-native, #finance-native { min-width:0; }
+#weight-native :is(#weight-overview,#weight-new-entry,#weight-history,#weight-groups) { scroll-margin-top:140px; }
+.life-summary { display:flex; flex-wrap:wrap; align-items:baseline; gap:.5rem 1rem; padding:.9rem 0; }
+.life-summary strong { font-size:1.65rem; font-weight:750; color:var(--ops-text); }
+.life-summary span { font-size:.85rem; color:var(--ops-muted); }
+.life-finance-summary { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.7rem; padding:.85rem 0; }
+.life-finance-summary dt { font-size:.75rem; color:var(--ops-muted); }
+.life-finance-summary dd { margin-top:.25rem; font-size:1.1rem; font-weight:650; color:var(--ops-text); overflow-wrap:anywhere; }
+.today-life .today-muted { overflow-wrap:anywhere; }
+@media (max-width:640px) { #weight-native :is(#weight-overview,#weight-new-entry,#weight-history,#weight-groups) { scroll-margin-top:170px; } }

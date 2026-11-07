@@ -11,9 +11,11 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons (version pinned) -->
   <script src="https://cdn.jsdelivr.net/npm/lucide@1.37.0/dist/umd/lucide.min.js"></script>
-  <link rel="stylesheet" href="css/custom.css?v=1.7.0">
+  <link rel="stylesheet" href="css/custom.css?v=1.8.0">
   <link rel="stylesheet" href="vitaflow/native-workspace.css?v=1.0.0">
-  <link rel="stylesheet" href="css/site-styles.css?v=1.0.0">
+  <link rel="stylesheet" href="weight-tracker/native-workspace.css?v=1.0.0">
+  <link rel="stylesheet" href="finance/native-workspace.css?v=1.0.0">
+  <link rel="stylesheet" href="css/site-styles.css?v=1.1.0">
   <!-- Theme bootstrap: apply saved theme before first paint (anti-FOUC) -->
   <script>
     try { if (localStorage.getItem("ops_theme") === "light") document.documentElement.classList.remove("dark"); } catch (e) {}
@@ -49,7 +51,7 @@
         <div>
           <div class="flex items-center gap-2">
             <h1 class="text-base font-extrabold tracking-tight text-white whitespace-nowrap">OPS-HUB</h1>
-            <span class="hidden sm:inline text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-400 border border-indigo-800/50">v1.3.0</span>
+            <span class="hidden sm:inline text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-400 border border-indigo-800/50">v1.8.0</span>
           </div>
           <p class="text-[11px] text-zinc-400 hidden sm:block">Leo 的数字化运营工作总台 // 设备分工与算力中枢</p>
         </div>
@@ -100,35 +102,39 @@
 
     <!-- Tab Navigation Bar -->
     <div class="flex items-center gap-2 border-b border-zinc-800 pb-3 mb-6 overflow-x-auto">
-      <button data-tab="tab-today" class="tab-btn active px-4 py-2 rounded-xl text-sm font-semibold border border-transparent bg-indigo-950/60 text-indigo-400 border-indigo-500 flex items-center gap-2 transition-all shrink-0">
+      <button data-ops-tab data-tab="tab-today" class="tab-btn active px-4 py-2 rounded-xl text-sm font-semibold border border-transparent bg-indigo-950/60 text-indigo-400 border-indigo-500 flex items-center gap-2 transition-all shrink-0">
         <i data-lucide="sunrise" class="w-4 h-4"></i><span>今日</span>
       </button>
-      <button data-tab="tab-career" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white flex items-center gap-2 transition-all shrink-0">
+      <button data-ops-tab data-tab="tab-career" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white flex items-center gap-2 transition-all shrink-0">
         <i data-lucide="briefcase" class="w-4 h-4"></i>
         <span>求职投递看板</span>
       </button>
 
-      <button data-tab="tab-projects" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all flex items-center gap-2 shrink-0">
+      <button data-ops-tab data-tab="tab-projects" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all flex items-center gap-2 shrink-0">
         <i data-lucide="rocket" class="w-4 h-4"></i>
         <span>多线项目雷达</span>
       </button>
 
-      <button data-tab="tab-memory" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all flex items-center gap-2 shrink-0">
+      <button data-ops-tab data-tab="tab-memory" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all flex items-center gap-2 shrink-0">
         <i data-lucide="brain" class="w-4 h-4"></i>
         <span>个人记忆与秩序</span>
       </button>
 
-      <button data-tab="tab-weight" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all flex items-center gap-2 shrink-0">
+      <button data-ops-tab data-tab="tab-weight" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all flex items-center gap-2 shrink-0">
         <i data-lucide="gauge" class="w-4 h-4"></i>
         <span>体重管理</span>
       </button>
 
-      <button data-tab="tab-vitaflow" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all flex items-center gap-2 shrink-0">
+      <button data-ops-tab data-tab="tab-finance" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white transition-all flex items-center gap-2 shrink-0">
+        <i data-lucide="wallet" class="w-4 h-4"></i><span>财务管理</span>
+      </button>
+
+      <button data-ops-tab data-tab="tab-vitaflow" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all flex items-center gap-2 shrink-0">
         <i data-lucide="activity" class="w-4 h-4"></i>
         <span>日程与精力</span>
       </button>
 
-      <button data-tab="tab-compute" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all flex items-center gap-2 shrink-0">
+      <button data-ops-tab data-tab="tab-compute" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all flex items-center gap-2 shrink-0">
         <i data-lucide="layers" class="w-4 h-4"></i>
         <span>设备分工与算力总台</span>
       </button>
@@ -180,7 +186,7 @@
 
     <!-- TAB CONTENTS -->
 
-    <section id="tab-today" class="tab-content today-home" aria-labelledby="today-title">
+    <section id="tab-today" data-ops-workspace class="tab-content today-home" aria-labelledby="today-title">
       <div class="today-intro"><div><p class="today-kicker">你的日常工作台</p><h2 id="today-title">今天，先做好一件事。</h2><p>把注意力留给真正重要的事，其他模块随时可以进入。</p></div><span id="today-date" class="today-date"></span></div>
       <div class="today-grid">
         <section class="today-card today-focus" aria-labelledby="focus-title">
@@ -209,6 +215,19 @@
         <p id="vita-today-feedback" class="today-feedback" role="status" aria-live="polite"></p>
         <div class="vita-summary-actions"><button type="button" data-vita-view="dailyPlan">安排今天的日程 →</button><button type="button" data-vita-view="energyOverview">记录与回看精力 →</button></div>
       </section>
+        <section class="today-card today-life" aria-labelledby="today-body-title">
+          <div class="today-card-heading"><div><p class="today-kicker">BODY & ROUTINE</p><h3 id="today-body-title">体重记录</h3></div><span id="today-weight-status" class="today-muted">正在读取</span></div>
+          <div class="life-summary"><strong id="today-weight-value">—</strong><span id="today-weight-goal">目标未读取</span></div>
+          <p id="today-weight-detail" class="today-muted"></p>
+          <div class="vita-summary-actions"><button type="button" data-weight-view="new-entry">记录一次体重 →</button><button type="button" data-weight-view="history">查看历史 →</button></div>
+        </section>
+        <section class="today-card today-life" aria-labelledby="today-money-title">
+          <div class="today-card-heading"><div><p class="today-kicker">MONEY & REVIEW</p><h3 id="today-money-title">财务状态</h3></div></div>
+          <p id="today-finance-status" class="today-muted">尚未读取私人账本</p>
+          <dl class="life-finance-summary"><div><dt>当前周期支出</dt><dd id="today-finance-expense">—</dd></div><div><dt>可用现金</dt><dd id="today-finance-cash">—</dd></div></dl>
+          <p id="today-finance-detail" class="today-muted"></p>
+          <div class="vita-summary-actions"><button type="button" data-open-tab="tab-finance">进入财务总览 →</button></div>
+        </section>
         <section class="today-card" aria-labelledby="today-links-title"><p class="today-kicker">QUICK ACCESS</p><h3 id="today-links-title">继续你的节奏</h3><p class="today-muted">直接进入已有工具，按需要选择。</p><div class="today-links"><button type="button" data-open-tab="tab-vitaflow"><strong>日程与精力</strong><span>打开 VitaFlow →</span></button><button type="button" data-open-tab="tab-memory"><strong>今日四勾</strong><span>记录今天的节奏 →</span></button><button type="button" data-open-tab="tab-projects"><strong>项目与考期</strong><span>查看已有快照 →</span></button><button type="button" data-open-tab="tab-career"><strong>求职进展</strong><span>查看投递记录 →</span></button></div></section>
         </div>
       </div>
@@ -217,7 +236,7 @@
     </section>
 
     <!-- Tab 1: Career Pipeline -->
-    <div id="tab-career" class="tab-content hidden">
+    <div id="tab-career" data-ops-workspace class="tab-content hidden">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
           <h3 class="text-lg font-bold text-white">求职投递管道与状态跟进</h3>
@@ -236,7 +255,7 @@
     </div>
 
     <!-- Tab 2: Projects & Research Radar -->
-    <div id="tab-projects" class="tab-content hidden">
+    <div id="tab-projects" data-ops-workspace class="tab-content hidden">
       <div class="mb-4">
         <h3 class="text-lg font-bold text-white">多线项目推进与考试倒计时雷达</h3>
         <p class="text-xs text-zinc-400">自动探测本地工程最新 Git 提交与考期节点</p>
@@ -248,7 +267,7 @@
     </div>
 
     <!-- Tab 3: Personal Memory & Order Hub -->
-    <div id="tab-memory" class="tab-content hidden space-y-6">
+    <div id="tab-memory" data-ops-workspace class="tab-content hidden space-y-6">
       <p class="text-xs text-amber-300">以下场景和原则来自保存的历史规则，仅供参考；当前安排请以你的最新计划为准。</p>
       
       <!-- Four Checks Section -->
@@ -295,23 +314,18 @@
 
     </div>
 
-    <!-- Tab 4: WeightTracker universal weight management -->
-    <div id="tab-weight" class="tab-content hidden space-y-5">
-      <div class="glass-panel p-5 rounded-2xl">
-        <h3 class="text-lg font-bold text-white flex items-center gap-2">
-          <i data-lucide="gauge" class="w-5 h-5 text-sky-400"></i>
-          体重管理 · 日常记录
-        </h3>
-        <p class="text-xs text-zinc-400 mt-1">支持多使用者、目标体重、历史趋势与本机小组；无需注册，记录仅保存在当前浏览器。</p>
-        <p class="text-xs text-zinc-500 mt-2">这是通用本地版，不连接原三人活动的 Supabase，也不公开任何体重数据。</p>
-      </div>
-      <div class="glass-panel rounded-2xl overflow-hidden">
-        <iframe id="weight-frame" title="体重管理" class="w-full h-[80vh] bg-white" loading="lazy"></iframe>
-      </div>
-    </div>
+    <section id="tab-weight" data-ops-workspace class="tab-content hidden space-y-4" aria-labelledby="weight-title">
+      <div class="workspace-heading"><div><h2 id="weight-title">体重与日常记录</h2><p class="today-muted">使用者、目标和历史记录沿用本机数据，与今日首页共用。</p></div><div class="workspace-actions"><button id="weight-refresh" type="button">重读本机记录</button><a href="weight-tracker/index.html" target="_blank" rel="noopener noreferrer">独立版 ↗</a></div></div>
+      <nav class="workspace-navigation" aria-label="体重记录分区"><button type="button" data-weight-view="overview">概览</button><button type="button" data-weight-view="new-entry">记录体重</button><button type="button" data-weight-view="history">历史记录</button><button type="button" data-weight-view="groups">本机小组</button></nav>
+      <div id="weight-native"><p class="today-muted">正在准备本机体重记录。</p></div>
+    </section>
+
+    <section id="tab-finance" data-ops-workspace class="tab-content hidden space-y-4" aria-label="财务管理工作区">
+      <div id="finance-native"><p class="today-muted">正在准备财务工作区。</p></div>
+    </section>
 
     <!-- Tab 5: VitaFlow personal energy & schedule -->
-    <section id="tab-vitaflow" class="tab-content hidden space-y-4" aria-labelledby="vitaflow-title">
+    <section id="tab-vitaflow" data-ops-workspace class="tab-content hidden space-y-4" aria-labelledby="vitaflow-title">
       <div class="vitaflow-heading"><div><h3 id="vitaflow-title">日程与精力</h3><p id="vitaflow-source" class="today-muted">日程页与今日入口共用记录。</p></div><div class="vitaflow-actions"><button id="vitaflow-builtin" type="button">使用本机记录</button></div></div>
       <nav class="vitaflow-navigation" aria-label="日程与精力分区"><button type="button" data-vf-view="energyOverview" disabled>精力概览</button><button type="button" data-vf-view="dailyPlan" disabled>日程待办</button><button type="button" data-vf-view="energyTrends" disabled>状态趋势</button><button type="button" data-vf-view="creativeSpace" disabled>创作与学习</button></nav>
       <details class="vitaflow-connection"><summary>同步与数据设置</summary><p class="today-muted">原有私人日程可通过私有服务接入，沿用原来的数据校对与冲突保护。</p><div class="vitaflow-connection-fields"><label>私有服务地址<input id="vitaflow-url" type="url" value="http://127.0.0.1:8787/schedule-system-2.0.html"></label><label>访问口令<input id="vitaflow-key" type="password" placeholder="仅保存在当前浏览器"></label><button id="vitaflow-connect" type="button">连接私有服务</button></div><a id="vitaflow-open" class="today-muted" href="vitaflow/schedule-system-2.0.html?mode=browser" target="_blank" rel="noopener noreferrer">保留的独立版 ↗</a></details>
@@ -320,7 +334,7 @@
     </section>
 
     <!-- Tab 5: Tri-Device Compute & Allocation Hub -->
-    <div id="tab-compute" class="tab-content hidden space-y-6">
+    <div id="tab-compute" data-ops-workspace class="tab-content hidden space-y-6">
       
       <!-- Interactive Task Router -->
       <div class="glass-panel p-5 rounded-2xl border-indigo-500/30 bg-gradient-to-br from-indigo-950/20 to-zinc-950">
@@ -474,9 +488,12 @@
   <script src="js/site-style.js?v=1.0.0"></script>
   <script src="vitaflow/native-workspace.js?v=1.0.0"></script>
   <script src="js/vitaflow.js?v=2.0.0"></script>
-  <script src="js/app.js?v=1.7.0"></script>
+  <script src="weight-tracker/native-workspace.js?v=1.0.0"></script>
+  <script src="finance/native-workspace.js?v=1.0.0"></script>
+  <script src="js/app.js?v=1.8.0"></script>
   <script src="js/today.js?v=1.1.0"></script>
   <script src="js/vitaflow-today.js?v=1.0.1"></script>
+  <script src="js/life-today.js?v=1.0.0"></script>
   <!-- app.js self-boots via its own readyState check; no manual boot() call here -->
 </body>
 </html>

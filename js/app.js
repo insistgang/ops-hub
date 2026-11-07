@@ -199,8 +199,8 @@ function safeCreateIcons() {
 }
 
 function initWeightTracker() {
-  const frame = document.getElementById("weight-frame");
-  if (frame && !frame.getAttribute("src")) frame.src = "weight-tracker/index.html";
+  // The native workspace mounts once and keeps the original browser records.
+  document.getElementById("weight-native")?.setAttribute("aria-label", "体重记录工作区");
 }
 
 /* ---------- Day/Night Theme ---------- */
@@ -216,6 +216,7 @@ function applyTheme(theme) {
   }
   safeCreateIcons();
   window.OpsVitaFlow?.setTheme(theme);
+  window.OpsFinanceNative?.setTheme(theme);
 }
 
 function initTheme() {
@@ -275,19 +276,21 @@ async function manualRefresh() {
 }
 
 function initTabs() {
-  const tabButtons = document.querySelectorAll('.tab-btn[data-tab]');
+  const tabButtons = document.querySelectorAll('[data-ops-tab][data-tab]');
   tabButtons.forEach(btn => {
     btn.addEventListener("click", () => {
       tabButtons.forEach(b => b.classList.remove("active", "bg-indigo-950/60", "text-indigo-400", "border-indigo-500"));
       btn.classList.add("active", "bg-indigo-950/60", "text-indigo-400", "border-indigo-500");
       
       const target = btn.getAttribute("data-tab");
-      document.querySelectorAll('.tab-content[id^="tab-"]').forEach(content => {
+      document.querySelectorAll('[data-ops-workspace]').forEach(content => {
         content.classList.add("hidden");
       });
       const targetEl = document.getElementById(target);
       if (targetEl) targetEl.classList.remove("hidden");
       if (target === 'tab-vitaflow') window.OpsVitaFlow?.activate();
+      if (target === 'tab-weight') window.OpsWeightNative?.activate();
+      if (target === 'tab-finance') window.OpsFinanceNative?.activate();
       safeCreateIcons();
     });
   });

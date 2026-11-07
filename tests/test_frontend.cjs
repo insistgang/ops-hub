@@ -114,19 +114,19 @@ test('hero countdown follows CET-6 and labels upcoming, current, elapsed and inv
   }
 });
 
-test('host navigation does not bind or hide VitaFlow internal tabs in the same document', () => {
+test('host navigation does not bind or hide native internal tabs even when they have data-tab', () => {
   const app = createApp();
   let internalListeners = 0;
   let activate = 0;
   let outerClick;
   const classes = () => { const values = new Set(); return { add: (...keys) => keys.forEach(key => values.add(key)), remove: (...keys) => keys.forEach(key => values.delete(key)), contains: key => values.has(key) }; };
   const outer = { classList: classes(), getAttribute: () => 'tab-vitaflow', addEventListener: (_, fn) => { outerClick = fn; } };
-  const internal = { classList: classes(), getAttribute: () => null, addEventListener: () => { internalListeners += 1; } };
+  const internal = { classList: classes(), getAttribute: () => 'overview', addEventListener: () => { internalListeners += 1; } };
   const outerContent = { classList: classes() };
   const internalContent = { classList: classes() };
-  app.context.document.querySelectorAll = selector => selector === '.tab-btn[data-tab]' ? [outer]
-    : selector === '.tab-btn' ? [outer, internal]
-    : selector === '.tab-content[id^="tab-"]' ? [outerContent] : [outerContent, internalContent];
+  app.context.document.querySelectorAll = selector => selector === '[data-ops-tab][data-tab]' ? [outer]
+    : selector.includes('tab-btn') ? [outer, internal]
+    : selector === '[data-ops-workspace]' ? [outerContent] : [outerContent, internalContent];
   app.context.document.getElementById = id => id === 'tab-vitaflow' ? outerContent : null;
   app.context.window.OpsVitaFlow = { activate: () => { activate += 1; } };
   app.context.initTabs();

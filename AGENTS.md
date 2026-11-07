@@ -52,6 +52,7 @@ Desktop/个人工具/ops-hub/
 ├── ops                        # 可执行全局 CLI 入口（Python 3 编写，无第三方库依赖）
 ├── vitaflow/                  # 本地 VitaFlow 精力管家源码与独立同步服务；my-schedule.json、口令和备份不进入仓库
 ├── weight-tracker/            # 通用体重记录前端；localStorage 本机保存，不使用原三人 Supabase
+├── finance/                   # 财务原生界面与只读适配；不包含私人账本或凭据
 ├── scripts/
 │   ├── probe.py               # 三端网络与硬件服务 Level 2 探针脚本 (Mac+Win+Jetson)
 │   ├── collector.py           # 全量数据汇总、原子写入、跨天归档与 GitOps 自动提交推送核心
@@ -67,7 +68,7 @@ Desktop/个人工具/ops-hub/
 
 ## 3. 页面模块与 Tab 规范
 
-总台 UI 采用 **现代极客风 + 日间/夜间双主题**（暗色为默认，头部按钮切换，选择持久化在 localStorage `ops_theme`；亮色通过 `custom.css` 的 `html:not(.dark)` 覆盖层实现，新增 Tailwind 色阶时必须同步补覆盖规则）。默认入口为「今日」，另有求职、项目、秩序、体重、VitaFlow 与算力六个 Tab。核心模块约定：
+总台 UI 采用 **现代极客风 + 日间/夜间双主题**（暗色为默认，头部按钮切换，选择持久化在 localStorage `ops_theme`；亮色通过 `custom.css` 的 `html:not(.dark)` 覆盖层实现，新增 Tailwind 色阶时必须同步补覆盖规则）。默认入口为「今日」，另有求职、项目、秩序、体重、财务、VitaFlow 与算力七个 Tab。宿主只操作 `[data-ops-tab][data-tab]` 与 `[data-ops-workspace]`，不能匹配内部导航。核心模块约定：
 
 0. **今日首页**
    - `js/today.js` 复用 `app.js` 的 `calendarDay()` 和 `dateOrdinal()`；脚本加载顺序不得颠倒。网页日界统一为北京时间。
@@ -107,7 +108,16 @@ Desktop/个人工具/ops-hub/
 ### 网站风格
 
 - `ops_style` 保存 classic/paper/forest/mono，`ops_theme` 独立保存明暗；风格层使用 `html[data-ops-style]` 和 `--ops-*` 令牌，不改业务数据。
-- 修改样式时同时验证四套明暗与 320px／390px，原生工作区需共用令牌，体重模块继续保持独立 iframe。
+- 修改样式时同时验证四套明暗与 320px／390px，三个原生工作区共用令牌与宿主页面滚动。
+
+### 体重与财务接入边界
+
+- 体重挂载 `#weight-native`，节点 ID 加 `weight-` 前缀；保留原 Store、`weight-tracker:universal:v1` 格式和独立版。禁止为整合清空、迁移或覆盖个人记录；同源旧 iframe 的记录直接沿用。
+- 财务挂载 `#finance-native`，节点 ID 加 `finance-` 前缀，事件只通过命名空间暴露，不得覆盖 VitaFlow 的全局 UI 函数。源财务项目保持独立维护，本项目只包含中和私人内容后的界面与计算逻辑。
+- 财务 `src/template.html` 是无账本默认值的四区界面，`src/dashboard.js` 保留原计算和渲染，`src/runtime.js` 负责鉴权读取、校验、内存状态与隔离接口，`src/styles.css` 限定根与风格令牌。`build-native.mjs` 生成可直接托管的 JS/CSS；`tests/fixtures.mjs` 只服务隔离测试，构建不得读取它。
+- 财务沿用 `https://finance.insistgang.top` 的既有 Basic Auth；主动读取固定受保护 JSON，携带浏览器已有凭据，不接收或存储密码。账本只在页面内存中保留，不能嵌入构建、仓库、公开快照或 localStorage。
+- 默认不探测账本。401/403 清除可见值并提示登录；普通刷新失败须明确标识上次成功数据；未核实/未记录不能换算成零。今日摘要只读工作区 API，事件不广播账本、记录或凭据。
+- 服务器只允许 `https://insistgang.top` 携凭据跨源读取精确数据路径，匿名 GET 保持 401；预检无数据，禁止放开通配来源。配置维护、回滚和验证见 [财务访问说明](docs/finance-access.md)。
 
 ---
 
@@ -136,5 +146,7 @@ CLI 必须用标准 Python 3 实现，使用内置库，严禁强依赖任何第
 
 - Ops-Hub：`python3 -m unittest discover -s tests -p 'test_*.py'`。
 - 前端与体重模块：`node --test tests/*.cjs weight-tracker/tests/*.cjs`；时间边界测试可在 `TZ=UTC` 下运行，确认仍按北京时间分日。
-- 语法：`node --check js/app.js`、`node --check js/today.js`、`node --check js/vitaflow.js`、`node --check js/vitaflow-today.js`、`node --check js/site-style.js`。
+- 语法：`node --check js/app.js`、`node --check js/today.js`、`node --check js/vitaflow.js`、`node --check js/vitaflow-today.js`、`node --check js/site-style.js`、`node --check js/life-today.js`。
+- 体重原生：`node weight-tracker/build-native.mjs`；一致性 `node weight-tracker/build-native.mjs --check`，回归已包含在上述体重 Node 测试中。
+- 财务原生：`node finance/build-native.mjs`、`node finance/test-native-workspace.mjs`、`node finance/build-native.mjs --check`；源码修改后重建并验证，不能读取真实账本作为公开测试 fixture。
 - VitaFlow：在 `vitaflow/` 执行 `npm test`。跨模块修改时按影响范围运行，不能用打开预览代替交互验证。
