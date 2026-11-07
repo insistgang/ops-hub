@@ -22,14 +22,18 @@ function setup(knowledge) {
     ids[id] = node('div');
   }
   ids['knowledge-card'].hidden = true;
+  const grid = node('div');
+  grid.classList = { values: [], add(name) { this.values.push(name); } };
   const document = {
     readyState: 'complete',
     getElementById: id => ids[id] || null,
     createElement: tag => node(tag),
+    querySelector: selector => (selector === '.today-grid' ? grid : null),
     addEventListener() {},
   };
   const window = { __OPS_KNOWLEDGE__: knowledge };
   vm.runInNewContext(source, { document, window, Number });
+  ids.__grid = grid;
   return ids;
 }
 
@@ -120,4 +124,12 @@ test('渲染当前 WIP 三件事', () => {
 
   const empty = setup({ ...sample, wip: { items: [] } });
   assert.equal(empty['knowledge-wip'].hidden, true);
+});
+
+test('无知识库时给栅格加单列降级类', () => {
+  const ids = setup(undefined);
+  assert.deepEqual(ids.__grid.classList.values, ['no-knowledge']);
+
+  const withData = setup(sample);
+  assert.deepEqual(withData.__grid.classList.values, []);
 });

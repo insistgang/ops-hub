@@ -17,6 +17,9 @@
     (data.today_plan || data.hard_nodes);
   if (!available) {
     card.hidden = true;
+    // 没有知识库投影时左栏只剩一张卡，双列栅格会留出大片空白；
+    // 交给 CSS 改单列（见 custom.css 的 .today-grid.no-knowledge）。
+    document.querySelector('.today-grid')?.classList.add('no-knowledge');
     return;
   }
 
