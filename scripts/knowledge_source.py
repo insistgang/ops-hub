@@ -741,6 +741,106 @@ def parse_finance(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
 
 
 # --------------------------------------------------------------------------
+# 日记精力  01-Daily/YYYY-MM/YYYY-MM-DD.md 的「## 状态」段
+# --------------------------------------------------------------------------
+
+DAILY_DIR = Path("01-Daily")
+ENERGY_DAYS = 7
+ENERGY_METRICS = ("精力", "情绪", "专注")
+ENERGY_EXTRA = ("睡眠", "运动")
+STATUS_HEAD_RE = re.compile(r"^##+\s*状态\s*$", re.M)
+STATUS_LINE_RE = re.compile(r"^[-*\s]*([\u4e00-\u9fa5A-Za-z]{2,4})[：:]\s*(.+)$")
+SCORE_RE = re.compile(r"^约?\s*([\d.]+)\s*/\s*(\d+)")
+BASIS_RE = re.compile(r"[（(]([^）)]+)[）)]\s*$")
+
+
+def _status_items(text: str) -> dict[str, str]:
+    match = STATUS_HEAD_RE.search(text)
+    if not match:
+        return {}
+    body = text[match.end():]
+    stop = re.search(r"^##+\s", body, re.M)
+    if stop:
+        body = body[:stop.start()]
+    items: dict[str, str] = {}
+    for line in body.splitlines():
+        row = STATUS_LINE_RE.match(line.strip())
+        if row:
+            items[row.group(1)] = row.group(2).strip()
+    return items
+
+
+def _split_score(raw: str) -> dict | None:
+    match = SCORE_RE.match(raw)
+    if not match:
+        return None
+    basis = BASIS_RE.search(raw)
+    return {
+        "score": float(match.group(1)),
+        "scale": int(match.group(2)),
+        "basis": _clip(basis.group(1), 200) if basis else "",
+    }
+
+
+def parse_energy(knowledge_dir: Path = KNOWLEDGE_DIR, days: int = ENERGY_DAYS) -> dict:
+    """抽取最近若干天日记里的精力／情绪／专注评分与本人写下的推断依据。"""
+    daily = knowledge_dir / DAILY_DIR
+    if not daily.is_dir():
+        raise KnowledgeSourceError(f"缺少日记目录：{daily}")
+
+    files = sorted(
+        (p for p in daily.glob("*/*.md") if re.fullmatch(r"\d{4}-\d{2}-\d{2}\.md", p.name)),
+        reverse=True,
+    )
+    if not files:
+        raise KnowledgeSourceError(f"{daily} 下没有 YYYY-MM-DD.md 日记")
+
+    warnings: list[str] = []
+    collected: list[dict] = []
+    for path in files:
+        try:
+            text = _read(path)
+        except KnowledgeSourceError as exc:
+            warnings.append(str(exc))
+            continue
+        items = _status_items(text)
+        metrics = {}
+        for name in ENERGY_METRICS:
+            if name in items:
+                parsed = _split_score(items[name])
+                if parsed:
+                    metrics[name] = parsed
+        if not metrics:
+            continue
+        # 睡眠／运动不在「状态」段里，按全文首个同名字段兜底；找不到就不写，不猜
+        extra = {}
+        for name in ENERGY_EXTRA:
+            if name in items:
+                extra[name] = items[name]
+                continue
+            loose = re.search(r"^[-*\s]*" + name + r"[：:]\s*(.+)$", text, re.M)
+            if loose:
+                extra[name] = _clip(loose.group(1), 80)
+        collected.append({
+            "date": path.stem,
+            "file": f"{DAILY_DIR.as_posix()}/{path.parent.name}/{path.name}",
+            "metrics": metrics,
+            "extra": extra,
+        })
+        if len(collected) >= days:
+            break
+
+    if not collected:
+        raise KnowledgeSourceError("最近日记里没有可解析的「状态」评分")
+
+    return {
+        "days": collected,
+        "latest": collected[0],
+        "warnings": warnings,
+    }
+
+
+# --------------------------------------------------------------------------
 # 汇总
 # --------------------------------------------------------------------------
 
@@ -759,6 +859,7 @@ def collect(knowledge_dir: Path | None = None, today: date | None = None) -> dic
         "hard_nodes": None,
         "projects": None,
         "finance": None,
+        "energy": None,
     }
 
     if not root.is_dir():
@@ -806,9 +907,17 @@ def collect(knowledge_dir: Path | None = None, today: date | None = None) -> dic
         degraded = True
         result["warnings"].append(f"财务复盘：{exc}")
 
+    try:
+        energy = parse_energy(root)
+        result["energy"] = energy
+        result["warnings"].extend(energy["warnings"])
+    except KnowledgeSourceError as exc:
+        degraded = True
+        result["warnings"].append(f"日记精力：{exc}")
+
     result["available"] = bool(
         result["today_plan"] or result["hard_nodes"] or result.get("wip")
-        or result.get("projects") or result.get("finance")
+        or result.get("projects") or result.get("finance") or result.get("energy")
     )
     result["degraded"] = degraded
     return result

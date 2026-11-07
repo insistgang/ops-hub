@@ -127,6 +127,7 @@ Desktop/个人工具/ops-hub/
 - **真源白名单**：只解析 `01-Daily/今日计划/YYYY-MM-DD.md`、`00-Inbox/硬节点台账.md` 与 `03-Projects/` 的目录及顶层 `.md`。今日计划缺失时回退到最近一份并标记「非今日」；目录可用 `OPS_KNOWLEDGE_DIR` 覆盖，换机器不需要改代码。
 - **项目台账只报事实**：只取名称、相对路径、真实改动时间、文件数与文档首段摘要，不推断进度、完成度或状态。台账列出全部项目（不再截断为前 12 项）；`AGENTS.md`/`CLAUDE.md`/`README.md`/`03-Projects.md` 等说明与索引文件不算项目，项目目录与同名笔记文件重复时只保留目录。同一分钟内大批文件同时变更视为同步工具批量刷新，不参与「最近活动」排序；只有批量时间戳的项目排在末尾。`03-Projects` 缺失或为空时写 warning 并置 `degraded`，不构造条目。渲染由 `js/knowledge-projects.js` 负责，挂在项目雷达 Tab 内，无数据时整块隐藏。
 - **财务月度复盘投影**：`parse_finance` 只读 `06-Growth/Finance/YYYY-MM-*-review.md` 的最新月份，抽取「本月概况」与「支出结构」两张表的原始金额与口径，不重算、不四舍五入、不补缺失项；金额无法解析时写 warning 而不猜。渲染由 `js/knowledge-finance.js` 负责，挂在财务 Tab 上方，与真实账本互不替代——账本仍需在原站登录后读取，两块同时存在时以账本为准。
+- **日记精力投影**：`parse_energy` 只读 `01-Daily/YYYY-MM/YYYY-MM-DD.md` 的「## 状态」段，取最近 7 天的精力／情绪／专注评分与本人写下的推断依据；睡眠／运动不在该段内，按全文首个同名字段兜底，找不到就不写。评分与依据原样呈现，不重算、不补分、不合并进 VitaFlow 四账户。渲染由 `js/knowledge-energy.js` 负责，挂在日程与精力 Tab 上方。
 - **失败不造假**：解析不到写 `warnings` 或 `available: false` 并给出原因，不构造占位行；知识库不存在不得拖垮硬件探针。
 - **口径以台账为准**：硬节点按「到期日 ≠ 决策日」计算提醒日，决策日仍在未来的节点不算逾期；处置列已写明闭环的不计入逾期。
 - **隐私**：`data/knowledge.json` 与 `data/private/` 已 git-ignore，`sanitize_public.py` 在中整块剔除 `knowledge` 段。公开站拿不到私有快照，页面自动隐藏该区块。

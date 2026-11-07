@@ -387,6 +387,16 @@
       <nav class="vitaflow-navigation" aria-label="日程与精力分区"><button type="button" data-vf-view="energyOverview" disabled>精力概览</button><button type="button" data-vf-view="dailyPlan" disabled>日程待办</button><button type="button" data-vf-view="energyTrends" disabled>状态趋势</button><button type="button" data-vf-view="creativeSpace" disabled>创作与学习</button></nav>
       <details class="vitaflow-connection"><summary>同步与数据设置</summary><p class="today-muted">原有私人日程可通过私有服务接入，沿用原来的数据校对与冲突保护。</p><div class="vitaflow-connection-fields"><label>私有服务地址<input id="vitaflow-url" type="url" value="http://127.0.0.1:8787/schedule-system-2.0.html"></label><label>访问口令<input id="vitaflow-key" type="password" placeholder="仅保存在当前浏览器"></label><button id="vitaflow-connect" type="button">连接私有服务</button></div></details>
       <p id="vitaflow-status" class="today-muted" role="status" aria-live="polite">正在准备日程工作区。</p>
+      <div id="knowledge-energy" class="glass-panel p-4 rounded-xl mb-4" hidden>
+        <div class="flex flex-wrap items-baseline justify-between gap-2 mb-1">
+          <h3 id="knowledge-energy-label" class="text-sm font-semibold text-white">日记精力</h3>
+          <span class="text-[11px] text-zinc-500">只读投影 · 公开站不显示</span>
+        </div>
+        <div id="knowledge-energy-rows"></div>
+        <p id="knowledge-energy-extra" class="text-[11px] text-zinc-400 mt-2" hidden></p>
+        <p id="knowledge-energy-source" class="text-[11px] text-zinc-500 mt-1"></p>
+      </div>
+
       <div id="vitaflow-native"><p class="today-muted">正在读取日程、精力与创作工具。</p></div>
     </section>
 
@@ -554,6 +564,7 @@
   <script src="js/knowledge-today.js?v=1.2.0"></script>
   <script src="js/knowledge-projects.js?v=1.1.0"></script>
   <script src="js/knowledge-finance.js?v=1.0.0"></script>
+  <script src="js/knowledge-energy.js?v=1.0.0"></script>
   <!-- app.js self-boots via its own readyState check; no manual boot() call here -->
 </body>
 </html>

@@ -92,6 +92,11 @@ class KnowledgeSourceTests(unittest.TestCase):
         (self.root / "00-Inbox" / "TODO.md").write_text(WIP_TODO, encoding="utf-8")
         (self.root / "03-Projects" / "示例项目").mkdir(parents=True)
         (self.root / "03-Projects" / "示例项目" / "README.md").write_text("# 示例项目\n\n一行说明。\n", encoding="utf-8")
+        diary_dir = self.root / "01-Daily" / "2026-11"
+        diary_dir.mkdir(parents=True)
+        (diary_dir / "2026-11-07.md").write_text(
+            "# 2026年11月7日\n\n## 状态\n\n- 精力：7.8/10（推断依据：睡足）\n- 情绪：8.5/10（推断依据：顺利）\n",
+            encoding="utf-8")
         finance_dir = self.root / "06-Growth" / "Finance"
         finance_dir.mkdir(parents=True)
         (finance_dir / "2026-11-financial-review.md").write_text(
@@ -194,6 +199,7 @@ class KnowledgeSourceTests(unittest.TestCase):
         self.assertTrue(result["hard_nodes"]["active"])
         self.assertEqual(result["projects"]["total"], 1)
         self.assertEqual(result["finance"]["month"], "2026-11")
+        self.assertEqual(result["energy"]["latest"]["date"], "2026-11-07")
 
     def test_public_snapshot_drops_knowledge(self):
         status = {
