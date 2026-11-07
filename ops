@@ -414,14 +414,22 @@ def cmd_schedule(args):
         else:
             print(f"🔴 launchd 定时服务已加载，但上次执行失败 (退出码 {last_exit})！")
             err_log = Path("/tmp/opshub_sync_err.log")
+            out_log = Path("/tmp/opshub_sync.log")
             err_text = ""
             if err_log.exists():
                 err_text = err_log.read_text(encoding="utf-8", errors="replace")
-                tail = [l for l in err_text.strip().splitlines() if l.strip()][-3:]
-                if tail:
-                    print(f"{Colors.DIM}   最近错误日志:{Colors.ENDC}")
-                    for l in tail:
-                        print(f"   {Colors.FAIL}{l}{Colors.ENDC}")
+            tail = [l for l in err_text.strip().splitlines() if l.strip()][-3:]
+            source = "错误日志"
+            if not tail and out_log.exists():
+                # 大多数失败（工作区不干净、推送失败）只写 stdout，stderr 是空的
+                out_text = out_log.read_text(encoding="utf-8", errors="replace")
+                tail = [l.strip() for l in out_text.splitlines()
+                        if any(mark in l for mark in ("⚠️", "❌", "失败", "跳过"))][-3:]
+                source = "运行日志"
+            if tail:
+                print(f"{Colors.DIM}   最近{source}:{Colors.ENDC}")
+                for l in tail:
+                    print(f"   {Colors.FAIL}{l}{Colors.ENDC}")
             if "Operation not permitted" in err_text:
                 interp = "/usr/bin/python3"
                 try:
