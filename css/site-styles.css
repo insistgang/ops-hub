@@ -84,32 +84,32 @@ html.dark[data-ops-style="forest"] {
   --ops-shadow: 0 14px 34px rgba(0, 0, 0, 0.24);
 }
 
-html[data-ops-style="mono"] {
-  --ops-page: #f4f4f4;
-  --ops-surface: #ffffff;
-  --ops-surface-muted: #ebebeb;
-  --ops-text: #151515;
-  --ops-muted: #666666;
-  --ops-border: #bdbdbd;
-  --ops-accent: #171717;
+html[data-ops-style="ocean"] {
+  --ops-page: #eaf4f8;
+  --ops-surface: rgba(249, 253, 255, 0.88);
+  --ops-surface-muted: #e0eff5;
+  --ops-text: #16384b;
+  --ops-muted: #526f7d;
+  --ops-border: rgba(35, 108, 139, 0.19);
+  --ops-accent: #12688e;
   --ops-accent-contrast: #ffffff;
-  --ops-radius: 0.15rem;
-  --ops-shadow: none;
+  --ops-radius: 1.1rem;
+  --ops-shadow: 0 12px 34px rgba(26, 94, 124, 0.10);
   --ops-font-body: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --ops-font-heading: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
-  --ops-blur: 0px;
+  --ops-font-heading: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --ops-blur: 14px;
 }
 
-html.dark[data-ops-style="mono"] {
-  --ops-page: #101010;
-  --ops-surface: #181818;
-  --ops-surface-muted: #212121;
-  --ops-text: #f2f2f2;
-  --ops-muted: #aaaaaa;
-  --ops-border: #484848;
-  --ops-accent: #eeeeee;
-  --ops-accent-contrast: #111111;
-  --ops-shadow: none;
+html.dark[data-ops-style="ocean"] {
+  --ops-page: #081c29;
+  --ops-surface: rgba(17, 47, 64, 0.90);
+  --ops-surface-muted: #173c50;
+  --ops-text: #e5f4f9;
+  --ops-muted: #a8c3ce;
+  --ops-border: rgba(144, 203, 223, 0.18);
+  --ops-accent: #80cce7;
+  --ops-accent-contrast: #092b3a;
+  --ops-shadow: 0 14px 36px rgba(0, 11, 21, 0.25);
 }
 
 html[data-ops-style] body {
@@ -220,18 +220,8 @@ html[data-ops-style] #weight-native .button-primary {
   color: var(--ops-accent-contrast);
 }
 
-html[data-ops-style="mono"] :is(.glass-panel, .today-card, .today-links button, .today-list li, header.sticky),
-html[data-ops-style="mono"] #vitaflow-native :is(.vf-panel, .panel, .card, .glass-panel, .record-form, .guide-card, .account-card, .calendar-panel, .chart-container, .detail-header) {
-  background-image: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-
-html[data-ops-style="mono"] [class*="bg-gradient-"],
-html[data-ops-style="mono"] [class*="backdrop-blur-"] {
-  background-image: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+html[data-ops-style="ocean"] :is(.today-kicker, .today-links span, .focus-toggle) {
+  color: var(--ops-accent);
 }
 
 html[data-ops-style]:not([data-ops-style="classic"]) .today-card {

@@ -7,7 +7,7 @@ const vm = require('node:vm');
 const styleScript = fs.readFileSync(path.join(__dirname, '../js/site-style.js'), 'utf8');
 const styleCss = fs.readFileSync(path.join(__dirname, '../css/site-styles.css'), 'utf8');
 const indexHtml = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
-const styleNames = ['classic', 'paper', 'forest', 'mono'];
+const styleNames = ['classic', 'paper', 'forest', 'ocean'];
 
 function createButton(name) {
   const classes = new Set();
@@ -112,6 +112,16 @@ test('style script initializes after DOM readiness and restores a valid saved st
   assert.equal(app.storage.ops_theme, 'light');
 });
 
+test('legacy mono preferences resolve to ocean on initialization and across tabs', () => {
+  const app = createApp({ stored: { ops_style: 'mono' } });
+  assert.equal(app.context.OpsAppearance.getStyle(), 'ocean');
+  assert.deepEqual(app.pressed(), ['ocean']);
+  app.context.OpsAppearance.setStyle('forest');
+  app.fireStorage('ops_style', 'mono');
+  assert.equal(app.context.OpsAppearance.getStyle(), 'ocean');
+  assert.deepEqual(app.pressed(), ['ocean']);
+});
+
 test('clicking a style button persists only ops_style, updates pressed state, and dispatches the public event', () => {
   const app = createApp({ stored: { ops_theme: 'dark' } });
   app.buttons[1].click();
@@ -152,13 +162,13 @@ test('storage read errors use classic and remain visible', () => {
 test('save failures leave the selected style active and show a visible warning', () => {
   const app = createApp();
   app.failSet();
-  const saved = app.context.OpsAppearance.setStyle('mono');
+  const saved = app.context.OpsAppearance.setStyle('ocean');
 
   assert.equal(saved, false);
-  assert.equal(app.root.getAttribute('data-ops-style'), 'mono');
-  assert.deepEqual(app.pressed(), ['mono']);
+  assert.equal(app.root.getAttribute('data-ops-style'), 'ocean');
+  assert.deepEqual(app.pressed(), ['ocean']);
   assert.match(app.status.textContent, /保存失败/);
-  assert.equal(app.events.filter(item => item.type === 'ops:style-changed').at(-1)?.detail?.style, 'mono');
+  assert.equal(app.events.filter(item => item.type === 'ops:style-changed').at(-1)?.detail?.style, 'ocean');
 });
 
 test('storage events from another tab update the style without writing or reacting to other keys', () => {
@@ -222,7 +232,5 @@ test('four style presets each define light and dark tokens with visible design d
   assert.match(styleCss, /#vitaflow-native[^\n]*(h1|h2|h3|\.vf-title)/);
   assert.match(styleCss, /#vitaflow-native[^\n]*(\.vf-panel|\.panel|\.card)/);
   assert.doesNotMatch(styleCss, /@import|fonts\.googleapis\.com|fonts\.gstatic\.com/i, 'style layer must not fetch fonts');
-  assert.match(styleCss, /html\[data-ops-style="mono"\] :is\([^)]*\)[\s\S]*?background-image: none;[\s\S]*?backdrop-filter: none;/);
-  assert.match(styleCss, /html\[data-ops-style="mono"\] \[class\*="bg-gradient-"\]/);
-  assert.match(styleCss, /html\[data-ops-style="mono"\] \[class\*="backdrop-blur-"\]/);
+  assert.doesNotMatch(styleCss, /data-ops-style="mono"/);
 });

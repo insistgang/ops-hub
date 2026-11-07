@@ -4,7 +4,7 @@
     classic: '经典极客',
     paper: '纸感阅读',
     forest: '森林秩序',
-    mono: '黑白极简',
+    ocean: '海蓝',
   };
   const VALID_STYLES = new Set(Object.keys(STYLE_LABELS));
   let currentStyle = 'classic';
@@ -50,7 +50,7 @@
 
   function onStorage(event) {
     if (event.key !== STORAGE_KEY) return;
-    const stored = event.newValue;
+    const stored = event.newValue === 'mono' ? 'ocean' : event.newValue;
     if (stored === null) {
       const changed = currentStyle !== 'classic';
       applyStyle('classic', changed);
@@ -76,6 +76,7 @@
     let stored = null;
     try {
       stored = localStorage.getItem(STORAGE_KEY);
+      if (stored === 'mono') stored = 'ocean';
     } catch (error) {
       applyStyle('classic');
       setStatus('无法读取已保存的风格，当前使用经典风格。', 'warning');

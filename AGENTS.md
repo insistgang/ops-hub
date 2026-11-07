@@ -139,7 +139,7 @@ Desktop/个人工具/ops-hub/
 
 ### 网站风格
 
-- `ops_style` 保存 classic/paper/forest/mono，`ops_theme` 独立保存明暗；风格层使用 `html[data-ops-style]` 和 `--ops-*` 令牌，不改业务数据。
+- `ops_style` 保存 classic/paper/forest/ocean，旧 mono 值显示为 ocean；`ops_theme` 独立保存明暗。风格层使用 `html[data-ops-style]` 和 `--ops-*` 令牌，不改业务数据。
 - 风格切换器是 `index.html` 头部右侧、紧邻主题按钮的四个按钮（`[data-ops-style-option]`），不再是内容区下拉框。窄屏（<640px）显示单字、宽屏显示双字；当前项通过 `aria-pressed` 与 `.is-active` 双重标记。`#site-style-status` 保留 `role=status` 但视觉隐藏（`sr-only`），只做无障碍播报。
 - 修改样式时同时验证四套明暗与 320px／390px，三个原生工作区共用令牌与宿主页面滚动。头部在 320px 下已无同步胶囊（<640px 隐藏），改动头部布局时不要把它加回来。
 
