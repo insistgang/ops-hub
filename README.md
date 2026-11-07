@@ -110,6 +110,8 @@ ops schedule status
 | 财务月度复盘（财务 Tab） | `~/Documents/knowledge/06-Growth/Finance/YYYY-MM-*-review.md` 的最新月份 |
 | 日记精力（日程与精力 Tab） | `~/Documents/knowledge/01-Daily/YYYY-MM/YYYY-MM-DD.md` 的「状态」段，最近 7 天 |
 
+日记精力另有公开投影（`data/public/energy.js`）：分数与推断依据经脱敏后进入公开站，属本人明确选择的公开范围。
+
 `ops sync` 重新解析并写入 `data/knowledge.json` 与 `data/private/knowledge.js`。后者已 git-ignore，公开站拿不到该文件，页面加载不到时整块隐藏。知识库目录可用环境变量 `OPS_KNOWLEDGE_DIR` 覆盖；今日计划缺失时回退最近一份并标注「非今日」，解析失败只提示原因不填假数据。
 
 项目台账完整列出知识库里的全部项目，展示相对路径、真实改动时间、文件数与文档首段摘要，不推断进度或完成度；说明与索引文件（`AGENTS.md` 等）不计入，项目目录与同名笔记只保留目录。同一分钟内大批文件同时变更会被判定为同步工具批量刷新，不参与「最近活动」排序；只有批量时间戳的项目排在末尾而不是被顶到最前。

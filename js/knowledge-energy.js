@@ -13,8 +13,9 @@
   const box = document.getElementById('knowledge-energy');
   if (!box) return;
 
+  // 私有快照优先；公开站拿不到私有快照时回退到 data/public/energy.js（本人选择公开）。
   const data = window.__OPS_KNOWLEDGE__;
-  const energy = data && data.available === true ? data.energy : null;
+  const energy = (data && data.available === true ? data.energy : null) || window.__OPS_PUBLIC_ENERGY__ || null;
   const days = energy && Array.isArray(energy.days) ? energy.days.slice() : [];
   if (!days.length) {
     box.hidden = true;
@@ -83,7 +84,10 @@
   }
 
   const source = document.getElementById('knowledge-energy-source');
-  if (source) source.textContent = '来源：' + (latest.file || '日记') + '（只读，不计入四账户）';
+  if (source) {
+    const origin = latest.file ? '来源：' + latest.file : '来源：' + (latest.date || '日记') + ' 日记（公开快照）';
+    source.textContent = origin + '（只读，不计入四账户）';
+  }
 
   box.hidden = false;
 })();

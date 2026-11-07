@@ -203,6 +203,49 @@ def build_public_status(status, aliases):
     return public
 
 
+def build_public_energy(knowledge, aliases):
+    """裁剪可公开的日记精力投影。
+
+    本人 2026-11-07 明确选择 C 档：分数与推断依据一起公开。仍做三层收口：
+    只保留日期/分数/依据/睡眠运动，丢掉本地文件路径；文本过 scrub_text；
+    真名、关系称谓、私网地址、绝对路径全部替换为对照表别名。
+    """
+    if not isinstance(knowledge, dict):
+        return None
+    energy = knowledge.get("energy")
+    if not isinstance(energy, dict):
+        return None
+
+    public_days = []
+    for day in energy.get("days") or []:
+        if not isinstance(day, dict) or not day.get("date"):
+            continue
+        metrics = {}
+        for name, metric in (day.get("metrics") or {}).items():
+            if not isinstance(metric, dict):
+                continue
+            metrics[name] = {
+                "score": metric.get("score"),
+                "scale": metric.get("scale"),
+                "basis": scrub_text(metric.get("basis") or "", aliases),
+            }
+        extra = {
+            key: scrub_text(value, aliases)
+            for key, value in (day.get("extra") or {}).items()
+            if isinstance(value, str)
+        }
+        public_days.append({"date": day["date"], "metrics": metrics, "extra": extra})
+
+    if not public_days:
+        return None
+    return {
+        "available": True,
+        "generated_at": knowledge.get("generated_at"),
+        "latest": {"date": public_days[0]["date"]},
+        "days": public_days,
+    }
+
+
 def build_public_memory(memory, aliases):
     """脱敏记忆规则：仅保留通用秩序条款。"""
     if not isinstance(memory, dict):
@@ -229,11 +272,21 @@ def write_public_files():
             if not isinstance(memory, dict):
                 raise ValueError("记忆规则真源必须是 JSON 对象")
         public_memory = build_public_memory(memory, aliases)
+        knowledge = {}
+        knowledge_src = DATA_DIR / "knowledge.json"
+        if knowledge_src.exists():
+            knowledge = json.loads(knowledge_src.read_text(encoding="utf-8"))
+            if not isinstance(knowledge, dict):
+                raise ValueError("知识库快照必须是 JSON 对象")
+        public_energy = build_public_energy(knowledge, aliases)
         artifacts = {
             "status.json": json.dumps(public_status, ensure_ascii=False, indent=2) + "\n",
             "status.js": "window.__OPS_STATUS__ = " + json.dumps(public_status, ensure_ascii=False) + ";\n",
             "memory_rules.js": "window.__OPS_MEMORY__ = " + json.dumps(public_memory, ensure_ascii=False) + ";\n",
         }
+        if public_energy:
+            artifacts["energy.json"] = json.dumps(public_energy, ensure_ascii=False, indent=2) + "\n"
+            artifacts["energy.js"] = "window.__OPS_PUBLIC_ENERGY__ = " + json.dumps(public_energy, ensure_ascii=False) + ";\n"
     except (OSError, ValueError, TypeError):
         print("❌ 脱敏配置或真源无效，保留上次公开产物，本次发布已中止。")
         return False

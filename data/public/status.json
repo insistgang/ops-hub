@@ -3,22 +3,22 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "1.2.1",
-    "last_synced": "2026-11-07 22:57:13",
+    "last_synced": "2026-11-07 23:41:31",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub",
     "sanitized": true,
-    "sanitized_at": "2026-11-07 22:57:13",
+    "sanitized_at": "2026-11-07 23:41:31",
     "sanitize_note": "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址、本地路径与私人挑战数据。"
   },
   "topology": {
-    "timestamp": "2026-11-07 22:57:13",
+    "timestamp": "2026-11-07 23:41:31",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.x.x",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "100%",
+      "battery": "77%",
       "power_state": "Discharging (Battery)",
-      "load_avg": "4.82 4.57 4.49",
+      "load_avg": "5.43 4.91 4.57",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -31,7 +31,7 @@
       "ip": "100.98.x.x",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
       "status": "Online",
-      "latency_ms": 728.8,
+      "latency_ms": 809.2,
       "via": "DERP · hkg",
       "control_online": true,
       "last_seen": "0001-01-01T00:00:00Z",
@@ -53,7 +53,7 @@
       "role": "边缘感知节点 // 端侧视觉与机器人感知部署",
       "network_type": "局域网 (LAN Only)",
       "status": "Online",
-      "latency_ms": 0.3,
+      "latency_ms": 0.6,
       "via": "",
       "control_online": false,
       "ssh_port": 22,
@@ -65,7 +65,7 @@
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": 728.8,
+    "mesh_latency_ms": 809.2,
     "tailscale_checked": true
   },
   "career_summary": {
