@@ -18,7 +18,7 @@ function setup(knowledge) {
   const ids = {};
   for (const id of ['knowledge-card', 'knowledge-date', 'knowledge-direction', 'knowledge-capacity',
     'knowledge-warning', 'knowledge-items', 'knowledge-empty', 'hard-nodes-count',
-    'hard-nodes-list', 'hard-nodes-empty']) {
+    'hard-nodes-list', 'hard-nodes-empty', 'knowledge-wip', 'knowledge-wip-list']) {
     ids[id] = node('div');
   }
   ids['knowledge-card'].hidden = true;
@@ -43,6 +43,12 @@ const sample = {
       n: 1, tag: 'P0·大论文', title: '过第一批 10 张', assignee: '必须本人',
       done_standard: '把 10 行填上字', estimate: '45--60 分钟', first_step: '双击启动器',
     }],
+  },
+  wip: {
+    items: [
+      { position: '1／首要', title: '小论文终读与投稿', assignee: '先 AI 起草、后本人终判', action: '比对投稿须知' },
+      { position: '3／机动', title: '六级备考', assignee: '必须本人', action: '' },
+    ],
   },
   hard_nodes: {
     active: [
@@ -99,4 +105,19 @@ test('降级信息显示在提示区', () => {
 
   const clean = setup(sample);
   assert.equal(clean['knowledge-warning'].hidden, true);
+});
+
+test('渲染当前 WIP 三件事', () => {
+  const ids = setup(sample);
+  const box = ids['knowledge-wip'];
+  assert.equal(box.hidden, false);
+  const rows = ids['knowledge-wip-list'].children;
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0].children[0].textContent, '1／首要');
+  assert.equal(rows[0].children[1].textContent, '小论文终读与投稿');
+  assert.equal(rows[0].children[1].title, '比对投稿须知');
+  assert.match(rows[0].children[2].textContent, /先 AI 起草/);
+
+  const empty = setup({ ...sample, wip: { items: [] } });
+  assert.equal(empty['knowledge-wip'].hidden, true);
 });
