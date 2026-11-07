@@ -587,7 +587,9 @@ function renderProjectsRadar() {
         </div>
       `;
     } else {
-      const hasActivity = p.commit_hash && p.commit_hash !== "-" && p.commit_msg !== "路径不存在";
+      // 用显式字段判断，不能依赖 commit_msg 的具体文案（文案一改判断就失效）
+      const hasActivity = p.git_available === true
+        || (typeof p.commit_hash === "string" && p.commit_hash !== "-" && p.commit_hash !== "");
       card.innerHTML = `
         <div>
           <div class="flex items-center justify-between mb-2">
@@ -761,7 +763,12 @@ function renderComputeTopology() {
   const winSsh = document.getElementById("win-ssh-badge");
   const winSmb = document.getElementById("win-smb-badge");
   if (winIp) winIp.innerText = win.ip || "已隐藏";
-  if (winLat) winLat.innerText = win.latency_ms != null ? `${win.latency_ms} ms` : (win.status === "Online" ? "在线" : "Offline");
+  if (winLat) {
+    const via = win.via ? ` · ${win.via}` : "";
+    winLat.innerText = win.latency_ms != null
+      ? `${win.latency_ms} ms${via}`
+      : (win.status === "Online" ? `在线${via}` : `Offline${via}`);
+  }
   if (winSsh) winSsh.innerText = win.ssh_active ? "22 (Active)" : "22 (Standby)";
   if (winSmb) winSmb.innerText = win.smb_active ? "445 (Active)" : "445 (Standby)";
 
@@ -769,7 +776,12 @@ function renderComputeTopology() {
   const jetLat = document.getElementById("jetson-latency-badge");
   const jetSsh = document.getElementById("jetson-ssh-badge");
   if (jetIp) jetIp.innerText = jetson.ip || "已隐藏";
-  if (jetLat) jetLat.innerText = jetson.latency_ms != null ? `${jetson.latency_ms} ms` : (jetson.status === "Online" ? "在线" : "局域网待命");
+  if (jetLat) {
+    const via = jetson.via ? ` · ${jetson.via}` : "";
+    jetLat.innerText = jetson.latency_ms != null
+      ? `${jetson.latency_ms} ms${via}`
+      : (jetson.status === "Online" ? "在线" : `局域网待命${via}`);
+  }
   if (jetSsh) jetSsh.innerText = jetson.ssh_active ? "22 (Active)" : "22 (Standby)";
 }
 

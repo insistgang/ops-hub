@@ -169,6 +169,24 @@ def get_git_info(repo_path):
         "branch": "-"
     }
 
+def resolve_project_path(entry):
+    """按候选顺序取第一个存在的路径。
+
+    目录搬迁是本项目最容易过期的部分（历史上三条项目雷达全指向已删除的 Desktop 路径）。
+    projects.json 支持 paths 列表，命中第一个存在的就停，避免搬一次目录就整条失效。
+    """
+    candidates = entry.get("paths")
+    if not isinstance(candidates, list):
+        candidates = [entry.get("path")] if entry.get("path") else []
+    for raw in candidates:
+        if not raw:
+            continue
+        candidate = Path(str(raw)).expanduser()
+        if candidate.exists():
+            return str(candidate)
+    return ""
+
+
 def calculate_days_left(target_date_str, today=None):
     try:
         target = datetime.strptime(target_date_str, "%Y-%m-%d").date()
@@ -278,10 +296,22 @@ def collect_all():
         if entry.get("type") == "exam":
             entry = apply_exam_state(entry)
         else:
-            path = entry.get("path")
+            path = resolve_project_path(entry)
+            # 候选列表只用于本机解析，不进入快照（含绝对路径，公开版不应出现）
+            entry.pop("paths", None)
             if path:
-                git_meta = get_git_info(path)
-                entry.update(git_meta)
+                entry["path"] = path
+                entry.update(get_git_info(path))
+            else:
+                # 失败要显式暴露，但不在字段里回显绝对路径（公开产物会脱敏，宁可不写）
+                entry.pop("path", None)
+                entry.update({
+                    "git_available": False,
+                    "commit_hash": "-",
+                    "commit_time": "-",
+                    "commit_msg": "配置的候选路径都不可达，请更新 data/projects.json",
+                    "branch": "-",
+                })
         enriched_projects.append(entry)
 
     # 4. Daily Checks (with cross-day rollover & archive)
