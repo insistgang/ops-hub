@@ -316,9 +316,12 @@ html:not(.dark) .vitaflow-connection-fields input { background:#fff; color:#1818
 
 /* ---- 知识库只读投影（data/private/，公开站不渲染） ---- */
 .today-main { display:grid; gap:1rem; align-content:start; }
-.knowledge-direction { font-size:.88rem; line-height:1.6; margin-top:.55rem; }
+.knowledge-direction { font-size:.88rem; line-height:1.6; margin-top:.55rem; overflow-wrap:anywhere; }
+.knowledge-direction, .knowledge-capacity { display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden; -webkit-line-clamp:3; }
 .knowledge-capacity { font-size:.8rem; margin-top:.3rem; }
-.knowledge-items, .knowledge-nodes { list-style:none; margin:.7rem 0 0; padding:0; display:grid; gap:.55rem; }
+.knowledge-items { list-style:none; margin:.7rem 0 0; padding:0; display:grid; gap:.55rem; }
+.knowledge-nodes { list-style:none; margin:.9rem 0 0; padding:0; display:grid; gap:.5rem; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); }
+.today-hard-nodes { margin-top:1rem; }
 .knowledge-item { border-left:2px solid #6366f1; padding:.4rem 0 .4rem .7rem; }
 .knowledge-item-head { display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; }
 .knowledge-item-title { color:#f4f4f5; font-size:.92rem; font-weight:650; line-height:1.45; }
@@ -334,7 +337,7 @@ html:not(.dark) .vitaflow-connection-fields input { background:#fff; color:#1818
 .knowledge-node--urgent .knowledge-days { color:#fb923c; font-weight:700; }
 .knowledge-node--overdue { background:rgba(248,113,113,.13); }
 .knowledge-node--overdue .knowledge-days { color:#f87171; font-weight:700; }
-.knowledge-items[hidden], .knowledge-nodes[hidden], #knowledge-card[hidden] { display:none !important; }
+.knowledge-items[hidden], .knowledge-nodes[hidden], #knowledge-card[hidden], #hard-nodes-card[hidden] { display:none !important; }
 html:not(.dark) .knowledge-item-title, html:not(.dark) .knowledge-node-title { color:#18181b; }
 html:not(.dark) .knowledge-std { color:#3f3f46; }
 html:not(.dark) .knowledge-node { background:rgba(0,0,0,.04); }

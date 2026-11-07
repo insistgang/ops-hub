@@ -53,6 +53,9 @@ Desktop/个人工具/ops-hub/
 │   ├── knowledge.json         # 知识库只读投影快照（私有真源，不入库）
 │   └── private/knowledge.js   # 知识库快照的 JS 镜像（仅本机，公开站无此文件）
 ├── ops                        # 可执行全局 CLI 入口（Python 3 编写，无第三方库依赖）
+│
+├── 加载顺序：data/public/status.js → data/status.js → data/private/knowledge.js
+│   前两个同名全局变量后者覆盖前者，公开站 404 后自动回退到脱敏快照。
 ├── vitaflow/                  # 本地 VitaFlow 精力管家源码与独立同步服务；my-schedule.json、口令和备份不进入仓库
 ├── weight-tracker/            # 通用体重记录前端；localStorage 本机保存，不使用原三人 Supabase
 ├── finance/                   # 财务原生界面与只读适配；不包含私人账本或凭据
@@ -79,7 +82,9 @@ Desktop/个人工具/ops-hub/
    - 重点最多 3 件，存储键 `ops_focus_YYYY-MM-DD`；昨日未完成项只能显式带入今天，不改写昨日，不重复带入同文事项。
    - 重点与四勾只在写入成功后更新界面；损坏记录保留并提示，旧标签页发现存储变化时刷新、提示重试。
    - 现有时钟在换日时发送 `ops:day-changed`，今日首页同时监听页面可见性与相关 storage 事件。
-   - 「知识库 · 今日必做」与「硬节点雷达」只读渲染 `data/private/knowledge.js`；快照由 `scripts/collector.py` 调用 `scripts/knowledge_source.py` 生成。该文件缺失时整块隐藏，公开站不显示任何知识库内容。
+   - 「知识库 · 今日必做」只读渲染 `data/private/knowledge.js`；快照由 `scripts/collector.py` 调用 `scripts/knowledge_source.py` 生成。该文件缺失时整块隐藏，公开站不显示任何知识库内容。
+   - 「硬节点雷达」是栅格之下的整幅卡片（`#hard-nodes-card`），逾期置顶、按剩余天数着色，窄屏自动降为单列。
+   - 今日计划的方向与容量为长文本，卡片内限 3 行并写入 `title`，不要改成整段展开，否则会把左栏撑爆。
 1. **Tab 1: 🎯 求职投递全景看板 (Career Pipeline)**
    - 过滤标签：全部、面试中、笔试中、初筛、已投递、Offer。
    - 字段：公司名称、岗位、投递日期、状态 Badge、简历指引、跟进备注。

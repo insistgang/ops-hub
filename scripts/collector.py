@@ -121,7 +121,7 @@ def get_git_info(repo_path):
                     "git_available": False,
                     "commit_hash": "LOCAL",
                     "commit_time": t_str,
-                    "commit_msg": f"本地代码活跃 (更新于 {t_str})",
+                    "commit_msg": f"本地文件活跃 (更新于 {t_str})",
                     "branch": "local"
                 }
         except Exception:

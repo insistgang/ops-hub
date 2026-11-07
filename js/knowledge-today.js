@@ -40,6 +40,13 @@
     return 'normal';
   }
 
+  // 卡片里只留概要，全文放 title；CSS line-clamp 会被 .today-muted 覆盖，不依赖它
+  function brief(text, max) {
+    const value = (text || '').trim();
+    if (!value) return '';
+    return value.length <= max ? value : value.slice(0, max).trimEnd() + '…';
+  }
+
   function element(tag, className, text) {
     const node = document.createElement(tag);
     if (className) node.className = className;
@@ -57,10 +64,20 @@
     }
 
     setText('knowledge-date', plan.date + (plan.is_today ? ' 今日' : ' 最近一份'));
-    setText('knowledge-direction', plan.direction || '');
-    if (byId('knowledge-direction') && !plan.direction) byId('knowledge-direction').hidden = true;
-    setText('knowledge-capacity', plan.capacity ? '当日容量：' + plan.capacity : '');
-    if (byId('knowledge-capacity') && !plan.capacity) byId('knowledge-capacity').hidden = true;
+
+    // 这两个节点在 HTML 里默认 hidden，必须显式解除，否则永远不显示
+    const direction = byId('knowledge-direction');
+    if (direction) {
+      direction.textContent = brief(plan.direction, 150);
+      direction.title = plan.direction || '';
+      direction.hidden = !plan.direction;
+    }
+    const capacity = byId('knowledge-capacity');
+    if (capacity) {
+      capacity.textContent = plan.capacity ? '当日容量：' + brief(plan.capacity, 110) : '';
+      capacity.title = plan.capacity || '';
+      capacity.hidden = !plan.capacity;
+    }
 
     if (!list) return;
     list.textContent = '';
@@ -104,7 +121,10 @@
     const overdue = (nodes && Array.isArray(nodes.overdue)) ? nodes.overdue.slice() : [];
     const rows = overdue.concat(active);
 
-    setText('hard-nodes-count', rows.length ? rows.length + ' 条' : '');
+    setText('hard-nodes-count', rows.length ? rows.length + ' 条' : '0 条');
+
+    const card = byId('hard-nodes-card');
+    if (card) card.hidden = rows.length === 0;
 
     list.textContent = '';
     if (!rows.length) {
