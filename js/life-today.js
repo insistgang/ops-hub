@@ -31,11 +31,11 @@
     const visible = state === 'ready' || state === 'error';
     put('finance-expense', visible ? money(summary?.expenseTotal) : '—');
     put('finance-cash', visible ? money(summary?.availableCash) : '—');
-    const labels = {idle:'尚未读取私人账本',loading:'正在读取受保护账本',ready:'已读取 · 仅本页保留',locked:'请先登录原财务站',error:'账本读取未成功'};
+    const labels = {idle:'尚未读取私人账本',loading:'正在读取受保护账本',ready:'已读取 · 仅本页保留',locked:'账本要求认证',error:'账本读取未成功'};
     put('finance-status', labels[state] || labels.idle);
     put('finance-detail', state === 'ready' ? `数据日期：${summary.asOf || '以财务页标注为准'}。刷新页面后需要重新读取。`
       : state === 'error' ? '如有数值，为上次成功读取的记录；进入财务页重试。'
-      : '进入财务页登录并主动读取，账本不会存入总台或浏览器存储。');
+      : '进入财务页主动读取；账本不会存入总台或浏览器存储。');
   }
 
   function boot() {

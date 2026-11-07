@@ -126,7 +126,7 @@ Desktop/个人工具/ops-hub/
 - **单向只读**：`/Users/insistgang/Documents/knowledge` 是唯一写入口，本仓库只读投影，任何回写都视为 bug。今日重点与四勾仍留在浏览器本地或 `daily_checks.json`，不污染知识库日记。
 - **真源白名单**：只解析 `01-Daily/今日计划/YYYY-MM-DD.md`、`00-Inbox/硬节点台账.md` 与 `03-Projects/` 的目录及顶层 `.md`。今日计划缺失时回退到最近一份并标记「非今日」；目录可用 `OPS_KNOWLEDGE_DIR` 覆盖，换机器不需要改代码。
 - **项目台账只报事实**：只取名称、相对路径、真实改动时间、文件数与文档首段摘要，不推断进度、完成度或状态。台账列出全部项目（不再截断为前 12 项）；`AGENTS.md`/`CLAUDE.md`/`README.md`/`03-Projects.md` 等说明与索引文件不算项目，项目目录与同名笔记文件重复时只保留目录。同一分钟内大批文件同时变更视为同步工具批量刷新，不参与「最近活动」排序；只有批量时间戳的项目排在末尾。`03-Projects` 缺失或为空时写 warning 并置 `degraded`，不构造条目。渲染由 `js/knowledge-projects.js` 负责，挂在项目雷达 Tab 内，无数据时整块隐藏。
-- **财务月度复盘投影**：`parse_finance` 只读 `06-Growth/Finance/YYYY-MM-*-review.md` 的最新月份，抽取「本月概况」与「支出结构」两张表的原始金额与口径，不重算、不四舍五入、不补缺失项；金额无法解析时写 warning 而不猜。渲染由 `js/knowledge-finance.js` 负责，挂在财务 Tab 上方，与真实账本互不替代——账本仍需在原站登录后读取，两块同时存在时以账本为准。
+- **财务月度复盘投影**：`parse_finance` 只读 `06-Growth/Finance/YYYY-MM-*-review.md` 的最新月份，抽取「本月概况」与「支出结构」两张表的原始金额与口径，不重算、不四舍五入、不补缺失项；金额无法解析时写 warning 而不猜。渲染由 `js/knowledge-finance.js` 负责，挂在财务 Tab 上方，与真实账本互不替代——账本仍需在财务页主动读取，两块同时存在时以账本为准。
 - **日记精力投影**：`parse_energy` 只读 `01-Daily/YYYY-MM/YYYY-MM-DD.md` 的「## 状态」段，取最近 7 天的精力／情绪／专注评分与本人写下的推断依据；睡眠／运动不在该段内，按全文首个同名字段兜底，找不到就不写。评分与依据原样呈现，不重算、不补分、不合并进 VitaFlow 四账户。渲染由 `js/knowledge-energy.js` 负责，挂在日程与精力 Tab 上方。
 - **失败不造假**：解析不到写 `warnings` 或 `available: false` 并给出原因，不构造占位行；知识库不存在不得拖垮硬件探针。
 - **口径以台账为准**：硬节点按「到期日 ≠ 决策日」计算提醒日，决策日仍在未来的节点不算逾期；处置列已写明闭环的不计入逾期。
@@ -147,9 +147,9 @@ Desktop/个人工具/ops-hub/
 - 体重挂载 `#weight-native`，节点 ID 加 `weight-` 前缀；保留原 Store 与 `weight-tracker:universal:v1` 格式。应用源码已归档到 `weight-tracker/src/index.html`，`build-native.mjs` 从该路径读取，公开站不再提供体重独立页。禁止为整合清空、迁移或覆盖个人记录；同源旧 iframe 的记录直接沿用。
 - 财务挂载 `#finance-native`，节点 ID 加 `finance-` 前缀，事件只通过命名空间暴露，不得覆盖 VitaFlow 的全局 UI 函数。源财务项目保持独立维护，本项目只包含中和私人内容后的界面与计算逻辑。
 - 财务 `src/template.html` 是无账本默认值的四区界面，`src/dashboard.js` 保留原计算和渲染，`src/runtime.js` 负责鉴权读取、校验、内存状态与隔离接口，`src/styles.css` 限定根与风格令牌。`build-native.mjs` 生成可直接托管的 JS/CSS；`tests/fixtures.mjs` 只服务隔离测试，构建不得读取它。
-- 财务沿用 `https://finance.insistgang.top` 的既有 Basic Auth；主动读取固定受保护 JSON，携带浏览器已有凭据，不接收或存储密码。账本只在页面内存中保留，不能嵌入构建、仓库、公开快照或 localStorage。
-- 默认不探测账本。401/403 清除可见值并提示登录；普通刷新失败须明确标识上次成功数据；未核实/未记录不能换算成零。今日摘要只读工作区 API，事件不广播账本、记录或凭据。
-- 服务器只允许 `https://insistgang.top` 携凭据跨源读取精确数据路径，匿名 GET 保持 401；预检无数据，禁止放开通配来源。配置维护、回滚和验证见 [财务访问说明](docs/finance-access.md)。
+- 财务数据来自 `https://finance.insistgang.top/data/financial_data.json`。**自 2026-11-07 23:31 起 Basic Auth 已按本人要求关闭，该 JSON 公开可读**；本站仍只在页面内存中保留账本，不嵌入构建、仓库、公开快照或 localStorage，也不保存任何密码。风险、影响范围与恢复方式见 [财务访问说明](docs/finance-access.md)。
+- 默认不探测账本。若接口重新要求认证（401/403），清除可见值并如实提示，不索取密码；普通刷新失败须明确标识上次成功数据；未核实/未记录不能换算成零。今日摘要只读工作区 API，事件不广播账本、记录或凭据。
+- 服务器 CORS 仍只允许 `https://insistgang.top` 跨源读取 `/data/financial_data.json`；预检只返回 204 无数据，禁止放开通配来源。匿名读取当前返回 200，属本人明确选择的公开状态；恢复登录与验证步骤见 [财务访问说明](docs/finance-access.md)。
 
 ---
 

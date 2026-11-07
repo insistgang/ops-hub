@@ -131,7 +131,7 @@
         financialData = null; derived = null; dataState.lastSuccess = null;
         periodState.anchor = null;
         status = 'locked';
-        dataState.error = '需要登录原财务站；本页不接收密码。认证失效前的展示已清除。';
+        dataState.error = '接口要求认证（登录保护可能已被重新开启）；本页不接收密码。此前的展示已清除。';
         clearVisibleData(); periodControls();
         return summary();
       }
@@ -153,7 +153,7 @@
       if (version !== loadVersion) return summary();
       financialData = dataState.lastSuccess;
       status = 'error';
-      dataState.error = financialData ? '读取失败，当前仍展示上次成功记录；这些值可能已过期。' : '读取失败，尚无可展示的财务记录。请先在原站登录；本机预览请改用已部署的总台。';
+      dataState.error = financialData ? '读取失败，当前仍展示上次成功记录；这些值可能已过期。' : '读取失败，尚无可展示的财务记录。请直接打开 finance.insistgang.top 查看。';
       if (!financialData) { derived = null; clearVisibleData(); }
       else renderDashboard();
       periodControls();

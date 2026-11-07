@@ -43,7 +43,7 @@ test('financial amounts appear only after an explicit successful read; valid zer
   app.finance.status='locked';app.emit('ops:finance-data');
   assert.equal(app.ids['today-finance-expense'].textContent,'—');
   assert.equal(app.ids['today-finance-cash'].textContent,'—');
-  assert.match(app.ids['today-finance-status'].textContent,/登录/);
+  assert.match(app.ids['today-finance-status'].textContent,/认证/);
 });
 test('failed refresh labels any last successful financial values as old data',()=>{
   const app=setup();Object.assign(app.finance,{status:'error',expenseTotal:12,availableCash:null,error:'offline'});app.emit('ops:finance-data');
