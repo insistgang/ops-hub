@@ -32,10 +32,13 @@ Ops-Hub 是承载个人的三端算力调度（Mac + Windows 4070S + Jetson 边�
 Desktop/个人工具/ops-hub/
 ├── index.html                 # 现代化纯净版单页工作总台（Tab 切换式，三端拓扑）
 ├── css/
-│   └── custom.css             # 玻璃拟态样式 + 日间/夜间双主题覆盖层（暗色为默认）
+│   ├── custom.css             # 总台布局、交互样式与明暗覆盖
+│   └── site-styles.css        # 四套风格、明暗令牌与原生工作区一致覆盖
 ├── js/
 │   ├── app.js                 # 核心前端逻辑（Tab 切换、数据加载、指标计算、交互；所有 innerHTML 注入必须过 esc() 转义）
-│   ├── vitaflow.js            # 完整 VitaFlow 工作区入口、私有连接设置与受限导航消息
+│   ├── vitaflow.js            # 原生工作区导航与私有连接设置
+│   ├── vitaflow-today.js      # 今日的共享待办和精力摘要
+│   ├── site-style.js          # 网站风格独立偏好与跨标签同步
 │   └── today.js               # 今日重点、昨日未完成衔接与浏览器按日存储
 ├── data/                      # 本地真源与 public/ 脱敏产物；私有真源不进入 Git
 │   ├── status.json            # 探针自动汇总的运行时状态快照（三端延迟、时间戳、统计）
@@ -93,11 +96,18 @@ Desktop/个人工具/ops-hub/
 
 ### VitaFlow 接入边界
 
-- `js/vitaflow.js` 在 `js/app.js` 之前加载，提供 `initVitaFlow()`；默认同源完整工作区，私有服务作为可选模式，不能宣称内置浏览器模式已读原 JSON 或已跨设备同步。
-- iframe 嵌入采用 `?embed=ops-hub`；桥接只允许就绪状态、主题和四个已列举的区域导航，不传日程正文、账户记录或口令。
-- 宿主仅接受当前 iframe 且来源匹配的就绪消息。VitaFlow 内部仅接受 parent 发来的白名单导航与主题，不接受任意函数或 HTML。
-- `vitaflow/build-html.mjs` 的默认 CLI 产出必须剥离私人快照，`test-public-html.mjs` 验证最终页面；修改 UI 源码后重建并运行 VitaFlow 测试。已有提交不会因此清除。
-- 考试 `phase=result_recorded` 表示查分已办结，不再生成考试倒计时。教资具体分数的维护源是私有知识库，不复制进公开快照。
+- 全部模块挂载在同一 document 的 `#vitaflow-native`，不使用 VitaFlow iframe。`vitaflow/native-workspace.js` 在宿主 `js/vitaflow.js` 和 `js/app.js` 前加载；保持单实例，不在切 Tab 时重建。
+- 原生构建由 `vitaflow/build-native.mjs` 生成 JS/CSS；只读取无快照公开源码，DOM 查询与弹窗限定在原生根，CSS 选择器限定同根。Chart vendor 在真实 window/document 上初始化，业务 facade 不得包住图表库的浏览器上下文。
+- UI 事件函数白名单为 `vitaflow/src/native/ui-handlers.json`，业务状态留在闭包；新增交互需同步名单和原生测试。根与 VitaFlow 模板 ID 不得重复，宿主 Tab 选择范围不可包含内部 Tab。
+- `OpsVitaFlowNative` 提供导航、摘要、待办操作、主题与私有连接接口；今日与详情共用 `vitaflow_*`，保留辅助同步键和 IndexedDB 格式。首页导航传入北京时间日期，详细页自主选日保留原行为。
+- `ops:vitaflow-ready`、`ops:vitaflow-data` 只发布状态元数据，不广播记录或口令。默认浏览器模式不探测 API；主动连接私有服务沿用既有鉴权、revision 和冲突选择，不能静默覆盖本机数据。空 key 不得回退发送旧凭据，过期请求不得改变最新连接状态。
+- HTML 导出使用保留的独立源码，导入只刷新当前工作区；构建与测试不读写真实个人 JSON，公开产物不嵌入私人快照。修改 VitaFlow 源码后在其目录运行 `npm run build:html`（同时生成独立和原生版本）及 `npm test`，用 `--check` 核对原生产物。
+- 考试 `phase=result_recorded` 表示查分已办结；教资归档保留但不在网页展示，考试主卡仅取六级。私有分数不复制进公开快照。
+
+### 网站风格
+
+- `ops_style` 保存 classic/paper/forest/mono，`ops_theme` 独立保存明暗；风格层使用 `html[data-ops-style]` 和 `--ops-*` 令牌，不改业务数据。
+- 修改样式时同时验证四套明暗与 320px／390px，原生工作区需共用令牌，体重模块继续保持独立 iframe。
 
 ---
 
@@ -126,5 +136,5 @@ CLI 必须用标准 Python 3 实现，使用内置库，严禁强依赖任何第
 
 - Ops-Hub：`python3 -m unittest discover -s tests -p 'test_*.py'`。
 - 前端与体重模块：`node --test tests/*.cjs weight-tracker/tests/*.cjs`；时间边界测试可在 `TZ=UTC` 下运行，确认仍按北京时间分日。
-- 语法：`node --check js/app.js`、`node --check js/today.js`。
+- 语法：`node --check js/app.js`、`node --check js/today.js`、`node --check js/vitaflow.js`、`node --check js/vitaflow-today.js`、`node --check js/site-style.js`。
 - VitaFlow：在 `vitaflow/` 执行 `npm test`。跨模块修改时按影响范围运行，不能用打开预览代替交互验证。

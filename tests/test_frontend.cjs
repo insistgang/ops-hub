@@ -20,7 +20,7 @@ function response(data, ok = true) {
   return { ok, json: async () => data };
 }
 
-function createApp({ status = null, rules = rulesFixture(), hostname = 'example.test', protocol = 'https:' } = {}) {
+function createApp({ status = null, rules = rulesFixture(), hostname = 'example.test', protocol = 'https:', now = null } = {}) {
   const ids = [
     'sync-age-text', 'data-load-notice', 'metric-career-total', 'metric-career-sub',
     'metric-exam-days', 'metric-exam-unit', 'metric-exam-sub', 'metric-compute-lat',
@@ -49,7 +49,8 @@ function createApp({ status = null, rules = rulesFixture(), hostname = 'example.
       createElement: () => ({ innerHTML: '', className: '' })
     },
     console: { log() {}, warn() {}, error: error => errors.push(error) },
-    Date, Intl, URL, AbortController, setTimeout, clearTimeout,
+    Date: now ? class extends Date { constructor(...args) { super(...(args.length ? args : [now])); } } : Date,
+    Intl, URL, AbortController, setTimeout, clearTimeout,
     CustomEvent: class {
       constructor(type, options) { this.type = type; this.detail = options.detail; }
     },
@@ -80,18 +81,60 @@ test('device status updates keep header pills hidden at narrow widths', () => {
   }
 });
 
-test('recorded exam results are archived without another countdown or a request to recheck', () => {
+test('teacher exam is absent from the dashboard while its archived source remains intact', () => {
   const exam = { id: 'e-jiaoxi', type: 'exam', phase: 'result_recorded', target_date: '2026-09-12', next_action: '查分已办结，后续按需安排，不做日常追踪' };
+  const original = JSON.stringify(exam);
   const app = createApp({ status: { ...statusFixture(), projects_and_exams: [exam] } });
   const cards = [];
   app.elements.get('projects-radar-list').appendChild = card => cards.push(card);
   assert.equal(app.context.getExamState(exam).days_left, null);
   app.context.renderHeroMetrics();
   app.context.renderProjectsRadar();
-  assert.equal(app.elements.get('metric-exam-days').innerText, '已归档');
-  assert.equal(app.elements.get('metric-exam-unit').innerText, '查分已办结');
-  assert.match(cards[0].innerHTML, /已归档/);
-  assert.doesNotMatch(cards[0].innerHTML, /待核对|天后开考/);
+  assert.equal(app.elements.get('metric-exam-days').innerText, '待核对');
+  assert.equal(app.elements.get('metric-exam-unit').innerText, '六级考期未确认');
+  assert.equal(cards.length, 0);
+  assert.equal(JSON.stringify(exam), original);
+});
+
+test('hero countdown follows CET-6 and labels upcoming, current, elapsed and invalid dates honestly', () => {
+  for (const [target, label, unit] of [
+    ['2026-12-12', '35', '天后考试'],
+    ['2026-11-07', '今天', '六级考试'],
+    ['2026-11-06', '已结束', '登记考期已过'],
+    ['2026-02-31', '待核对', '六级考期未确认'],
+  ]) {
+    const app = createApp({ now: '2026-11-07T00:00:00Z', status: { ...statusFixture(), projects_and_exams: [
+      { id: 'e-jiaoxi', type: 'exam', phase: 'result_recorded', target_date: '2026-09-12' },
+      { id: 'e-cet6', type: 'exam', target_date: target },
+    ] } });
+    app.context.renderHeroMetrics();
+    assert.equal(String(app.elements.get('metric-exam-days').innerText), label, target);
+    assert.equal(app.elements.get('metric-exam-unit').innerText, unit, target);
+    assert.doesNotMatch(app.elements.get('metric-exam-sub').innerText, /教资/);
+  }
+});
+
+test('host navigation does not bind or hide VitaFlow internal tabs in the same document', () => {
+  const app = createApp();
+  let internalListeners = 0;
+  let activate = 0;
+  let outerClick;
+  const classes = () => { const values = new Set(); return { add: (...keys) => keys.forEach(key => values.add(key)), remove: (...keys) => keys.forEach(key => values.delete(key)), contains: key => values.has(key) }; };
+  const outer = { classList: classes(), getAttribute: () => 'tab-vitaflow', addEventListener: (_, fn) => { outerClick = fn; } };
+  const internal = { classList: classes(), getAttribute: () => null, addEventListener: () => { internalListeners += 1; } };
+  const outerContent = { classList: classes() };
+  const internalContent = { classList: classes() };
+  app.context.document.querySelectorAll = selector => selector === '.tab-btn[data-tab]' ? [outer]
+    : selector === '.tab-btn' ? [outer, internal]
+    : selector === '.tab-content[id^="tab-"]' ? [outerContent] : [outerContent, internalContent];
+  app.context.document.getElementById = id => id === 'tab-vitaflow' ? outerContent : null;
+  app.context.window.OpsVitaFlow = { activate: () => { activate += 1; } };
+  app.context.initTabs();
+  assert.equal(internalListeners, 0);
+  outerClick();
+  assert.equal(internalContent.classList.contains('hidden'), false);
+  assert.equal(outerContent.classList.contains('hidden'), false);
+  assert.equal(activate, 1);
 });
 
 test('invalid, missing and future timestamps cannot be reported as fresh', () => {

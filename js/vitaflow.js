@@ -1,95 +1,101 @@
-/* Host the complete VitaFlow app while keeping its data modes explicit. */
+/* VitaFlow is a native workspace in the same document and storage context. */
 function initVitaFlow() {
-  const ids = ['url', 'key', 'connect', 'frame', 'frame-wrap', 'status', 'builtin', 'open', 'source'];
-  const nodes = Object.fromEntries(ids.map(id => [id, document.getElementById(`vitaflow-${id}`)]));
-  if (Object.values(nodes).some(node => !node)) return;
+  const ids = ['url', 'key', 'connect', 'status', 'builtin', 'open', 'source', 'native'];
+  const nodes = Object.fromEntries(ids.map(id => [id, document.getElementById('vitaflow-' + id)]));
+  if (Object.values(nodes).some(node => !node) || nodes.native.dataset.opsHostBound) return;
+  nodes.native.dataset.opsHostBound = 'true';
   const navigation = Array.from(document.querySelectorAll('[data-vf-view]'));
-  const views = new Set(['energyOverview', 'dailyPlan', 'energyTrends', 'creativeSpace']);
-  const builtin = new URL('vitaflow/schedule-system-2.0.html', window.location.href);
-  let displayed = null;
-  let mode = 'builtin';
-  let ready = false;
-  let activeNotice = '';
-  let timer;
+  const shortcuts = Array.from(document.querySelectorAll('[data-vita-view]'));
+  const views = new Set(['energyOverview', 'dailyPlan', 'energyTrends', 'creativeSpace', 'physical', 'emotional', 'focus', 'meaning']);
+  const native = () => window.OpsVitaFlowNative;
+  let readyHandled = false;
+  let notice = '';
+  let connectionMessage = '';
+  let pendingView = null;
+  let hadConflict = false;
+  let connectionGeneration = 0;
 
-  function validUrl(value) {
-    const url = new URL(value);
-    if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Invalid protocol');
-    return url;
+  function status(message) { nodes.status.textContent = message + notice; }
+  function source() {
+    let summary = { storage: 'browser', conflict: false };
+    try { summary = native()?.getSummary(calendarDay()) || summary; } catch (_) {}
+    nodes.source.textContent = summary.error ? '记录读取异常，原数据已保留，请检查日程工作区。'
+      : summary.conflict ? '本机与服务的数据待核对，当前仍显示浏览器中的记录。'
+      : summary.storage === 'server'
+      ? '日程、待办与精力记录由私有同步服务维护，并与今日入口共用。'
+      : '日程、待办与精力记录保存在当前浏览器，并与今日入口共用。';
+    return summary;
   }
-  function post(message) {
-    if (!displayed || !ready) return;
-    nodes.frame.contentWindow.postMessage(message, displayed.protocol === 'file:' ? '*' : displayed.origin);
+  function setTheme(theme) { native()?.setTheme(theme); }
+  function activate(view = 'energyOverview', day) {
+    if (!views.has(view)) return;
+    if (!native()?.isReady()) { pendingView = { view, day }; return; }
+    native().activate(view, day);
   }
-  function theme(value) { post({ type: 'ops:vitaflow:theme', theme: value }); }
-  function open(url, nextMode, notice = '') {
-    displayed = new URL(url);
-    displayed.searchParams.set('embed', 'ops-hub');
-    mode = nextMode;
-    if (mode === 'builtin') displayed.searchParams.set('mode', 'browser');
-    else if (displayed.searchParams.get('mode') === 'browser') displayed.searchParams.delete('mode');
-    activeNotice = notice;
-    ready = false;
-    clearTimeout(timer);
-    navigation.forEach(button => { button.disabled = true; });
-    nodes.frame.src = displayed.href;
-    nodes.open.href = displayed.href;
-    nodes['frame-wrap'].classList.remove('hidden');
-    nodes.source.textContent = mode === 'builtin'
-      ? '内置工作区：记录保存在当前浏览器；不会自动读取原来的私人日程文件。'
-      : '私有服务模式：正在确认服务，实际数据来源以工作区内的同步提示为准。';
-    nodes.status.textContent = `正在载入完整 VitaFlow 工作区。${notice}`;
-    timer = setTimeout(() => {
-      if (!ready) nodes.status.textContent = `尚未收到工作区就绪确认。可在新窗口检查页面；私有服务不可用时，可切回内置工作区。${notice}`;
-    }, 15000);
+  function open(view = 'dailyPlan') {
+    const tab = document.querySelector('.tab-btn[data-tab="tab-vitaflow"]');
+    if (tab && !tab.classList.contains('active')) tab.click();
+    activate(view, calendarDay());
   }
+  window.OpsVitaFlow = { setTheme, activate, open };
+
   function remember(key, value) {
     try { localStorage.setItem(key, value); return true; } catch (_) { return false; }
   }
-  window.OpsVitaFlow = { setTheme: theme };
-  window.addEventListener('message', event => {
-    if (!displayed || event.source !== nodes.frame.contentWindow) return;
-    const origin = displayed.protocol === 'file:' ? 'null' : displayed.origin;
-    if (event.origin !== origin) return;
-    if (event.data?.type !== 'ops:vitaflow:ready') return;
-    ready = true;
-    clearTimeout(timer);
-    navigation.forEach(button => { button.disabled = false; });
-    nodes.status.textContent = `完整工作区已就绪，可使用下方全部功能或上方快捷导航。${activeNotice}`;
-    nodes.source.textContent = event.data.storage === 'server'
-      ? '已接入私有同步服务，日程由服务端真源维护。'
-      : '记录保存在当前浏览器；原有私人日程需通过私有服务连接或主动导入。';
-    theme(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-  });
-  navigation.forEach(button => button.addEventListener('click', () => {
-    const view = button.getAttribute('data-vf-view');
-    if (views.has(view)) post({ type: 'ops:vitaflow:navigate', view });
-  }));
-  nodes.builtin.addEventListener('click', () => {
-    const saved = remember('ops_vitaflow_mode', 'builtin');
-    open(builtin, 'builtin', saved ? '' : '浏览器未保存本次入口选择。');
-  });
-  nodes.connect.addEventListener('click', () => {
-    try {
-      const url = validUrl(nodes.url.value.trim());
-      const key = nodes.key.value.trim();
-      if (key) url.searchParams.set('key', key);
-      else url.searchParams.delete('key');
+  function validUrl(value) {
+    const url = new URL(value);
+    if (!['http:', 'https:'].includes(url.protocol)) throw new Error('protocol');
+    return url;
+  }
+  async function connect(url, key, save) {
+    if (!native()?.isReady()) { status('工作区尚未就绪，请稍后再连接。'); return; }
+    const generation = ++connectionGeneration;
+    if (save) {
       const savedUrl = remember('ops_vitaflow_url', url.href);
       const savedMode = remember('ops_vitaflow_mode', 'private');
-      open(url, 'private', savedUrl && savedMode ? '' : '浏览器未保存本次连接设置。');
-    } catch (_) {
-      nodes.status.textContent = '请输入完整的 http:// 或 https:// 私有服务地址。';
+      notice = savedUrl && savedMode ? '' : '浏览器未保存本次连接设置。';
     }
+    status('正在连接原日程数据，本机记录会保留并按已有冲突规则处理。');
+    try {
+      const result = await native().connect(url.href, key);
+      if (generation !== connectionGeneration) return;
+      hadConflict = !!result.conflict;
+      connectionMessage = result.conflict ? '服务存在数据差异，请在工作区核对后选择。'
+        : result.connected ? '已连接私有同步服务。' : '私有服务未连接，仍可使用浏览器中的现有记录。';
+    } catch (_) {
+      if (generation !== connectionGeneration) return;
+      connectionMessage = '连接失败，浏览器中的现有记录保持可用。';
+    }
+    source();
+    status(connectionMessage);
+  }
+
+  navigation.forEach(button => {
+    button.disabled = !native()?.isReady();
+    button.addEventListener('click', () => activate(button.getAttribute('data-vf-view')));
   });
-  nodes.frame.addEventListener('error', () => {
-    clearTimeout(timer);
-    nodes.status.textContent = `工作区载入失败，请检查页面地址或私有服务；也可在新窗口打开查看。${activeNotice}`;
+  shortcuts.forEach(button => button.addEventListener('click', () => open(button.getAttribute('data-vita-view'))));
+  nodes.builtin.addEventListener('click', () => {
+    connectionGeneration += 1;
+    native()?.useBrowser();
+    notice = remember('ops_vitaflow_mode', 'builtin') ? '' : '浏览器未保存本次入口选择。';
+    connectionMessage = '';
+    source();
+    status('已使用当前浏览器中的原有记录。');
+  });
+  nodes.connect.addEventListener('click', async () => {
+    let url;
+    try { url = validUrl(nodes.url.value.trim()); } catch (_) {
+      status('请输入完整的 http:// 或 https:// 私有服务地址。');
+      return;
+    }
+    const key = nodes.key.value.trim();
+    if (key) url.searchParams.set('key', key); else url.searchParams.delete('key');
+    await connect(url, key, true);
   });
 
   let savedUrl = null;
   let savedMode = null;
-  let notice = '';
   try {
     savedUrl = localStorage.getItem('ops_vitaflow_url');
     savedMode = localStorage.getItem('ops_vitaflow_mode');
@@ -102,9 +108,30 @@ function initVitaFlow() {
       const editable = new URL(privateUrl);
       editable.searchParams.delete('key');
       editable.searchParams.delete('embed');
+      editable.searchParams.delete('mode');
       nodes.url.value = editable.href;
-    } catch (_) { notice = '旧连接地址无效，已保留原设置并使用内置工作区。'; }
+    } catch (_) { notice = '旧连接地址无效，已保留原设置并使用浏览器记录。'; }
   }
-  if (privateUrl && savedMode !== 'builtin') open(privateUrl, 'private', notice);
-  else open(builtin, 'builtin', notice);
+  function ready() {
+    navigation.forEach(button => { button.disabled = false; });
+    source();
+    setTheme(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    status(connectionMessage || '日程与精力已就绪，与今日入口共用记录。');
+    if (!readyHandled) {
+      readyHandled = true;
+      if (privateUrl && savedMode !== 'builtin') void connect(privateUrl, nodes.key.value, false);
+    }
+    if (pendingView) { const request = pendingView; pendingView = null; activate(request.view, request.day); }
+  }
+  window.addEventListener('ops:vitaflow-ready', ready);
+  window.addEventListener('ops:vitaflow-data', () => {
+    const summary = source();
+    if (hadConflict && !summary.conflict) {
+      connectionMessage = summary.storage === 'server' ? '数据核对已完成，已连接私有同步服务。' : '数据核对已完成，继续使用浏览器记录。';
+      status(connectionMessage);
+    }
+    hadConflict = !!summary.conflict;
+  });
+  if (native()?.isReady()) ready();
+  else status('正在准备日程工具。');
 }

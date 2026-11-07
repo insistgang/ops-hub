@@ -275,18 +275,19 @@ async function manualRefresh() {
 }
 
 function initTabs() {
-  const tabButtons = document.querySelectorAll(".tab-btn");
+  const tabButtons = document.querySelectorAll('.tab-btn[data-tab]');
   tabButtons.forEach(btn => {
     btn.addEventListener("click", () => {
       tabButtons.forEach(b => b.classList.remove("active", "bg-indigo-950/60", "text-indigo-400", "border-indigo-500"));
       btn.classList.add("active", "bg-indigo-950/60", "text-indigo-400", "border-indigo-500");
       
       const target = btn.getAttribute("data-tab");
-      document.querySelectorAll(".tab-content").forEach(content => {
+      document.querySelectorAll('.tab-content[id^="tab-"]').forEach(content => {
         content.classList.add("hidden");
       });
       const targetEl = document.getElementById(target);
       if (targetEl) targetEl.classList.remove("hidden");
+      if (target === 'tab-vitaflow') window.OpsVitaFlow?.activate();
       safeCreateIcons();
     });
   });
@@ -452,26 +453,22 @@ function renderHeroMetrics() {
   if (cTot) cTot.innerText = stats.total || 0;
   if (cSub) cSub.innerText = `初筛 ${stats.screening || 0} · 投递 ${stats.applied || 0} · 面试 ${stats.interviewing || 0}`;
 
-  const jiaoshi = exams.find(e => e.id === "e-jiaoxi") || {};
   const cet6 = exams.find(e => e.id === "e-cet6") || {};
   const eDays = document.getElementById("metric-exam-days");
   const eUnit = document.getElementById("metric-exam-unit");
   const eSub = document.getElementById("metric-exam-sub");
   const cet6Days = cet6.days_left;
-  const cet6Label = cet6Days == null ? "六级考期待核对" : cet6Days < 0 ? "六级登记考期已过" : cet6Days === 0 ? "六级今日考试" : `六级剩 ${cet6Days} 天`;
-  if (jiaoshi.phase === "result_recorded") {
+  if (cet6.phase === "result_recorded") {
     if (eDays) eDays.innerText = "已归档";
-    if (eUnit) eUnit.innerText = "查分已办结";
-    if (eSub) eSub.innerText = `教资查分完成，后续按需安排 ｜ ${cet6Label}`;
-  } else if (jiaoshi.phase === "awaiting_result") {
-    if (eDays) eDays.innerText = "已公布";
-    if (eUnit) eUnit.innerText = "个人结果待核对";
-    if (eSub) eSub.innerText = `教资成绩已公布，请核对个人结果 ｜ ${cet6Label}`;
+    if (eUnit) eUnit.innerText = "六级成绩已记录";
+  } else if (cet6.phase === "awaiting_result") {
+    if (eDays) eDays.innerText = "等成绩";
+    if (eUnit) eUnit.innerText = "六级笔试已结束";
   } else {
-    if (eDays) eDays.innerText = jiaoshi.days_left == null ? "待核对" : jiaoshi.days_left < 0 ? "已结束" : jiaoshi.days_left === 0 ? "今天" : jiaoshi.days_left;
-    if (eUnit) eUnit.innerText = jiaoshi.days_left == null ? "登记考期待核对" : jiaoshi.days_left < 0 ? "登记考期已过" : jiaoshi.days_left === 0 ? "考试日" : "天后笔试";
-    if (eSub) eSub.innerText = cet6Label;
+    if (eDays) eDays.innerText = cet6Days == null ? "待核对" : cet6Days < 0 ? "已结束" : cet6Days === 0 ? "今天" : cet6Days;
+    if (eUnit) eUnit.innerText = cet6Days == null ? "六级考期未确认" : cet6Days < 0 ? "登记考期已过" : cet6Days === 0 ? "六级考试" : "天后考试";
   }
+  if (eSub) eSub.innerText = dateOrdinal(cet6.target_date) === null ? "尚未载入有效的六级考试日期" : `登记考期：${cet6.target_date}`;
 
   const compLat = document.getElementById("metric-compute-lat");
   const compSub = document.getElementById("metric-compute-sub");
@@ -550,7 +547,7 @@ function renderCareerPipeline() {
 }
 
 function renderProjectsRadar() {
-  const projects = globalStatus.projects_and_exams || [];
+  const projects = (globalStatus.projects_and_exams || []).filter(entry => entry.id !== "e-jiaoxi");
   const container = document.getElementById("projects-radar-list");
   if (!container) return;
   container.innerHTML = "";
@@ -564,11 +561,10 @@ function renderProjectsRadar() {
     if (isExam) {
       const waiting = p.phase === "awaiting_result";
       const recorded = p.phase === "result_recorded";
-      const resultPublished = waiting && p.id === "e-jiaoxi";
       const isUrgent = !waiting && p.days_left !== null && p.days_left >= 0 && p.days_left <= 20;
       const elapsed = p.days_left !== null && p.days_left < 0;
-      const daysLabel = recorded ? "已归档" : resultPublished ? "已公布" : waiting ? "等成绩" : p.days_left === null ? "待核对" : elapsed ? "已结束" : p.days_left === 0 ? "今天" : p.days_left;
-      const unitLabel = recorded ? "查分已办结" : resultPublished ? "个人结果待核对" : waiting ? "成绩状态待核对" : p.days_left === null ? "日期无效或未登记" : elapsed ? "登记考期已过" : p.days_left === 0 ? "考试日" : "天后开考";
+      const daysLabel = recorded ? "已归档" : waiting ? "等成绩" : p.days_left === null ? "待核对" : elapsed ? "已结束" : p.days_left === 0 ? "今天" : p.days_left;
+      const unitLabel = recorded ? "查分已办结" : waiting ? "成绩状态待核对" : p.days_left === null ? "日期无效或未登记" : elapsed ? "登记考期已过" : p.days_left === 0 ? "考试日" : "天后开考";
       card.innerHTML = `
         <div>
           <div class="flex items-center justify-between mb-2">
@@ -583,7 +579,7 @@ function renderProjectsRadar() {
             <span class="text-xs text-slate-400">${esc(unitLabel)}</span>
           </div>
           <div class="bg-zinc-900/80 p-2.5 rounded-lg border border-zinc-800 text-xs text-slate-300">
-            <span class="text-indigo-400 font-semibold">${recorded ? "后续：" : waiting ? "当前：" : "下一步冲刺："}</span>${esc(resultPublished ? "成绩已公布，请核对个人结果与后续安排。" : p.next_action)}
+            <span class="text-indigo-400 font-semibold">${recorded ? "后续：" : waiting ? "当前：" : "下一步冲刺："}</span>${esc(p.next_action)}
           </div>
         </div>
       `;
