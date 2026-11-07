@@ -381,7 +381,13 @@ def parse_hard_nodes(knowledge_dir: Path = KNOWLEDGE_DIR, today: date | None = N
             if status_text == "活跃":
                 if entry_date and (entry_date - today).days < 0:
                     row["overdue_days"] = (today - entry_date).days
-                    overdue_rows.append(row)
+                    # 续费/扣费类节点日期已过、但仍标活跃，通常表示「事件已发生、还有待确认事项」，
+                    # 不是逾期未办，不能报成红色的逾期。
+                    if any(mark in row["type"] for mark in ("续费", "扣费")):
+                        row["needs_confirm"] = True
+                        active_rows.append(row)
+                    else:
+                        overdue_rows.append(row)
                 else:
                     active_rows.append(row)
             continue

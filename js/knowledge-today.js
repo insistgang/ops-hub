@@ -156,11 +156,14 @@
     list.hidden = false;
 
     for (const row of rows) {
-      const level = row.kind === 'ledger' ? 'overdue' : severity(row.days_left);
+      const pending = row.needs_confirm === true;
+      const level = row.kind === 'ledger' ? 'overdue' : (pending ? 'pending' : severity(row.days_left));
       const li = element('li', 'knowledge-node knowledge-node--' + level);
 
-      li.appendChild(element('span', 'knowledge-days',
-        row.kind === 'ledger' ? '已逾期' : (daysLabel(row.days_left) || '—')));
+      const label = row.kind === 'ledger'
+        ? '已逾期'
+        : (pending ? `待确认 · ${Math.abs(row.days_left || 0)} 天` : (daysLabel(row.days_left) || '—'));
+      li.appendChild(element('span', 'knowledge-days', label));
 
       const body = element('div', 'knowledge-node-body');
       body.appendChild(element('span', 'knowledge-node-title', row.title || '（无事项）'));
