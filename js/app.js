@@ -592,13 +592,13 @@ function renderProjectsRadar() {
         || (typeof p.commit_hash === "string" && p.commit_hash !== "-" && p.commit_hash !== "");
       card.innerHTML = `
         <div>
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-mono uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <span class="text-xs font-mono uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700 shrink-0">
               ${esc(p.category)}
             </span>
-            <span class="text-xs font-mono text-emerald-400 flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-              ${esc(p.status)}
+            <span class="text-xs font-mono text-emerald-400 flex items-center gap-1 min-w-0" title="${esc(p.status)}">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
+              <span class="truncate">${esc(p.status)}</span>
             </span>
           </div>
           <h4 class="text-base font-bold text-slate-100 mt-1">${esc(p.name)}</h4>
@@ -809,7 +809,7 @@ function renderDeviceAllocation() {
             <span class="text-xs font-mono uppercase px-2 py-0.5 rounded border ${badgeColor}">
               ${esc(dev.badge)}
             </span>
-            <span class="text-xs font-mono text-zinc-400">${esc((dev.network || "").split(' ')[0])}</span>
+            ${dev.network ? `<span class="text-xs font-mono text-zinc-400 truncate max-w-[58%]" title="${esc(dev.network)}">${esc(dev.network)}</span>` : ""}
           </div>
           <h4 class="text-lg font-bold text-white mt-1">${esc(dev.name)}</h4>
           <p class="text-xs text-zinc-400 font-mono mt-0.5">${esc(dev.hardware)}</p>
