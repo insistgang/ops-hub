@@ -139,7 +139,9 @@ function getSnapshotInfo(now = new Date()) {
   if (seconds < 0) return { state: "future", label: "快照时间在未来，请核对", ageSeconds: seconds };
   const age = Math.max(0, seconds);
   const relative = age < 60 ? "不足 1 分钟" : age < 3600 ? `${Math.floor(age / 60)} 分钟前` : age < 86400 ? `${Math.floor(age / 3600)} 小时前` : `${Math.floor(age / 86400)} 天前`;
-  return { state: age >= 86400 ? "stale" : "snapshot", label: `快照 · ${relative}${age >= 86400 ? "，需同步" : ""}`, ageSeconds: age };
+  // 定时同步 12 小时一轮；超过 13 小时说明至少漏了一轮（跳过/失败/断网），必须明说
+  const STALE_AFTER = 13 * 3600;
+  return { state: age >= STALE_AFTER ? "stale" : "snapshot", label: `快照 · ${relative}${age >= STALE_AFTER ? "，需同步" : ""}`, ageSeconds: age };
 }
 
 /**
