@@ -58,6 +58,26 @@ NODES = """# 硬节点台账
 """
 
 
+WIP_TODO = """# TODO
+
+## 当前 WIP（状态校准）
+
+> 说明行
+
+| 位置 | 当前事项 | 本轮动作 | 本轮收尾标准 |
+|---|---|---|---|
+| 1／首要 | **小论文终读与投稿**（原 09）`[先 AI 起草、后本人终判]` | 逐条比对投稿须知 | 完成终读 |
+| 2／已补位 | **大论文数据验收** `[必须本人拍板 + AI 可代跑扫描]` | 分层抽检 | 11/15 完成 |
+| 3／机动 | **六级备考** [必须本人] | 每日 25 分钟 | 接回节奏 |
+
+## 串行队列
+
+| 位置 | 事项 |
+|---|---|
+| 99 | 不应被读取 |
+"""
+
+
 class KnowledgeSourceTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -67,6 +87,7 @@ class KnowledgeSourceTests(unittest.TestCase):
         (self.root / "00-Inbox").mkdir(parents=True)
         (self.root / "01-Daily" / "今日计划" / "2026-11-07.md").write_text(PLAN, encoding="utf-8")
         (self.root / "00-Inbox" / "硬节点台账.md").write_text(NODES, encoding="utf-8")
+        (self.root / "00-Inbox" / "TODO.md").write_text(WIP_TODO, encoding="utf-8")
         self.today = date(2026, 11, 7)
 
     def test_today_plan_items(self):
@@ -117,6 +138,20 @@ class KnowledgeSourceTests(unittest.TestCase):
         self.assertIn("已过期的活跃节点", overdue_titles)
         self.assertIn("真逾期事项", overdue_titles)
         self.assertNotIn("已闭环的事项", overdue_titles)  # 处置列写明闭环
+
+    def test_parse_wip_three_positions(self):
+        wip = knowledge_source.parse_wip(self.root)
+        self.assertEqual(len(wip["items"]), 3)
+        self.assertEqual(wip["items"][0]["position"], "1／首要")
+        self.assertEqual(wip["items"][0]["title"], "小论文终读与投稿")
+        self.assertIn("先 AI 起草", wip["items"][0]["assignee"])
+        # 只读「当前 WIP」小节，串行队列不混入
+        self.assertNotIn("99", [item["position"] for item in wip["items"]])
+        self.assertEqual(wip["warnings"], [])
+
+    def test_collect_includes_wip(self):
+        result = knowledge_source.collect(self.root, self.today)
+        self.assertEqual(len(result["wip"]["items"]), 3)
 
     def test_missing_knowledge_dir_degrades(self):
         missing = self.root / "not-here"

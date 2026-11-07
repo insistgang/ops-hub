@@ -112,6 +112,26 @@
     }
   }
 
+  function renderWip() {
+    const box = byId('knowledge-wip');
+    const list = byId('knowledge-wip-list');
+    if (!box || !list) return;
+    const items = (data.wip && Array.isArray(data.wip.items)) ? data.wip.items : [];
+    if (!items.length) { box.hidden = true; return; }
+
+    list.textContent = '';
+    for (const item of items) {
+      const li = element('li', 'knowledge-wip-item');
+      li.appendChild(element('span', 'knowledge-wip-pos', item.position || '—'));
+      const title = element('span', 'knowledge-wip-title', item.title || '（无标题）');
+      if (item.action) title.title = item.action;
+      li.appendChild(title);
+      if (item.assignee) li.appendChild(element('span', 'knowledge-wip-meta', item.assignee));
+      list.appendChild(li);
+    }
+    box.hidden = false;
+  }
+
   function renderNodes() {
     const list = byId('hard-nodes-list');
     const empty = byId('hard-nodes-empty');
@@ -164,6 +184,7 @@
   }
 
   function boot() {
+    renderWip();
     renderPlan();
     renderNodes();
     renderWarnings();

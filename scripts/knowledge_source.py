@@ -200,6 +200,64 @@ def parse_today_plan(knowledge_dir: Path = KNOWLEDGE_DIR, day: date | None = Non
 
 
 # --------------------------------------------------------------------------
+# 当前 WIP  00-Inbox/TODO.md 的「当前 WIP」表
+# --------------------------------------------------------------------------
+
+WIP_HEADER = "当前 WIP"
+BOLD_RE = re.compile(r"\*\*(.+?)\*\*")
+
+
+def parse_wip(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
+    """抽取「当前 WIP」三个位置。事项原文极长（含大量取证记录），只保留标题与扼要。"""
+    path = knowledge_dir / TODO_FILE
+    if not path.is_file():
+        raise KnowledgeSourceError(f"缺少 TODO 文件：{path}")
+
+    text = _read(path)
+    in_section = False
+    header: list[str] | None = None
+    items: list[dict] = []
+
+    for raw in text.splitlines():
+        line = raw.rstrip()
+        if line.startswith("## "):
+            in_section = line.strip().startswith("## " + WIP_HEADER)
+            header = None
+            continue
+        if not in_section or not line.strip().startswith("|"):
+            continue
+        cells = _split_row(line)
+        if _is_separator(cells):
+            continue
+        if header is None:
+            header = cells
+            continue
+        if len(cells) < 2:
+            continue
+
+        position = _strip_md(cells[0])
+        body = cells[1]
+        bold = BOLD_RE.search(body)
+        title = _clip(_strip_md(bold.group(1) if bold else body), 90)
+        # 标记写法不统一（[必须本人]、[先 AI 起草、后本人终判]、[必须本人拍板 + AI 可代跑扫描]），
+        # 直接取方括号内的原文，比枚举关键词更忠实
+        bracket = re.search(r"`?\[([^\]]{1,40})\]`?", body)
+        items.append({
+            "position": _clip(position, 12),
+            "title": title,
+            "assignee": _clip(bracket.group(1), 20) if bracket else "",
+            "action": _clip(_strip_md(cells[2]), 150) if len(cells) > 2 else "",
+        })
+        if len(items) >= 3:
+            break
+
+    warnings = []
+    if not items:
+        warnings.append(f"{path.name} 的「{WIP_HEADER}」表未解析到条目，请核对表头")
+    return {"file": path.name, "items": items, "warnings": warnings}
+
+
+# --------------------------------------------------------------------------
 # 硬节点台账  00-Inbox/硬节点台账.md
 # --------------------------------------------------------------------------
 
@@ -389,6 +447,7 @@ def collect(knowledge_dir: Path | None = None, today: date | None = None) -> dic
         "today": today.isoformat(),
         "warnings": [],
         "today_plan": None,
+        "wip": None,
         "hard_nodes": None,
     }
 
@@ -406,6 +465,14 @@ def collect(knowledge_dir: Path | None = None, today: date | None = None) -> dic
         result["warnings"].append(f"今日计划：{exc}")
 
     try:
+        wip = parse_wip(root)
+        result["wip"] = wip
+        result["warnings"].extend(wip["warnings"])
+    except KnowledgeSourceError as exc:
+        degraded = True
+        result["warnings"].append(f"当前 WIP：{exc}")
+
+    try:
         nodes = parse_hard_nodes(root, today)
         result["hard_nodes"] = nodes
         result["warnings"].extend(nodes["warnings"])
@@ -413,7 +480,7 @@ def collect(knowledge_dir: Path | None = None, today: date | None = None) -> dic
         degraded = True
         result["warnings"].append(f"硬节点：{exc}")
 
-    result["available"] = bool(result["today_plan"] or result["hard_nodes"])
+    result["available"] = bool(result["today_plan"] or result["hard_nodes"] or result.get("wip"))
     result["degraded"] = degraded
     return result
 
