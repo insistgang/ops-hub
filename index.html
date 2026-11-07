@@ -11,7 +11,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons (version pinned) -->
   <script src="https://cdn.jsdelivr.net/npm/lucide@1.37.0/dist/umd/lucide.min.js"></script>
-  <link rel="stylesheet" href="css/custom.css?v=1.6.0">
+  <link rel="stylesheet" href="css/custom.css?v=1.7.0">
+  <link rel="stylesheet" href="vitaflow/native-workspace.css?v=1.0.0">
+  <link rel="stylesheet" href="css/site-styles.css?v=1.0.0">
   <!-- Theme bootstrap: apply saved theme before first paint (anti-FOUC) -->
   <script>
     try { if (localStorage.getItem("ops_theme") === "light") document.documentElement.classList.remove("dark"); } catch (e) {}
@@ -94,6 +96,7 @@
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
 
     <p id="data-load-notice" class="text-xs text-zinc-400 mb-3" role="status" aria-live="polite">正在读取数据快照…</p>
+    <div class="appearance-bar"><label for="site-style">网站风格</label><select id="site-style"><option value="classic">经典极客</option><option value="paper">纸感阅读</option><option value="forest">森林秩序</option><option value="mono">黑白极简</option></select><span id="site-style-status" role="status" aria-live="polite"></span></div>
 
     <!-- Tab Navigation Bar -->
     <div class="flex items-center gap-2 border-b border-zinc-800 pb-3 mb-6 overflow-x-auto">
@@ -131,6 +134,50 @@
       </button>
     </div>
 
+    <!-- Workspace status and CET-6 countdown -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+      
+      <!-- Card 2: Exams Countdown -->
+      <div class="glass-panel p-4 rounded-2xl relative overflow-hidden group border-indigo-800/60">
+        <div class="flex items-center justify-between text-zinc-400 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-indigo-300">六级倒计时</span>
+          <i data-lucide="calendar" class="w-4 h-4 text-indigo-400"></i>
+        </div>
+        <div class="flex items-baseline gap-2">
+          <span id="metric-exam-days" class="text-3xl font-extrabold font-mono text-indigo-300">—</span>
+          <span id="metric-exam-unit" class="text-xs text-indigo-300/80">考期未载入</span>
+        </div>
+        <p id="metric-exam-sub" class="text-xs text-zinc-400 mt-2 font-mono truncate">等待载入六级考试日期</p>
+      </div>
+
+      <!-- Card 1: Career Pipeline -->
+      <div class="glass-panel p-4 rounded-2xl relative overflow-hidden group">
+        <div class="flex items-center justify-between text-zinc-400 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider">求职投递大盘</span>
+          <i data-lucide="target" class="w-4 h-4 text-indigo-400"></i>
+        </div>
+        <div class="flex items-baseline gap-2">
+          <span id="metric-career-total" class="text-3xl font-extrabold font-mono text-white">-</span>
+          <span class="text-xs text-zinc-400">家已定制投递</span>
+        </div>
+        <p id="metric-career-sub" class="text-xs text-indigo-300/80 mt-2 font-mono truncate">加载中...</p>
+      </div>
+
+      <!-- Card 3: Tri-Device Topology -->
+      <div class="glass-panel p-4 rounded-2xl relative overflow-hidden group">
+        <div class="flex items-center justify-between text-zinc-400 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider">三端异构算力</span>
+          <i data-lucide="network" class="w-4 h-4 text-sky-400"></i>
+        </div>
+        <div class="flex items-baseline gap-2">
+          <span id="metric-compute-lat" class="text-3xl font-extrabold font-mono text-sky-400">-</span>
+          <span class="text-xs text-zinc-400">采集时在线</span>
+        </div>
+        <p id="metric-compute-sub" class="text-xs text-zinc-400 mt-2 font-mono truncate">Tailscale Mesh 拓扑</p>
+      </div>
+
+    </div>
+
     <!-- TAB CONTENTS -->
 
     <section id="tab-today" class="tab-content today-home" aria-labelledby="today-title">
@@ -152,54 +199,22 @@
             <p id="carryover-feedback" class="today-feedback" role="status" aria-live="polite"></p>
           </section>
         </section>
+        <div class="today-side">
+      <section class="today-card today-life" aria-labelledby="vita-today-title">
+        <div class="today-card-heading"><div><p class="today-kicker">DAILY RHYTHM</p><h3 id="vita-today-title">今日的日程与精力</h3></div><span id="vita-today-count" class="today-chip">正在读取</span></div>
+        <p class="today-muted">今天的待办和最近保存的精力状态，与日程页共用同一份记录。</p>
+        <div id="vita-today-accounts" class="vita-summary-accounts"></div>
+        <ul id="vita-today-todos" class="vita-summary-todos" aria-label="今日日程待办"></ul>
+        <p id="vita-today-empty" class="today-empty">正在读取日程记录。</p>
+        <p id="vita-today-feedback" class="today-feedback" role="status" aria-live="polite"></p>
+        <div class="vita-summary-actions"><button type="button" data-vita-view="dailyPlan">安排今天的日程 →</button><button type="button" data-vita-view="energyOverview">记录与回看精力 →</button></div>
+      </section>
         <section class="today-card" aria-labelledby="today-links-title"><p class="today-kicker">QUICK ACCESS</p><h3 id="today-links-title">继续你的节奏</h3><p class="today-muted">直接进入已有工具，按需要选择。</p><div class="today-links"><button type="button" data-open-tab="tab-vitaflow"><strong>日程与精力</strong><span>打开 VitaFlow →</span></button><button type="button" data-open-tab="tab-memory"><strong>今日四勾</strong><span>记录今天的节奏 →</span></button><button type="button" data-open-tab="tab-projects"><strong>项目与考期</strong><span>查看已有快照 →</span></button><button type="button" data-open-tab="tab-career"><strong>求职进展</strong><span>查看投递记录 →</span></button></div></section>
+        </div>
       </div>
+
       <p class="today-footnote">项目、求职和设备信息来自上次采集的快照；重新读取不会重新探测设备。</p>
     </section>
-
-    <!-- 4 Hero Metric Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-      
-      <!-- Card 1: Career Pipeline -->
-      <div class="glass-panel p-4 rounded-2xl relative overflow-hidden group">
-        <div class="flex items-center justify-between text-zinc-400 mb-2">
-          <span class="text-xs font-semibold uppercase tracking-wider">求职投递大盘</span>
-          <i data-lucide="target" class="w-4 h-4 text-indigo-400"></i>
-        </div>
-        <div class="flex items-baseline gap-2">
-          <span id="metric-career-total" class="text-3xl font-extrabold font-mono text-white">-</span>
-          <span class="text-xs text-zinc-400">家已定制投递</span>
-        </div>
-        <p id="metric-career-sub" class="text-xs text-indigo-300/80 mt-2 font-mono truncate">加载中...</p>
-      </div>
-
-      <!-- Card 2: Exams Countdown -->
-      <div class="glass-panel p-4 rounded-2xl relative overflow-hidden group border-rose-900/40">
-        <div class="flex items-center justify-between text-zinc-400 mb-2">
-          <span class="text-xs font-semibold uppercase tracking-wider text-amber-300">教资初试</span>
-          <i data-lucide="scroll-text" class="w-4 h-4 text-amber-400"></i>
-        </div>
-        <div class="flex items-baseline gap-2">
-          <span id="metric-exam-days" class="text-3xl font-extrabold font-mono text-amber-300">待核对</span>
-          <span id="metric-exam-unit" class="text-xs text-amber-200/80">个人结果待核对</span>
-        </div>
-        <p id="metric-exam-sub" class="text-xs text-zinc-400 mt-2 font-mono truncate">请核对个人成绩与后续安排</p>
-      </div>
-
-      <!-- Card 3: Tri-Device Topology -->
-      <div class="glass-panel p-4 rounded-2xl relative overflow-hidden group">
-        <div class="flex items-center justify-between text-zinc-400 mb-2">
-          <span class="text-xs font-semibold uppercase tracking-wider">三端异构算力</span>
-          <i data-lucide="network" class="w-4 h-4 text-sky-400"></i>
-        </div>
-        <div class="flex items-baseline gap-2">
-          <span id="metric-compute-lat" class="text-3xl font-extrabold font-mono text-sky-400">-</span>
-          <span class="text-xs text-zinc-400">采集时在线</span>
-        </div>
-        <p id="metric-compute-sub" class="text-xs text-zinc-400 mt-2 font-mono truncate">Tailscale Mesh 拓扑</p>
-      </div>
-
-    </div>
 
     <!-- Tab 1: Career Pipeline -->
     <div id="tab-career" class="tab-content hidden">
@@ -297,13 +312,11 @@
 
     <!-- Tab 5: VitaFlow personal energy & schedule -->
     <section id="tab-vitaflow" class="tab-content hidden space-y-4" aria-labelledby="vitaflow-title">
-      <div class="glass-panel p-5 rounded-2xl">
-        <div class="vitaflow-heading"><div><h3 id="vitaflow-title" class="text-lg font-bold text-white">日程与精力 <span class="text-sm font-normal text-zinc-400">VitaFlow 完整工作区</span></h3><p id="vitaflow-source" class="text-xs text-zinc-400 mt-2">内置工作区的记录保存在当前浏览器。</p></div><div class="vitaflow-actions"><button id="vitaflow-builtin" type="button">内置工作区</button><a id="vitaflow-open" href="vitaflow/schedule-system-2.0.html?embed=ops-hub" target="_blank" rel="noopener noreferrer">独立窗口 ↗</a></div></div>
-        <nav class="vitaflow-navigation" aria-label="VitaFlow 快捷导航"><button type="button" data-vf-view="energyOverview" disabled>精力概览</button><button type="button" data-vf-view="dailyPlan" disabled>日程待办</button><button type="button" data-vf-view="energyTrends" disabled>状态趋势</button><button type="button" data-vf-view="creativeSpace" disabled>创作与学习</button></nav>
-        <details class="vitaflow-connection"><summary>连接原日程数据</summary><p class="text-xs text-zinc-400 mt-3">原记录仍在 VitaFlow 私有服务中。启动服务后填入地址和口令即可接入；内置工作区不会自动复制或同步原数据。</p><div class="vitaflow-connection-fields"><label>私有服务地址<input id="vitaflow-url" type="url" value="http://127.0.0.1:8787/schedule-system-2.0.html"></label><label>访问口令<input id="vitaflow-key" type="password" placeholder="仅保存在当前浏览器"></label><button id="vitaflow-connect" type="button">连接私有服务</button></div></details>
-        <p id="vitaflow-status" class="text-xs text-zinc-400 mt-3" role="status" aria-live="polite">正在载入完整工作区。</p>
-      </div>
-      <div id="vitaflow-frame-wrap" class="glass-panel rounded-2xl overflow-hidden"><iframe id="vitaflow-frame" title="VitaFlow 完整日程与精力工作区" src="vitaflow/schedule-system-2.0.html?embed=ops-hub" class="vitaflow-workspace" referrerpolicy="no-referrer" loading="lazy"></iframe></div>
+      <div class="vitaflow-heading"><div><h3 id="vitaflow-title">日程与精力</h3><p id="vitaflow-source" class="today-muted">日程页与今日入口共用记录。</p></div><div class="vitaflow-actions"><button id="vitaflow-builtin" type="button">使用本机记录</button></div></div>
+      <nav class="vitaflow-navigation" aria-label="日程与精力分区"><button type="button" data-vf-view="energyOverview" disabled>精力概览</button><button type="button" data-vf-view="dailyPlan" disabled>日程待办</button><button type="button" data-vf-view="energyTrends" disabled>状态趋势</button><button type="button" data-vf-view="creativeSpace" disabled>创作与学习</button></nav>
+      <details class="vitaflow-connection"><summary>同步与数据设置</summary><p class="today-muted">原有私人日程可通过私有服务接入，沿用原来的数据校对与冲突保护。</p><div class="vitaflow-connection-fields"><label>私有服务地址<input id="vitaflow-url" type="url" value="http://127.0.0.1:8787/schedule-system-2.0.html"></label><label>访问口令<input id="vitaflow-key" type="password" placeholder="仅保存在当前浏览器"></label><button id="vitaflow-connect" type="button">连接私有服务</button></div><a id="vitaflow-open" class="today-muted" href="vitaflow/schedule-system-2.0.html?mode=browser" target="_blank" rel="noopener noreferrer">保留的独立版 ↗</a></details>
+      <p id="vitaflow-status" class="today-muted" role="status" aria-live="polite">正在准备日程工作区。</p>
+      <div id="vitaflow-native"><p class="today-muted">正在读取日程、精力与创作工具。</p></div>
     </section>
 
     <!-- Tab 5: Tri-Device Compute & Allocation Hub -->
@@ -458,9 +471,12 @@
     已复制到剪贴板
   </div>
 
-  <script src="js/vitaflow.js?v=1.0.2"></script>
-  <script src="js/app.js?v=1.6.0"></script>
+  <script src="js/site-style.js?v=1.0.0"></script>
+  <script src="vitaflow/native-workspace.js?v=1.0.0"></script>
+  <script src="js/vitaflow.js?v=2.0.0"></script>
+  <script src="js/app.js?v=1.7.0"></script>
   <script src="js/today.js?v=1.1.0"></script>
+  <script src="js/vitaflow-today.js?v=1.0.1"></script>
   <!-- app.js self-boots via its own readyState check; no manual boot() call here -->
 </body>
 </html>

@@ -271,9 +271,25 @@ html:not(.dark) .today-feedback { color:#92400e; }
 .vitaflow-connection-fields label { color:#a1a1aa; font-size:.75rem; }
 .vitaflow-connection-fields input { display:block; width:100%; min-width:0; margin-top:.3rem; padding:.65rem; border:1px solid #52525b; border-radius:.55rem; color:#fafafa; background:#18181b; }
 .vitaflow-connection-fields button { padding:.65rem .9rem; border-radius:.55rem; color:white; background:#047857; font-size:.8rem; }
-.vitaflow-workspace { width:100%; height:88vh; min-height:680px; border:0; background:#f6f5f7; }
 html:not(.dark) .vitaflow-actions :is(button,a), html:not(.dark) .vitaflow-navigation button { background:#fafafa; color:#27272a; border-color:#d4d4d8; }
 html:not(.dark) .vitaflow-connection { border-color:#e4e4e7; }
 html:not(.dark) .vitaflow-connection :is(summary,label) { color:#52525b; }
 html:not(.dark) .vitaflow-connection-fields input { background:#fff; color:#18181b; border-color:#d4d4d8; }
-@media (max-width:640px) { .vitaflow-connection-fields { grid-template-columns:minmax(0,1fr); } .vitaflow-workspace { min-height:720px; } }
+@media (max-width:640px) { .vitaflow-connection-fields { grid-template-columns:minmax(0,1fr); } }
+
+.appearance-bar { display:flex; align-items:center; flex-wrap:wrap; gap:.5rem .8rem; margin:.8rem 0 1rem; color:var(--ops-muted,#a1a1aa); font-size:.8rem; }
+.appearance-bar select { background:var(--ops-surface,#18181b); color:var(--ops-text,#e4e4e7); border:1px solid var(--ops-border,#3f3f46); border-radius:var(--ops-radius,.6rem); padding:.4rem .7rem; }
+.appearance-bar #site-style-status { font-size:.75rem; }
+.today-side { display:grid; gap:1rem; align-content:start; }
+.today-life { margin-top:0; }
+.vita-summary-accounts { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.6rem; margin:1rem 0; }
+.vita-summary-account { text-align:left; padding:.8rem; border-radius:var(--ops-radius,.7rem); border:1px solid var(--ops-border,#3f3f46); background:var(--ops-surface-muted,#181a23); color:var(--ops-text,#e4e4e7); font-size:.9rem; }
+.vita-summary-todos { display:grid; gap:.5rem; }
+.vita-summary-todos li { display:flex; align-items:center; gap:.75rem; padding:.6rem .2rem; border-bottom:1px solid var(--ops-border,#3f3f46); }
+.vita-summary-actions { display:flex; flex-wrap:wrap; gap:.75rem; margin-top:.7rem; font-size:.8rem; color:var(--ops-accent,#a5b4fc); }
+.vitaflow-heading h3 { font-size:1.2rem; font-weight:750; color:var(--ops-text,#f4f4f5); }
+.vitaflow-navigation { position:sticky; top:64px; z-index:30; padding:.65rem 0; background:var(--ops-page,#090a0f); border-bottom:1px solid var(--ops-border,#3f3f46); }
+#vitaflow-native { min-width:0; }
+#vitaflow-native :is(#energyOverview, #dailyPlan, #energyTrends, #creativeSpace) { scroll-margin-top:140px; }
+@media (max-width:640px) { #vitaflow-native :is(#energyOverview, #dailyPlan, #energyTrends, #creativeSpace) { scroll-margin-top:190px; } }
+@media (max-width:640px) { .vita-summary-accounts { grid-template-columns:repeat(2,minmax(0,1fr)); } }

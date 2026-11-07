@@ -1,0 +1,242 @@
+/* Site style presets. Kept separate from ops_theme so visual style and light/dark stay independent. */
+html[data-ops-style="classic"] {
+  --ops-page: #f1f5f9;
+  --ops-surface: rgba(255, 255, 255, 0.82);
+  --ops-surface-muted: #e8edf4;
+  --ops-text: #1e293b;
+  --ops-muted: #64748b;
+  --ops-border: rgba(15, 23, 42, 0.12);
+  --ops-accent: #4f46e5;
+  --ops-accent-contrast: #ffffff;
+  --ops-radius: 1rem;
+  --ops-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+  --ops-font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ops-font-heading: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ops-blur: 12px;
+}
+
+html.dark[data-ops-style="classic"] {
+  --ops-page: #090a0f;
+  --ops-surface: rgba(18, 20, 29, 0.85);
+  --ops-surface-muted: #181a23;
+  --ops-text: #e2e8f0;
+  --ops-muted: #a1a1aa;
+  --ops-border: rgba(255, 255, 255, 0.08);
+  --ops-accent: #818cf8;
+  --ops-accent-contrast: #10111a;
+  --ops-radius: 1rem;
+  --ops-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+}
+
+html[data-ops-style="paper"] {
+  --ops-page: #f1ede4;
+  --ops-surface: #faf8f2;
+  --ops-surface-muted: #e7e0d4;
+  --ops-text: #332f28;
+  --ops-muted: #766f63;
+  --ops-border: #d5ccbd;
+  --ops-accent: #49657f;
+  --ops-accent-contrast: #ffffff;
+  --ops-radius: 0.45rem;
+  --ops-shadow: 0 7px 20px rgba(64, 53, 37, 0.08);
+  --ops-font-body: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ops-font-heading: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+  --ops-blur: 0px;
+}
+
+html.dark[data-ops-style="paper"] {
+  --ops-page: #272725;
+  --ops-surface: #31312e;
+  --ops-surface-muted: #3a3935;
+  --ops-text: #e7e1d5;
+  --ops-muted: #b1aa9c;
+  --ops-border: #4b4943;
+  --ops-accent: #8ca5bb;
+  --ops-accent-contrast: #1e272f;
+  --ops-shadow: 0 7px 20px rgba(0, 0, 0, 0.2);
+}
+
+html[data-ops-style="forest"] {
+  --ops-page: #e6eee7;
+  --ops-surface: #f4f8f4;
+  --ops-surface-muted: #eaf1eb;
+  --ops-text: #24372a;
+  --ops-muted: #657869;
+  --ops-border: #c9d7ca;
+  --ops-accent: #4d795c;
+  --ops-accent-contrast: #ffffff;
+  --ops-radius: 1.2rem;
+  --ops-shadow: 0 14px 34px rgba(31, 68, 43, 0.12);
+  --ops-font-body: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ops-font-heading: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ops-blur: 5px;
+}
+
+html.dark[data-ops-style="forest"] {
+  --ops-page: #142219;
+  --ops-surface: #1d2d22;
+  --ops-surface-muted: #24372a;
+  --ops-text: #e4eee5;
+  --ops-muted: #a4b9a8;
+  --ops-border: #3b5140;
+  --ops-accent: #9aca9f;
+  --ops-accent-contrast: #18301f;
+  --ops-shadow: 0 14px 34px rgba(0, 0, 0, 0.24);
+}
+
+html[data-ops-style="mono"] {
+  --ops-page: #f4f4f4;
+  --ops-surface: #ffffff;
+  --ops-surface-muted: #ebebeb;
+  --ops-text: #151515;
+  --ops-muted: #666666;
+  --ops-border: #bdbdbd;
+  --ops-accent: #171717;
+  --ops-accent-contrast: #ffffff;
+  --ops-radius: 0.15rem;
+  --ops-shadow: none;
+  --ops-font-body: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ops-font-heading: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --ops-blur: 0px;
+}
+
+html.dark[data-ops-style="mono"] {
+  --ops-page: #101010;
+  --ops-surface: #181818;
+  --ops-surface-muted: #212121;
+  --ops-text: #f2f2f2;
+  --ops-muted: #aaaaaa;
+  --ops-border: #484848;
+  --ops-accent: #eeeeee;
+  --ops-accent-contrast: #111111;
+  --ops-shadow: none;
+}
+
+html[data-ops-style] body {
+  background-color: var(--ops-page);
+  color: var(--ops-text);
+  font-family: var(--ops-font-body);
+}
+
+html[data-ops-style] :is(h1, h2, h3, h4, .today-intro h2, .panel-title) {
+  font-family: var(--ops-font-heading);
+}
+
+html[data-ops-style] :is(.glass-panel, .today-card, .today-links button, .today-list li, header.sticky) {
+  background-color: var(--ops-surface);
+  border-color: var(--ops-border);
+  border-radius: var(--ops-radius);
+  box-shadow: var(--ops-shadow);
+  backdrop-filter: blur(var(--ops-blur));
+  -webkit-backdrop-filter: blur(var(--ops-blur));
+}
+
+html[data-ops-style] .glass-panel:hover,
+html[data-ops-style] .today-links button:hover {
+  border-color: var(--ops-accent);
+}
+
+html[data-ops-style] .tab-btn.active {
+  background-color: var(--ops-accent);
+  border-color: var(--ops-accent);
+  color: var(--ops-accent-contrast);
+}
+
+html[data-ops-style] :is(.today-intro h2, .today-card h3, .today-links strong) {
+  color: var(--ops-text);
+}
+
+html[data-ops-style] :is(.today-muted, .today-footnote, .today-empty, .today-intro p:not(.today-kicker)) {
+  color: var(--ops-muted);
+}
+
+html[data-ops-style] :is(.today-form input, .today-links button) {
+  background-color: var(--ops-surface-muted);
+  border-color: var(--ops-border);
+  border-radius: var(--ops-radius);
+  color: var(--ops-text);
+}
+
+html[data-ops-style] :is(.today-form button, .focus-carry) {
+  background-color: var(--ops-accent);
+  border-color: var(--ops-accent);
+  border-radius: var(--ops-radius);
+  color: var(--ops-accent-contrast);
+}
+
+html[data-ops-style] :is(button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--ops-accent);
+  outline-offset: 3px;
+}
+
+html[data-ops-style] #site-style-status {
+  color: var(--ops-muted);
+}
+
+html[data-ops-style] #vitaflow-native {
+  background-color: var(--ops-page);
+  color: var(--ops-text);
+  font-family: var(--ops-font-body);
+}
+
+html[data-ops-style] #vitaflow-native :is(h1, h2, h3, h4, .vf-title, .detail-title) {
+  color: var(--ops-text);
+  font-family: var(--ops-font-heading);
+}
+
+html[data-ops-style] #vitaflow-native :is(.vf-panel, .panel, .card, .glass-panel, .record-form, .guide-card, .account-card, .calendar-panel, .chart-container, .detail-header) {
+  background-color: var(--ops-surface);
+  border-color: var(--ops-border);
+  border-radius: var(--ops-radius);
+  box-shadow: var(--ops-shadow);
+}
+
+html[data-ops-style] #vitaflow-native :is(.todo-panel, .stat-card, .theory-card, .user-profile) {
+  background-color: var(--ops-surface);
+  border-color: var(--ops-border);
+  border-radius: var(--ops-radius);
+  box-shadow: var(--ops-shadow);
+}
+
+html[data-ops-style] #vitaflow-native :is(.tab-btn.active, .cal-day.selected, .account-add-btn.active) {
+  background: var(--ops-accent);
+  border-color: var(--ops-accent);
+  color: var(--ops-accent-contrast);
+}
+
+html[data-ops-style] #vitaflow-native .add-btn:not([id^="stop"]) {
+  background: var(--ops-accent) !important;
+  border-radius: var(--ops-radius);
+  color: var(--ops-accent-contrast) !important;
+}
+
+html[data-ops-style] #vitaflow-native :is(.theory-text, .form-label, .user-intro, .guide-list) {
+  color: var(--ops-muted);
+}
+
+html[data-ops-style="mono"] :is(.glass-panel, .today-card, .today-links button, .today-list li, header.sticky),
+html[data-ops-style="mono"] #vitaflow-native :is(.vf-panel, .panel, .card, .glass-panel, .record-form, .guide-card, .account-card, .calendar-panel, .chart-container, .detail-header) {
+  background-image: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html[data-ops-style="mono"] [class*="bg-gradient-"],
+html[data-ops-style="mono"] [class*="backdrop-blur-"] {
+  background-image: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html[data-ops-style]:not([data-ops-style="classic"]) .today-card {
+  background-image: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ops-style] *,
+  html[data-ops-style] *::before,
+  html[data-ops-style] *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

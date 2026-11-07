@@ -29,6 +29,8 @@
 
 ## 架构
 
+Ops-Hub 的「日程与精力」采用同一页面的原生工作区，今日待办和四账户摘要直接使用同一存储。全部日程、创作学习、弹窗及数据工具共用总台导航、风格与滚动；独立单文件版本继续保留。
+
 ```
 src/schedule-template.html  HTML 模板
 src/styles.css              页面样式
@@ -44,6 +46,10 @@ local-sync-server.mjs      局域网同步服务器（纯 Node 内置模块）
         ▼
 my-schedule.json           主数据文件（服务器模式下的数据源）
 ```
+
+同一份源码还由 `build-native.mjs` 生成 `native-workspace.js` 与 `native-workspace.css`，挂载到父级 `#vitaflow-native`。`src/native/runtime.js` 负责单实例 DOM／上下文适配，`ui-handlers.json` 保存原生事件函数名单。生成物直接随仓库交付，浏览网站时不需要构建。
+
+修改源码后执行 `npm run build:html` 同时更新两个入口；`npm run build:native` 可单独重建原生版本。`npm test` 会检查公开快照、原生隔离、存储兼容、私有连接和生成一致性。
 
 两层数据来源：
 
