@@ -39,7 +39,8 @@ Desktop/个人工具/ops-hub/
 │   ├── vitaflow.js            # 原生工作区导航与私有连接设置
 │   ├── vitaflow-today.js      # 今日的共享待办和精力摘要
 │   ├── site-style.js          # 网站风格独立偏好与跨标签同步
-│   └── today.js               # 今日重点、昨日未完成衔接与浏览器按日存储
+│   ├── today.js               # 今日重点、昨日未完成衔接与浏览器按日存储
+│   └── knowledge-today.js     # 知识库只读投影渲染（私有快照缺失时整块隐藏）
 ├── data/                      # 本地真源与 public/ 脱敏产物；私有真源不进入 Git
 │   ├── status.json            # 探针自动汇总的运行时状态快照（三端延迟、时间戳、统计）
 │   ├── status.js              # status.json 的 JS 镜像（file:/// 零 CORS 预加载）
@@ -48,7 +49,9 @@ Desktop/个人工具/ops-hub/
 │   ├── daily_checks.json      # 今日四勾打卡状态与历史归档（跨天自动归档重置）
 │   ├── memory_rules.json      # 个人记忆、场景分工与专注秩序原则沉淀
 │   ├── memory_rules.js        # memory_rules.json 的 JS 镜像
-│   └── device_allocation.json # 三端设备任务分工与项目流转矩阵
+│   ├── device_allocation.json # 三端设备任务分工与项目流转矩阵
+│   ├── knowledge.json         # 知识库只读投影快照（私有真源，不入库）
+│   └── private/knowledge.js   # 知识库快照的 JS 镜像（仅本机，公开站无此文件）
 ├── ops                        # 可执行全局 CLI 入口（Python 3 编写，无第三方库依赖）
 ├── vitaflow/                  # 本地 VitaFlow 精力管家源码与独立同步服务；my-schedule.json、口令和备份不进入仓库
 ├── weight-tracker/            # 通用体重记录前端；localStorage 本机保存，不使用原三人 Supabase
@@ -56,6 +59,7 @@ Desktop/个人工具/ops-hub/
 ├── scripts/
 │   ├── probe.py               # 三端网络与硬件服务 Level 2 探针脚本 (Mac+Win+Jetson)
 │   ├── collector.py           # 全量数据汇总、原子写入、跨天归档与 GitOps 自动提交推送核心
+│   ├── knowledge_source.py    # knowledge 知识库只读解析器（今日计划 + 硬节点台账）
 │   └── com.insistgang.opshub.plist # macOS 原生 launchd 定时同步服务描述文件
 ├── tests/                     # 回归测试
 ├── LICENSE                    # MIT
@@ -75,6 +79,7 @@ Desktop/个人工具/ops-hub/
    - 重点最多 3 件，存储键 `ops_focus_YYYY-MM-DD`；昨日未完成项只能显式带入今天，不改写昨日，不重复带入同文事项。
    - 重点与四勾只在写入成功后更新界面；损坏记录保留并提示，旧标签页发现存储变化时刷新、提示重试。
    - 现有时钟在换日时发送 `ops:day-changed`，今日首页同时监听页面可见性与相关 storage 事件。
+   - 「知识库 · 今日必做」与「硬节点雷达」只读渲染 `data/private/knowledge.js`；快照由 `scripts/collector.py` 调用 `scripts/knowledge_source.py` 生成。该文件缺失时整块隐藏，公开站不显示任何知识库内容。
 1. **Tab 1: 🎯 求职投递全景看板 (Career Pipeline)**
    - 过滤标签：全部、面试中、笔试中、初筛、已投递、Offer。
    - 字段：公司名称、岗位、投递日期、状态 Badge、简历指引、跟进备注。
@@ -104,6 +109,14 @@ Desktop/个人工具/ops-hub/
 - `ops:vitaflow-ready`、`ops:vitaflow-data` 只发布状态元数据，不广播记录或口令。默认浏览器模式不探测 API；主动连接私有服务沿用既有鉴权、revision 和冲突选择，不能静默覆盖本机数据。空 key 不得回退发送旧凭据，过期请求不得改变最新连接状态。
 - HTML 导出使用保留的独立源码，导入只刷新当前工作区；构建与测试不读写真实个人 JSON，公开产物不嵌入私人快照。修改 VitaFlow 源码后在其目录运行 `npm run build:html`（同时生成独立和原生版本）及 `npm test`，用 `--check` 核对原生产物。
 - 考试 `phase=result_recorded` 表示查分已办结；教资归档保留但不在网页展示，考试主卡仅取六级。私有分数不复制进公开快照。
+
+### 知识库接入边界
+
+- **单向只读**：`/Users/insistgang/Documents/knowledge` 是唯一写入口，本仓库只读投影，任何回写都视为 bug。今日重点与四勾仍留在浏览器本地或 `daily_checks.json`，不污染知识库日记。
+- **真源白名单**：只解析 `01-Daily/今日计划/YYYY-MM-DD.md` 与 `00-Inbox/硬节点台账.md`。今日计划缺失时回退到最近一份并标记「非今日」；目录可用 `OPS_KNOWLEDGE_DIR` 覆盖，换机器不需要改代码。
+- **失败不造假**：解析不到写 `warnings` 或 `available: false` 并给出原因，不构造占位行；知识库不存在不得拖垮硬件探针。
+- **口径以台账为准**：硬节点按「到期日 ≠ 决策日」计算提醒日，决策日仍在未来的节点不算逾期；处置列已写明闭环的不计入逾期。
+- **隐私**：`data/knowledge.json` 与 `data/private/` 已 git-ignore，`sanitize_public.py` 在中整块剔除 `knowledge` 段。公开站拿不到私有快照，页面自动隐藏该区块。
 
 ### 网站风格
 

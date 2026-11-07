@@ -324,6 +324,25 @@ def collect_all():
     # 7. Memory Rules
     memory_rules = load_json(DATA_DIR / "memory_rules.json", {})
 
+    # 7.5 Knowledge Base Projection (read-only)
+    # 真源：/Users/insistgang/Documents/knowledge（可用 OPS_KNOWLEDGE_DIR 覆盖）。
+    # 本段只读投影，绝不回写知识库；公开产物由 sanitize_public.py 整块剔除。
+    try:
+        import knowledge_source
+        knowledge = knowledge_source.collect()
+        if not knowledge.get("available"):
+            print("⚠️  知识库投影不可用：" + (knowledge.get("error") or "真源未解析出内容"))
+        for warning in knowledge.get("warnings", []):
+            print(f"⚠️  知识库投影：{warning}")
+    except Exception as exc:  # 知识库缺失不应拖垮硬件探测
+        knowledge = {
+            "available": False,
+            "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+            "error": f"{type(exc).__name__}: {exc}",
+            "warnings": [], "today_plan": None, "hard_nodes": None,
+        }
+        print(f"⚠️  知识库投影失败：{type(exc).__name__}: {exc}")
+
     # 8. Assemble Snapshot
     status_snapshot = {
         "meta": {
@@ -342,7 +361,8 @@ def collect_all():
         "projects_and_exams": enriched_projects,
         "weight_challenge": weight_challenge,
         "daily_checks": daily_checks,
-        "device_allocation": device_allocation
+        "device_allocation": device_allocation,
+        "knowledge": knowledge
     }
 
     # Write status.json (atomic: temp file + os.replace, no half-written files)
@@ -353,6 +373,13 @@ def collect_all():
 
     # Write memory_rules.js (window.__OPS_MEMORY__)
     atomic_write_text(DATA_DIR / "memory_rules.js", "window.__OPS_MEMORY__ = " + json.dumps(memory_rules, ensure_ascii=False) + ";\n")
+
+    # Write knowledge 私有投影（window.__OPS_KNOWLEDGE__）。仅本机使用：
+    # data/private/ 已 git-ignore，公开站不会拿到该文件，页面加载不到时自动隐藏对应区块。
+    atomic_write_text(DATA_DIR / "knowledge.json", json.dumps(knowledge, ensure_ascii=False, indent=2) + "\n")
+    private_dir = DATA_DIR / "private"
+    private_dir.mkdir(parents=True, exist_ok=True)
+    atomic_write_text(private_dir / "knowledge.js", "window.__OPS_KNOWLEDGE__ = " + json.dumps(knowledge, ensure_ascii=False) + ";\n")
 
     # 9. Generate sanitized public artifacts (data/public/) for the public repository.
     # Local truth source stays in data/ and is git-ignored; only the sanitized copy is tracked.

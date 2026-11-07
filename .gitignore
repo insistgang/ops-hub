@@ -20,3 +20,7 @@ data/private_devices.json
 
 # 备份目录
 .tmp/
+\n
+# knowledge 只读投影：含真名、账号、金额与本地路径，仅本机使用，不进入公开仓库。
+data/knowledge.json
+data/private/

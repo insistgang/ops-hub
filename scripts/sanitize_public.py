@@ -116,6 +116,8 @@ def build_public_status(status, aliases):
 
     # 1. 移除整块敏感模块
     public.pop("weight_challenge", None)
+    # knowledge 投影含真名、账号、本地绝对路径与金额，一律不进入公开产物。
+    public.pop("knowledge", None)
 
     # 2. 求职台账只公开阶段，不公开备注、薪资和简历文件名
     career = public.get("career_summary")
