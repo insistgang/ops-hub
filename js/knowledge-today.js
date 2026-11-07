@@ -160,11 +160,14 @@
 
     for (const row of rows) {
       const pending = row.needs_confirm === true;
-      const level = row.kind === 'ledger' ? 'overdue' : (pending ? 'pending' : severity(row.days_left));
+      const level = row.kind === 'ledger' ? 'overdue'
+        : (row.date_precision === 'month' ? 'normal' : (pending ? 'pending' : severity(row.days_left)));
       const li = element('li', 'knowledge-node knowledge-node--' + level);
 
+      const monthOnly = row.date_precision === 'month';
       const label = row.kind === 'ledger'
         ? '已逾期'
+        : monthOnly ? '日期未定'
         : (pending ? `待确认 · ${Math.abs(row.days_left || 0)} 天` : (daysLabel(row.days_left) || '—'));
       li.appendChild(element('span', 'knowledge-days', label));
 
