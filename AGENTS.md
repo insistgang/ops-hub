@@ -123,6 +123,10 @@ Desktop/个人工具/ops-hub/
 - **口径以台账为准**：硬节点按「到期日 ≠ 决策日」计算提醒日，决策日仍在未来的节点不算逾期；处置列已写明闭环的不计入逾期。
 - **隐私**：`data/knowledge.json` 与 `data/private/` 已 git-ignore，`sanitize_public.py` 在中整块剔除 `knowledge` 段。公开站拿不到私有快照，页面自动隐藏该区块。
 
+### 静态资源缓存版本
+
+`index.html` 中每个 js/css 都带 `?v=x.y.z` 查询串。**修改任何前端文件后必须同步提升对应版本号**，否则浏览器继续用旧缓存，改动上线了但看不到效果——历史上已因此误判「修复没生效」。数据类文件（`data/*.js`）由运行时 `fetch(...?t=)` 兜底，可不改。
+
 ### 网站风格
 
 - `ops_style` 保存 classic/paper/forest/mono，`ops_theme` 独立保存明暗；风格层使用 `html[data-ops-style]` 和 `--ops-*` 令牌，不改业务数据。
