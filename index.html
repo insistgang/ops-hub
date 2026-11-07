@@ -23,6 +23,8 @@
   <!-- Preloaded Data for Zero-CORS offline file:/// compatibility -->
   <script src="data/public/status.js?v=1.3.0"></script>
   <script src="data/public/memory_rules.js?v=1.3.0"></script>
+  <!-- 知识库私有投影：data/private/ 已 git-ignore，公开站没有此文件，缺失时整块隐藏 -->
+  <script src="data/private/knowledge.js?v=1.0.0"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -189,6 +191,7 @@
     <section id="tab-today" data-ops-workspace class="tab-content today-home" aria-labelledby="today-title">
       <div class="today-intro"><div><p class="today-kicker">你的日常工作台</p><h2 id="today-title">今天，先做好一件事。</h2><p>把注意力留给真正重要的事，其他模块随时可以进入。</p></div><span id="today-date" class="today-date"></span></div>
       <div class="today-grid">
+        <div class="today-main">
         <section class="today-card today-focus" aria-labelledby="focus-title">
           <div class="today-card-heading"><div><p class="today-kicker">FOCUS</p><h3 id="focus-title">今天的重点</h3></div><span id="focus-count" class="today-chip">0 / 3</span></div>
           <p class="today-muted">写下最多 3 件事，一次专注一件。内容只保存在当前浏览器。</p>
@@ -205,6 +208,22 @@
             <p id="carryover-feedback" class="today-feedback" role="status" aria-live="polite"></p>
           </section>
         </section>
+        <section class="today-card" id="knowledge-card" aria-labelledby="knowledge-title" hidden>
+          <div class="today-card-heading"><div><p class="today-kicker">KNOWLEDGE SYNC</p><h3 id="knowledge-title">知识库 · 今日必做</h3></div><span id="knowledge-date" class="today-chip">—</span></div>
+          <p class="today-muted">只读同步自知识库 <code>01-Daily/今日计划</code>，不会回写知识库。</p>
+          <p id="knowledge-direction" class="today-muted knowledge-direction" hidden></p>
+          <p id="knowledge-capacity" class="today-muted knowledge-capacity" hidden></p>
+          <p id="knowledge-warning" class="today-feedback" role="status" aria-live="polite" hidden></p>
+          <ol id="knowledge-items" class="knowledge-items"></ol>
+          <p id="knowledge-empty" class="today-empty" hidden></p>
+          <section class="focus-previous" aria-labelledby="hard-nodes-title">
+            <div class="today-card-heading"><h4 id="hard-nodes-title">硬节点雷达</h4><span id="hard-nodes-count" class="today-muted"></span></div>
+            <p class="today-muted">只读同步自知识库 <code>00-Inbox/硬节点台账.md</code> 的活跃节点。</p>
+            <ul id="hard-nodes-list" class="knowledge-nodes"></ul>
+            <p id="hard-nodes-empty" class="today-empty" hidden>暂无活跃硬节点。</p>
+          </section>
+        </section>
+        </div>
         <div class="today-side">
       <section class="today-card today-life" aria-labelledby="vita-today-title">
         <div class="today-card-heading"><div><p class="today-kicker">DAILY RHYTHM</p><h3 id="vita-today-title">今日的日程与精力</h3></div><span id="vita-today-count" class="today-chip">正在读取</span></div>
@@ -494,6 +513,7 @@
   <script src="js/today.js?v=1.1.0"></script>
   <script src="js/vitaflow-today.js?v=1.0.1"></script>
   <script src="js/life-today.js?v=1.0.0"></script>
+  <script src="js/knowledge-today.js?v=1.0.0"></script>
   <!-- app.js self-boots via its own readyState check; no manual boot() call here -->
 </body>
 </html>

@@ -98,6 +98,17 @@ ops schedule status
 
 ---
 
+## 知识库同步接入
+
+今日页的「知识库 · 今日必做」和「硬节点雷达」来自本机知识库，只读同步，不在总台回写：
+
+| 展示 | 真源 |
+|---|---|
+| 今日必做 | `~/Documents/knowledge/01-Daily/今日计划/YYYY-MM-DD.md` |
+| 硬节点雷达 | `~/Documents/knowledge/00-Inbox/硬节点台账.md` 的「活跃节点」 |
+
+`ops sync` 重新解析并写入 `data/knowledge.json` 与 `data/private/knowledge.js`。后者已 git-ignore，公开站拿不到该文件，页面加载不到时整块隐藏。知识库目录可用环境变量 `OPS_KNOWLEDGE_DIR` 覆盖；今日计划缺失时回退最近一份并标注「非今日」，解析失败只提示原因不填假数据。
+
 ## VitaFlow 日程与精力工作区
 
 「日程与精力」Tab 在总台同一页面挂载全部 VitaFlow 功能，包含四账户、日历待办、趋势、番茄钟、复盘、创作与学习以及数据工具。共用总台导航、风格和页面滚动，今日入口可以直接打开相关分区。首次使用为空，不生成示例分数或待办。

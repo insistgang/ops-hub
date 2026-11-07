@@ -98,13 +98,44 @@ def cmd_status(args):
     print(f"\n{Colors.BOLD}⏳ 考期冲刺与项目推进:{Colors.ENDC}")
     for p in projects:
         if p.get("type") == "exam":
-            days = p.get("days_left", 0)
+            days = p.get("days_left")  # 已办结的考期可能为 null
+            days = days if isinstance(days, int) else 0
             urgency = Colors.FAIL if days <= 20 else Colors.WARNING
             print(f"   🔴 {Colors.BOLD}{p.get('name')}{Colors.ENDC} ➔ 剩余 {urgency}{days} 天{Colors.ENDC} (考期: {p.get('target_date')})")
         else:
             h = p.get('commit_hash', '-')
             t = p.get('commit_time', '-')
             print(f"   📦 {Colors.BOLD}{p.get('name')}{Colors.ENDC} ➔ {Colors.DIM}[{h} @ {t}]{Colors.ENDC} {p.get('next_action', '')}")
+
+    # 3.5 Knowledge Base Projection (read-only, 真源：knowledge 知识库)
+    knowledge = data.get("knowledge") or {}
+    if knowledge.get("available"):
+        plan = knowledge.get("today_plan") or {}
+        nodes = knowledge.get("hard_nodes") or {}
+        suffix = "" if plan.get("is_today", True) else Colors.WARNING + " 非今日回退" + Colors.ENDC
+        print(f"\n{Colors.BOLD}📚 知识库 · 今日必做 ({plan.get('date', '-')}){Colors.ENDC}{suffix}")
+        for item in plan.get("items", []):
+            tag = f"[{item.get('tag')}] " if item.get("tag") else ""
+            who = f"  {Colors.DIM}{item.get('assignee')}{Colors.ENDC}" if item.get("assignee") else ""
+            print(f"   {item.get('n')}. {tag}{Colors.BOLD}{item.get('title')}{Colors.ENDC}{who}")
+        if plan.get("direction"):
+            print(f"   {Colors.DIM}{plan['direction'][:80]}{Colors.ENDC}")
+        active = nodes.get("active", [])
+        overdue = nodes.get("overdue", [])
+        if active or overdue:
+            print(f"\n{Colors.BOLD}⏰ 硬节点雷达:{Colors.ENDC} 活跃 {len(active)} 条 ｜ 逾期 {len(overdue)} 条")
+            for row in (overdue + active)[:5]:
+                days = row.get("days_left")
+                if isinstance(days, int) and days < 0 or row.get("kind") == "ledger":
+                    label = f"{Colors.FAIL}逾期{Colors.ENDC}"
+                elif isinstance(days, int):
+                    color = Colors.FAIL if days <= 2 else (Colors.WARNING if days <= 14 else Colors.DIM)
+                    label = f"{color}{days:>3} 天{Colors.ENDC}"
+                else:
+                    label = f"{Colors.DIM}  -  {Colors.ENDC}"
+                print(f"   • {label}  {row.get('title', '')}")
+    elif knowledge.get("error"):
+        print(f"\n{Colors.DIM}📚 知识库同步不可用: {knowledge['error']}{Colors.ENDC}")
 
     # 4. Weight Challenge
     print(f"\n{Colors.BOLD}⚖️  秋季三人减重决战 (38天):{Colors.ENDC}")

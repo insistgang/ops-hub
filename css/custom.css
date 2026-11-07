@@ -313,3 +313,29 @@ html:not(.dark) .vitaflow-connection-fields input { background:#fff; color:#1818
 .life-finance-summary dd { margin-top:.25rem; font-size:1.1rem; font-weight:650; color:var(--ops-text); overflow-wrap:anywhere; }
 .today-life .today-muted { overflow-wrap:anywhere; }
 @media (max-width:640px) { #weight-native :is(#weight-overview,#weight-new-entry,#weight-history,#weight-groups) { scroll-margin-top:170px; } }
+
+/* ---- 知识库只读投影（data/private/，公开站不渲染） ---- */
+.today-main { display:grid; gap:1rem; align-content:start; }
+.knowledge-direction { font-size:.88rem; line-height:1.6; margin-top:.55rem; }
+.knowledge-capacity { font-size:.8rem; margin-top:.3rem; }
+.knowledge-items, .knowledge-nodes { list-style:none; margin:.7rem 0 0; padding:0; display:grid; gap:.55rem; }
+.knowledge-item { border-left:2px solid #6366f1; padding:.4rem 0 .4rem .7rem; }
+.knowledge-item-head { display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; }
+.knowledge-item-title { color:#f4f4f5; font-size:.92rem; font-weight:650; line-height:1.45; }
+.knowledge-tag { font-size:.68rem; letter-spacing:.03em; padding:.1rem .4rem; border-radius:.4rem; background:rgba(99,102,241,.2); color:#a5b4fc; white-space:nowrap; }
+.knowledge-meta { font-size:.76rem; color:#a1a1aa; margin:.2rem 0 0; }
+.knowledge-std { font-size:.78rem; color:#c4c4cc; margin:.25rem 0 0; line-height:1.55; }
+.knowledge-node { display:flex; gap:.65rem; align-items:flex-start; padding:.45rem .55rem; border-radius:.55rem; background:rgba(255,255,255,.035); }
+.knowledge-days { flex:none; min-width:4.4rem; font-size:.72rem; color:#a1a1aa; font-variant-numeric:tabular-nums; padding-top:.1rem; }
+.knowledge-node-body { display:flex; flex-direction:column; gap:.12rem; min-width:0; }
+.knowledge-node-title { font-size:.84rem; color:#e4e4e7; line-height:1.4; overflow-wrap:anywhere; }
+.knowledge-node-date { font-size:.7rem; color:#71717a; }
+.knowledge-node--soon .knowledge-days { color:#fbbf24; font-weight:700; }
+.knowledge-node--urgent .knowledge-days { color:#fb923c; font-weight:700; }
+.knowledge-node--overdue { background:rgba(248,113,113,.13); }
+.knowledge-node--overdue .knowledge-days { color:#f87171; font-weight:700; }
+.knowledge-items[hidden], .knowledge-nodes[hidden], #knowledge-card[hidden] { display:none !important; }
+html:not(.dark) .knowledge-item-title, html:not(.dark) .knowledge-node-title { color:#18181b; }
+html:not(.dark) .knowledge-std { color:#3f3f46; }
+html:not(.dark) .knowledge-node { background:rgba(0,0,0,.04); }
+html:not(.dark) .knowledge-node--overdue { background:rgba(220,38,38,.1); }
