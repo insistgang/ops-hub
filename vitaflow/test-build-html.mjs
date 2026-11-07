@@ -11,6 +11,7 @@ try {
   fs.mkdirSync(cliDir);
   const cliPath = path.join(cliDir, 'build-html.mjs');
   fs.copyFileSync('build-html.mjs', cliPath);
+  fs.copyFileSync('strip-embedded-data.mjs', path.join(cliDir, 'strip-embedded-data.mjs'));
   for (const directory of ['src', 'vendor']) {
     fs.symlinkSync(path.resolve(directory), path.join(cliDir, directory), 'dir');
   }
@@ -24,7 +25,8 @@ try {
   fs.writeFileSync(cliOutputPath, cliHtml.replace('<script>/* __EMBEDDED_DATA_PLACEHOLDER__ */</script>', sampleDataBlock));
   execFileSync(process.execPath, [cliPath], { cwd: cliDir, stdio: 'pipe' });
   const rebuiltHtml = fs.readFileSync(cliOutputPath, 'utf8');
-  assert.ok(rebuiltHtml.includes(sampleDataBlock), 'rebuilding must preserve an existing embedded snapshot exactly');
+  assert.ok(!rebuiltHtml.includes(sampleDataBlock), 'the default public build must remove existing private snapshots');
+  assert.ok(rebuiltHtml.includes('<script>/* __EMBEDDED_DATA_PLACEHOLDER__ */</script>'), 'the public build must retain an empty data slot for explicit private exports');
   execFileSync(process.execPath, [cliPath, '--check'], { cwd: cliDir, stdio: 'pipe' });
   const secretSentinel = 'private-check-sentinel';
   fs.writeFileSync(cliOutputPath, `${rebuiltHtml}\n<!-- ${secretSentinel} -->`);

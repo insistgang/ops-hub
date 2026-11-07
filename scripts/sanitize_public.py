@@ -25,7 +25,9 @@ ops-hub 是公开仓库。本地 `data/` 目录保存真实数据（求职投递
 """
 
 import json
+import os
 import re
+import tempfile
 from datetime import datetime
 from pathlib import Path
 
@@ -36,24 +38,28 @@ ALIASES_PATH = DATA_DIR / "private_aliases.json"
 
 # 脱敏规则的真实标识对照表存放在本地真源 data/private_aliases.json，
 # 该文件已 git-ignore，因此本脚本中不出现任何真实姓名、地址或路径。
-# 若对照表缺失，则退化为仅做结构性裁剪（不执行字符串掩码）。
-DEFAULT_ALIASES = {"names": {}, "relations": {}, "ips": {}, "paths": {}}
+# 对照表是公开发布的必要输入，缺失或损坏时必须停止生成。
+ALIAS_GROUPS = ("names", "relations", "ips", "paths")
 
 
 def load_aliases():
-    """读取本地真源的脱敏对照表。"""
-    if not ALIASES_PATH.exists():
-        print(f"⚠️ 未找到脱敏对照表 {ALIASES_PATH}，仅执行结构性裁剪")
-        return dict(DEFAULT_ALIASES)
+    """读取并校验完整对照表；空组允许，省略组或无效映射不允许。"""
     try:
         data = json.loads(ALIASES_PATH.read_text(encoding="utf-8"))
     except (OSError, ValueError) as e:
-        print(f"⚠️ 脱敏对照表读取失败（{e}），仅执行结构性裁剪")
-        return dict(DEFAULT_ALIASES)
-    merged = dict(DEFAULT_ALIASES)
-    for key in merged:
-        merged[key] = data.get(key, {}) or {}
-    return merged
+        raise ValueError("脱敏对照表缺失或无法读取") from e
+    if not isinstance(data, dict):
+        raise ValueError("脱敏对照表必须是 JSON 对象")
+    aliases = {}
+    for group in ALIAS_GROUPS:
+        mapping = data.get(group)
+        if not isinstance(mapping, dict) or any(
+            not isinstance(key, str) or not key.strip() or not isinstance(value, str)
+            for key, value in mapping.items()
+        ):
+            raise ValueError(f"脱敏对照表的 {group} 组无效")
+        aliases[group] = mapping
+    return aliases
 
 
 def scrub_text(value, aliases):
@@ -166,48 +172,48 @@ def build_public_memory(memory, aliases):
 
 
 def write_public_files():
+    # Build and validate every candidate in memory before touching published files.
+    try:
+        aliases = load_aliases()
+        status = json.loads((DATA_DIR / "status.json").read_text(encoding="utf-8"))
+        if not isinstance(status, dict):
+            raise ValueError("状态真源必须是 JSON 对象")
+        public_status = build_public_status(status, aliases)
+        memory = {}
+        memory_src = DATA_DIR / "memory_rules.json"
+        if memory_src.exists():
+            memory = json.loads(memory_src.read_text(encoding="utf-8"))
+            if not isinstance(memory, dict):
+                raise ValueError("记忆规则真源必须是 JSON 对象")
+        public_memory = build_public_memory(memory, aliases)
+        artifacts = {
+            "status.json": json.dumps(public_status, ensure_ascii=False, indent=2) + "\n",
+            "status.js": "window.__OPS_STATUS__ = " + json.dumps(public_status, ensure_ascii=False) + ";\n",
+            "memory_rules.js": "window.__OPS_MEMORY__ = " + json.dumps(public_memory, ensure_ascii=False) + ";\n",
+        }
+    except (OSError, ValueError, TypeError):
+        print("❌ 脱敏配置或真源无效，保留上次公开产物，本次发布已中止。")
+        return False
+
+    blob = "".join(artifacts.values())
+    if any(needle in blob for group in ALIAS_GROUPS for needle in aliases[group]):
+        # Never repeat the private identifiers in logs.
+        print("❌ 公开产物仍含未脱敏标识，保留上次公开产物，本次发布已中止。")
+        return False
+
     PUBLIC_DIR.mkdir(parents=True, exist_ok=True)
-    aliases = load_aliases()
-
-    status_src = DATA_DIR / "status.json"
-    if not status_src.exists():
-        print(f"⚠️ 本地真源不存在: {status_src}，跳过公开产物生成")
-        return False
-
-    status = json.loads(status_src.read_text(encoding="utf-8"))
-    public_status = build_public_status(status, aliases)
-
-    memory = {}
-    memory_src = DATA_DIR / "memory_rules.json"
-    if memory_src.exists():
-        memory = json.loads(memory_src.read_text(encoding="utf-8"))
-    public_memory = build_public_memory(memory, aliases)
-
-    (PUBLIC_DIR / "status.json").write_text(
-        json.dumps(public_status, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-    )
-    (PUBLIC_DIR / "status.js").write_text(
-        "window.__OPS_STATUS__ = " + json.dumps(public_status, ensure_ascii=False) + ";\n",
-        encoding="utf-8",
-    )
-    (PUBLIC_DIR / "memory_rules.js").write_text(
-        "window.__OPS_MEMORY__ = " + json.dumps(public_memory, ensure_ascii=False) + ";\n",
-        encoding="utf-8",
-    )
-
-    # 核验：公开产物中不得残留任何真实标识
-    blob = "".join(
-        (PUBLIC_DIR / name).read_text(encoding="utf-8")
-        for name in ("status.json", "status.js", "memory_rules.js")
-    )
-    leaks = []
-    for group in ("ips", "paths", "names", "relations"):
-        for needle in aliases[group].keys():
-            if needle in blob:
-                leaks.append(needle)
-    if leaks:
-        print(f"❌ 公开产物仍含未脱敏标识: {leaks}，已中止")
-        return False
+    staged = []
+    try:
+        for name, content in artifacts.items():
+            fd, temporary = tempfile.mkstemp(dir=PUBLIC_DIR, prefix=name + ".", suffix=".tmp")
+            staged.append((Path(temporary), PUBLIC_DIR / name))
+            with os.fdopen(fd, "w", encoding="utf-8") as stream:
+                stream.write(content)
+        for temporary, target in staged:
+            os.replace(temporary, target)
+    finally:
+        for temporary, _ in staged:
+            temporary.unlink(missing_ok=True)
 
     print(f"✅ 公开脱敏产物已生成: {PUBLIC_DIR}")
     return True

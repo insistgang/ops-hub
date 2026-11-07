@@ -37,8 +37,11 @@
             document.getElementById(type + 'Page').classList.add('active');
             
             if (['physical', 'emotional', 'focus', 'meaning'].includes(type)) {
-                document.getElementById(type + 'ScoreInput').value = accountsData[type].score;
-                document.getElementById(type + 'Preview').textContent = accountsData[type].score;
+                const score = accountsData[type].score;
+                const input = document.getElementById(type + 'ScoreInput');
+                input.value = score == null ? 50 : score;
+                input.dataset.scoreSelected = score == null ? 'false' : 'true';
+                document.getElementById(type + 'Preview').textContent = score == null ? '待记录' : score;
                 renderAccountChart(type);
                 renderHistory(type);
             } else if (type === 'streak') {
@@ -97,11 +100,22 @@
         }
 
         function updateScorePreview(account, value) {
+            const input = document.getElementById(account + 'ScoreInput');
+            if (input) input.dataset.scoreSelected = 'true';
             document.getElementById(account + 'Preview').textContent = value;
         }
 
         function saveRecord(account) {
-            const score = parseInt(document.getElementById(account + 'ScoreInput').value);
+            const scoreInput = document.getElementById(account + 'ScoreInput');
+            if (accountsData[account].score == null && scoreInput.dataset.scoreSelected !== 'true') {
+                alert('请先选择评分，再保存记录。');
+                return;
+            }
+            const score = parseInt(scoreInput.value, 10);
+            if (!Number.isFinite(score)) {
+                alert('请选择有效评分。');
+                return;
+            }
             const date = document.getElementById(account + 'DateInput').value;
             
             accountsData[account].score = score;
@@ -124,14 +138,23 @@
 
         function updateProgressRing(account, score) {
             const circumference = 264;
-            const offset = circumference - (score / 100) * circumference;
+            const numericScore = score == null || score === '' ? null : Number(score);
+            const offset = Number.isFinite(numericScore) ? circumference - (numericScore / 100) * circumference : circumference;
             const fg = document.querySelector('#' + account + 'Page .progress-ring .fg');
-            if (fg) fg.style.strokeDashoffset = offset;
+            if (fg) {
+                fg.style.strokeDashoffset = offset;
+                fg.style.opacity = Number.isFinite(numericScore) ? '1' : '0.25';
+            }
         }
 
         function renderHistory(account) {
             const history = accountsData[account].history.slice(-7).reverse();
             const listEl = document.getElementById(account + 'HistoryList');
+            if (!listEl) return;
+            if (history.length === 0) {
+                listEl.innerHTML = '<div style="text-align: center; color: #8b7a7a;">暂无记录</div>';
+                return;
+            }
             
             listEl.innerHTML = history.map((item, i) => {
                 const prev = history[i + 1];
@@ -156,8 +179,9 @@
             };
             ['physical', 'emotional', 'focus', 'meaning'].forEach(account => {
                 const score = accountsData[account].score;
-                setText(account + 'Score', score);
-                setText(account + 'Progress', score);
+                const displayScore = score == null ? '—' : score;
+                setText(account + 'Score', displayScore);
+                setText(account + 'Progress', displayScore);
                 updateProgressRing(account, score);
             });
             const streak = localStorage.getItem('vitaflow_streak') || '0';
@@ -167,9 +191,14 @@
             setText('completedTasks', completed);
             setText('tasksProgress', completed);
 
-            const avg = Math.round((accountsData.physical.score + accountsData.emotional.score + accountsData.focus.score + accountsData.meaning.score) / 4);
-            setText('avgScore', avg);
-            setText('avgProgress', avg);
+            const scores = ['physical', 'emotional', 'focus', 'meaning']
+                .map(account => accountsData[account].score)
+                .filter(score => typeof score === 'number' && Number.isFinite(score));
+            const avg = scores.length ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length) : null;
+            const displayAverage = avg == null ? '—' : avg;
+            setText('avgScore', displayAverage);
+            setText('avgProgress', displayAverage);
+            updateProgressRing('avg', avg);
         }
 
         function renderAllTrendCharts() {
@@ -220,19 +249,17 @@
             while (current <= end) {
                 const dateStr = formatLocalDate(current);
                 const record = history.find(h => h.date === dateStr);
-                data.push(record?.score || getDefaultScore(accountType));
+                const score = record?.score;
+                data.push(typeof score === 'number' && Number.isFinite(score) ? score : null);
                 current.setDate(current.getDate() + 1);
             }
             return data;
         }
 
-        function getDefaultScore(accountType) {
-            const defaults = { physical: 85, emotional: 78, focus: 92, meaning: 88 };
-            return defaults[accountType] || 80;
-        }
-
         function renderTrendChart(canvasId, label, data, labels, color) {
             const ctx = document.getElementById(canvasId).getContext('2d');
+            const emptyState = document.getElementById(canvasId + 'Empty');
+            if (emptyState) emptyState.style.display = data.some(value => value !== null && value !== undefined) ? 'none' : 'block';
             const chartKey = canvasId.replace('Chart', '');
             if (window[chartKey]) window[chartKey].destroy();
             
@@ -275,6 +302,9 @@
             if (accountCharts[account]) accountCharts[account].destroy();
 
             const history = accountsData[account].history.slice(-7);
+            const scores = history.map(item => typeof item.score === 'number' && Number.isFinite(item.score) ? item.score : null);
+            const emptyState = document.getElementById(account + 'ChartEmpty');
+            if (emptyState) emptyState.style.display = scores.some(score => score !== null) ? 'none' : 'block';
             const labels = history.map(h => {
                 const d = new Date(h.date);
                 return (d.getMonth() + 1) + '/' + d.getDate();
@@ -286,7 +316,7 @@
                     labels: labels,
                     datasets: [{
                         label: accountNames[account] + '得分',
-                        data: history.map(h => h.score),
+                        data: scores,
                         borderColor: accountColors[account],
                         backgroundColor: accountColors[account] + '25',
                         tension: 0.4,
@@ -413,6 +443,8 @@
             const ctx = document.getElementById('avgChart').getContext('2d');
             if (avgChart) avgChart.destroy();
             const trend = getAverageAccountTrend(accountsData);
+            const emptyState = document.getElementById('avgChartEmpty');
+            if (emptyState) emptyState.style.display = trend.values.some(value => value !== null) ? 'none' : 'block';
 
             avgChart = new Chart(ctx, {
                 type: 'line',
@@ -443,13 +475,18 @@
         function renderCompareChart() {
             const ctx = document.getElementById('compareChart').getContext('2d');
             if (compareChart) compareChart.destroy();
+            const accounts = [
+                ['physical', '体能'], ['emotional', '情绪'], ['focus', '思维'], ['meaning', '意志'],
+            ].filter(([key]) => typeof accountsData[key].score === 'number' && Number.isFinite(accountsData[key].score));
+            const emptyState = document.getElementById('compareChartEmpty');
+            if (emptyState) emptyState.style.display = accounts.length ? 'none' : 'block';
 
             compareChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['体能', '情绪', '思维', '意志'],
+                    labels: accounts.map(([, label]) => label),
                     datasets: [{
-                        data: [accountsData.physical.score, accountsData.emotional.score, accountsData.focus.score, accountsData.meaning.score],
+                        data: accounts.map(([key]) => accountsData[key].score),
                         backgroundColor: ['#e88a4c', '#c4679c', '#8b5e9e', '#a78bfa'],
                         borderColor: '#ffffff',
                         borderWidth: 3
@@ -629,14 +666,22 @@
         // VITAFLOW_MODULE: idea-vault
         // VITAFLOW_MODULE: media-planning
         // VITAFLOW_MODULE: wellness-tools
-        function updateMeaningScore() {
+        function updateMeaningScore(input) {
+            if (input) input.dataset.selected = 'true';
+            const inputs = [1, 2, 3].map(index => document.getElementById('meaningQ' + index));
+            const selected = inputs.map(element => element.dataset.selected === 'true');
+            inputs.forEach((element, index) => {
+                document.getElementById('meaningQ' + (index + 1) + 'Value').textContent = selected[index] ? element.value : '未选择';
+            });
+            if (!selected.every(Boolean)) {
+                document.getElementById('meaningTotalScore').textContent = '待评估';
+                document.getElementById('meaningInterpretation').textContent = '请选择三项后查看结果';
+                return;
+            }
+
             const q1 = parseInt(document.getElementById('meaningQ1').value);
             const q2 = parseInt(document.getElementById('meaningQ2').value);
             const q3 = parseInt(document.getElementById('meaningQ3').value);
-            
-            document.getElementById('meaningQ1Value').textContent = q1;
-            document.getElementById('meaningQ2Value').textContent = q2;
-            document.getElementById('meaningQ3Value').textContent = q3;
             
             const total = q1 + q2 + q3;
             document.getElementById('meaningTotalScore').textContent = total;
@@ -651,6 +696,11 @@
         }
 
         function saveMeaningQuiz() {
+            const inputs = [1, 2, 3].map(index => document.getElementById('meaningQ' + index));
+            if (inputs.some(input => input.dataset.selected !== 'true')) {
+                alert('请先选择三项评分，再保存评估。');
+                return;
+            }
             const q1 = parseInt(document.getElementById('meaningQ1').value);
             const q2 = parseInt(document.getElementById('meaningQ2').value);
             const q3 = parseInt(document.getElementById('meaningQ3').value);
@@ -1404,10 +1454,10 @@
                 } else {
                     const dayNum = dayIndex + 1;
                     const dateStr = formatLocalDate(new Date(year, month, dayNum));
-                    const score = happiness[dateStr] || 5;
-                    const emoji = happyEmojis[score] || '😐';
+                    const score = Object.prototype.hasOwnProperty.call(happiness, dateStr) ? happiness[dateStr] : null;
+                    const emoji = score == null ? '—' : (happyEmojis[score] || '😐');
                     const isToday = dateStr === todayStr;
-                    const bgColor = score >= 7 ? 'rgba(100, 200, 150, 0.2)' : score >= 5 ? 'rgba(255, 200, 100, 0.2)' : 'rgba(200, 100, 100, 0.2)';
+                    const bgColor = score == null ? 'rgba(200, 160, 200, 0.08)' : score >= 7 ? 'rgba(100, 200, 150, 0.2)' : score >= 5 ? 'rgba(255, 200, 100, 0.2)' : 'rgba(200, 100, 100, 0.2)';
                     
                     board.innerHTML += `
                         <div style="background: ${bgColor}; border-radius: 16px; padding: 10px 6px; text-align: center; border: 2px solid ${isToday ? '#c4679c' : 'rgba(200, 160, 200, 0.2)'};" 
@@ -1465,7 +1515,7 @@
                 d.setDate(d.getDate() - i);
                 const dateStr = formatLocalDate(d);
                 labels.push((d.getMonth() + 1) + '/' + d.getDate());
-                data.push(happiness[dateStr] || 5);
+                data.push(happiness[dateStr] ?? null);
             }
             renderEmotionChart(labels, data);
         }
@@ -1495,7 +1545,7 @@
             while (current <= end) {
                 const dateStr = formatLocalDate(current);
                 labels.push((current.getMonth() + 1) + '/' + current.getDate());
-                data.push(happiness[dateStr] || 5);
+                data.push(happiness[dateStr] ?? null);
                 current.setDate(current.getDate() + 1);
             }
             
@@ -3861,3 +3911,4 @@
         }
 
         // VITAFLOW_MODULE: boot
+        // VITAFLOW_MODULE: ops-hub-embed

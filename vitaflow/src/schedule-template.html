@@ -27,16 +27,15 @@
         </header>
         <div class="user-profile">
             <details class="profile-details">
-                <summary>我的精力画像 <span>查看个人介绍</span></summary>
-            <div class="user-name">🌸 回声 · 意义处理器</div>
-            <p class="user-intro">结构化审美·叙事表达·元认知操作<br>
-你从福建小城走到上海，从"被AI冲击"到成为驾驭AI的策略师。你的天赋是痛苦锻造的武器：将焦虑转化为思维导图，将迷茫写成故事。系统根据你的画像已自动校准警惕完美主义拖延，但相信你的三层防御机制也能被温柔安放。这里是你的私人精力操盘台。</p>
+                <summary>使用说明 <span>查看记录方式</span></summary>
+            <div class="user-name">VitaFlow · 精力记录</div>
+            <p class="user-intro">用于记录体能、情感、思维与意志账户的每日状态。首次使用从空白记录开始；评分、趋势和分析只基于已保存的记录。</p>
             <div class="tags">
-                <span class="tag">🧠 结构化审美</span>
-                <span class="tag">✍️ 叙事表达</span>
-                <span class="tag">🔄 元认知操作</span>
-                <span class="tag">🎨 体验架构师</span>
-                <span class="tag">💡 AI策略师</span>
+                <span class="tag">🏃 体能记录</span>
+                <span class="tag">❤️ 情感回顾</span>
+                <span class="tag">🧠 思维状态</span>
+                <span class="tag">🌟 意志复盘</span>
+                <span class="tag">📊 按记录汇总</span>
             </div>
 
             </details>
@@ -83,26 +82,26 @@
             <button type="button" class="account-card" onclick="openDetail('physical')">
                 <span class="account-icon">🏃</span>
                 <span class="account-title">体能账户</span>
-                <span class="account-score" id="physicalScore">85</span>
-                <span class="trend-badge">↑ 5% 本周</span>
+                <span class="account-score" id="physicalScore">—</span>
+                <span class="trend-badge">按记录计算</span>
             </button>
             <button type="button" class="account-card" onclick="openDetail('emotional')">
                 <span class="account-icon">❤️</span>
                 <span class="account-title">情感账户</span>
-                <span class="account-score" id="emotionalScore">78</span>
-                <span class="trend-badge">↓ 2% 本周</span>
+                <span class="account-score" id="emotionalScore">—</span>
+                <span class="trend-badge">按记录计算</span>
             </button>
             <button type="button" class="account-card" onclick="openDetail('focus')">
                 <span class="account-icon">🎯</span>
                 <span class="account-title">思维账户</span>
-                <span class="account-score" id="focusScore">92</span>
-                <span class="trend-badge">↑ 3% 本周</span>
+                <span class="account-score" id="focusScore">—</span>
+                <span class="trend-badge">按记录计算</span>
             </button>
             <button type="button" class="account-card" onclick="openDetail('meaning')">
                 <span class="account-icon">🌟</span>
                 <span class="account-title">意志账户</span>
-                <span class="account-score" id="meaningScore">88</span>
-                <span class="trend-badge">↑ 8% 本周</span>
+                <span class="account-score" id="meaningScore">—</span>
+                <span class="trend-badge">按记录计算</span>
             </button>
         </div>
 
@@ -150,7 +149,7 @@
                 <span class="stat-label">✅ 累计完成</span>
             </button>
             <button type="button" class="stat-card" onclick="openDetail('avg')">
-                <span class="stat-value" id="avgScore">86</span>
+                <span class="stat-value" id="avgScore">—</span>
                 <span class="stat-label">📊 平均得分</span>
             </button>
         </div>
@@ -189,19 +188,19 @@
             <div class="responsive-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
                 <div style="background: rgba(255, 250, 252, 0.9); border-radius: 20px; padding: 16px; border: 1px solid #ffe2f0;">
                     <h4 style="color: #e88a4c; font-size: 0.9rem; margin-bottom: 8px;">🏃 体能得分趋势</h4>
-                    <div style="height: 140px;"><canvas id="physicalTrendChart"></canvas></div>
+                    <div style="height: 140px; position: relative;"><canvas id="physicalTrendChart"></canvas><div id="physicalTrendChartEmpty" style="position: absolute; inset: 50% 0 auto; text-align: center; color: #8b7a7a;">待记录评分后展示趋势</div></div>
                 </div>
                 <div style="background: rgba(255, 250, 252, 0.9); border-radius: 20px; padding: 16px; border: 1px solid #ffe2f0;">
                     <h4 style="color: #c4679c; font-size: 0.9rem; margin-bottom: 8px;">❤️ 情感得分趋势</h4>
-                    <div style="height: 140px;"><canvas id="emotionalTrendChart"></canvas></div>
+                    <div style="height: 140px; position: relative;"><canvas id="emotionalTrendChart"></canvas><div id="emotionalTrendChartEmpty" style="position: absolute; inset: 50% 0 auto; text-align: center; color: #8b7a7a;">待记录评分后展示趋势</div></div>
                 </div>
                 <div style="background: rgba(255, 250, 252, 0.9); border-radius: 20px; padding: 16px; border: 1px solid #ffe2f0;">
                     <h4 style="color: #8b5e9e; font-size: 0.9rem; margin-bottom: 8px;">🧠 思维得分趋势</h4>
-                    <div style="height: 140px;"><canvas id="focusTrendChart"></canvas></div>
+                    <div style="height: 140px; position: relative;"><canvas id="focusTrendChart"></canvas><div id="focusTrendChartEmpty" style="position: absolute; inset: 50% 0 auto; text-align: center; color: #8b7a7a;">待记录评分后展示趋势</div></div>
                 </div>
                 <div style="background: rgba(255, 250, 252, 0.9); border-radius: 20px; padding: 16px; border: 1px solid #ffe2f0;">
                     <h4 style="color: #a78bfa; font-size: 0.9rem; margin-bottom: 8px;">🔥 意志得分趋势</h4>
-                    <div style="height: 140px;"><canvas id="meaningTrendChart"></canvas></div>
+                    <div style="height: 140px; position: relative;"><canvas id="meaningTrendChart"></canvas><div id="meaningTrendChartEmpty" style="position: absolute; inset: 50% 0 auto; text-align: center; color: #8b7a7a;">待记录评分后展示趋势</div></div>
                 </div>
             </div>
         </div>
@@ -255,7 +254,7 @@
             <div class="calendar-panel">
                 <h3 class="panel-title"><i class="fas fa-rocket"></i> 目标拆解</h3>
                 <div class="goal-input-area">
-                    <input type="text" id="goalInput" aria-label="中长期目标" placeholder="输入中长期目标（如：成为AI时代的产品策略师）...">
+                    <input type="text" id="goalInput" aria-label="中长期目标" placeholder="输入希望推进的目标（例如：完成一个项目）...">
                     <button class="add-btn" onclick="generateGoalSuggestions()">🎯 AI拆解</button>
                 </div>
                 <div id="goalSuggestions" class="goal-suggestions" style="display: none;"></div>
@@ -419,9 +418,9 @@
             <div class="progress-ring">
                 <svg viewBox="0 0 100 100">
                     <circle class="bg" cx="50" cy="50" r="42"/>
-                    <circle class="fg" cx="50" cy="50" r="42" stroke="#e88a4c" stroke-dasharray="264" stroke-dashoffset="40"/>
+                    <circle class="fg" cx="50" cy="50" r="42" stroke="#e88a4c" stroke-dasharray="264" stroke-dashoffset="264" opacity="0.25"/>
                 </svg>
-                <div class="center"><div class="number physical-theme" id="physicalProgress">0</div><div class="label">当前能量</div></div>
+                <div class="center"><div class="number physical-theme" id="physicalProgress">—</div><div class="label">当前能量</div></div>
             </div>
         </div>
         <div class="tabs">
@@ -437,13 +436,13 @@
                 <div class="theory-text">体能是精力管理的基础。根据吉姆·洛尔的精力管理理论，体能包括身体能量，通过规律的运动、充足的睡眠和均衡的饮食来维持。体能账户的核心是：精力不是消耗品，而是可以通过锻炼不断积累和恢复的资源。</div>
             </div>
         </div>
-        <div id="physical-trend" class="tab-content"><div class="chart-container"><canvas id="physicalChart"></canvas></div></div>
+        <div id="physical-trend" class="tab-content"><div class="chart-container" style="position: relative;"><canvas id="physicalChart"></canvas><div id="physicalChartEmpty" style="position: absolute; inset: 50% 0 auto; text-align: center; color: #8b7a7a;">待记录评分后展示趋势</div></div></div>
         <div id="physical-record" class="tab-content">
             <div class="record-form">
                 <div class="form-group">
                     <label class="form-label">今日得分 (0-100)</label>
-                    <input type="range" class="form-range" id="physicalScoreInput" min="0" max="100" value="85" oninput="updateScorePreview('physical', this.value)">
-                    <div style="text-align: center; font-size: 1.5rem; font-weight: 700; color: #e88a4c; margin-top: 8px;" id="physicalPreview">85</div>
+                    <input type="range" class="form-range" id="physicalScoreInput" min="0" max="100" oninput="updateScorePreview('physical', this.value)">
+                    <div style="text-align: center; font-size: 1.5rem; font-weight: 700; color: #e88a4c; margin-top: 8px;" id="physicalPreview">待记录</div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">日期</label>
@@ -549,9 +548,9 @@
             <div class="progress-ring">
                 <svg viewBox="0 0 100 100">
                     <circle class="bg" cx="50" cy="50" r="42"/>
-                    <circle class="fg" cx="50" cy="50" r="42" stroke="#c4679c" stroke-dasharray="264" stroke-dashoffset="58"/>
+                    <circle class="fg" cx="50" cy="50" r="42" stroke="#c4679c" stroke-dasharray="264" stroke-dashoffset="264" opacity="0.25"/>
                 </svg>
-                <div class="center"><div class="number emotional-theme" id="emotionalProgress">0</div><div class="label">当前能量</div></div>
+                <div class="center"><div class="number emotional-theme" id="emotionalProgress">—</div><div class="label">当前能量</div></div>
             </div>
         </div>
         <div class="tabs">
@@ -567,13 +566,13 @@
                 <div class="theory-text">积极情绪不仅是结果，更是资源。根据弗雷德里克森的拓展建构理论，积极情绪能拓展我们的思维视野和行动资源。情感账户的核心是：通过记录和感恩，主动积累积极情绪体验。</div>
             </div>
         </div>
-        <div id="emotional-trend" class="tab-content"><div class="chart-container"><canvas id="emotionalChart"></canvas></div></div>
+        <div id="emotional-trend" class="tab-content"><div class="chart-container" style="position: relative;"><canvas id="emotionalChart"></canvas><div id="emotionalChartEmpty" style="position: absolute; inset: 50% 0 auto; text-align: center; color: #8b7a7a;">待记录评分后展示趋势</div></div></div>
         <div id="emotional-record" class="tab-content">
             <div class="record-form">
                 <div class="form-group">
                     <label class="form-label">今日得分 (0-100)</label>
-                    <input type="range" class="form-range" id="emotionalScoreInput" min="0" max="100" value="78" oninput="updateScorePreview('emotional', this.value)">
-                    <div style="text-align: center; font-size: 1.5rem; font-weight: 700; color: #c4679c; margin-top: 8px;" id="emotionalPreview">78</div>
+                    <input type="range" class="form-range" id="emotionalScoreInput" min="0" max="100" oninput="updateScorePreview('emotional', this.value)">
+                    <div style="text-align: center; font-size: 1.5rem; font-weight: 700; color: #c4679c; margin-top: 8px;" id="emotionalPreview">待记录</div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">日期</label>
@@ -697,9 +696,9 @@
             <div class="progress-ring">
                 <svg viewBox="0 0 100 100">
                     <circle class="bg" cx="50" cy="50" r="42"/>
-                    <circle class="fg" cx="50" cy="50" r="42" stroke="#8b5e9e" stroke-dasharray="264" stroke-dashoffset="21"/>
+                    <circle class="fg" cx="50" cy="50" r="42" stroke="#8b5e9e" stroke-dasharray="264" stroke-dashoffset="264" opacity="0.25"/>
                 </svg>
-                <div class="center"><div class="number focus-theme" id="focusProgress">0</div><div class="label">当前能量</div></div>
+                <div class="center"><div class="number focus-theme" id="focusProgress">—</div><div class="label">当前能量</div></div>
             </div>
         </div>
         <div class="tabs">
@@ -715,13 +714,13 @@
                 <div class="theory-text">深度专注是最高质量的思维能量。根据契克森米哈赖的心流理论，当挑战与技能匹配时，我们会进入完全沉浸的状态。专注账户的核心是：保护深度工作时间，减少碎片化，保持高专注度的积累。</div>
             </div>
         </div>
-        <div id="focus-trend" class="tab-content"><div class="chart-container"><canvas id="focusChart"></canvas></div></div>
+        <div id="focus-trend" class="tab-content"><div class="chart-container" style="position: relative;"><canvas id="focusChart"></canvas><div id="focusChartEmpty" style="position: absolute; inset: 50% 0 auto; text-align: center; color: #8b7a7a;">待记录评分后展示趋势</div></div></div>
         <div id="focus-record" class="tab-content">
             <div class="record-form">
                 <div class="form-group">
                     <label class="form-label">今日得分 (0-100)</label>
-                    <input type="range" class="form-range" id="focusScoreInput" min="0" max="100" value="92" oninput="updateScorePreview('focus', this.value)">
-                    <div style="text-align: center; font-size: 1.5rem; font-weight: 700; color: #8b5e9e; margin-top: 8px;" id="focusPreview">92</div>
+                    <input type="range" class="form-range" id="focusScoreInput" min="0" max="100" oninput="updateScorePreview('focus', this.value)">
+                    <div style="text-align: center; font-size: 1.5rem; font-weight: 700; color: #8b5e9e; margin-top: 8px;" id="focusPreview">待记录</div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">日期</label>
@@ -814,9 +813,9 @@
             <div class="progress-ring">
                 <svg viewBox="0 0 100 100">
                     <circle class="bg" cx="50" cy="50" r="42"/>
-                    <circle class="fg" cx="50" cy="50" r="42" stroke="#a78bfa" stroke-dasharray="264" stroke-dashoffset="32"/>
+                    <circle class="fg" cx="50" cy="50" r="42" stroke="#a78bfa" stroke-dasharray="264" stroke-dashoffset="264" opacity="0.25"/>
                 </svg>
-                <div class="center"><div class="number meaning-theme" id="meaningProgress">0</div><div class="label">当前能量</div></div>
+                <div class="center"><div class="number meaning-theme" id="meaningProgress">—</div><div class="label">当前能量</div></div>
             </div>
         </div>
         <div class="tabs">
@@ -832,13 +831,13 @@
                 <div class="theory-text">意义感来自自主、胜任、关联三种基本心理需求的满足。根据自我决定理论，当我们的行动与内在价值观一致时，会获得最深层的满足感。意义账户的核心是：将日常行动与深层价值观连接。</div>
             </div>
         </div>
-        <div id="meaning-trend" class="tab-content"><div class="chart-container"><canvas id="meaningChart"></canvas></div></div>
+        <div id="meaning-trend" class="tab-content"><div class="chart-container" style="position: relative;"><canvas id="meaningChart"></canvas><div id="meaningChartEmpty" style="position: absolute; inset: 50% 0 auto; text-align: center; color: #8b7a7a;">待记录评分后展示趋势</div></div></div>
         <div id="meaning-record" class="tab-content">
             <div class="record-form">
                 <div class="form-group">
                     <label class="form-label">今日得分 (0-100)</label>
-                    <input type="range" class="form-range" id="meaningScoreInput" min="0" max="100" value="88" oninput="updateScorePreview('meaning', this.value)">
-                    <div style="text-align: center; font-size: 1.5rem; font-weight: 700; color: #a78bfa; margin-top: 8px;" id="meaningPreview">88</div>
+                    <input type="range" class="form-range" id="meaningScoreInput" min="0" max="100" oninput="updateScorePreview('meaning', this.value)">
+                    <div style="text-align: center; font-size: 1.5rem; font-weight: 700; color: #a78bfa; margin-top: 8px;" id="meaningPreview">待记录</div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">日期</label>
@@ -853,22 +852,22 @@
                     <div class="theory-title"><i class="fas fa-heart"></i> 人生意义三问</div>
                     <div style="margin-bottom: 12px;">
                         <label class="form-label" style="font-size: 0.9rem;">1. 早上起床的兴奋度 (1-10)</label>
-                        <input type="range" class="form-range" id="meaningQ1" min="1" max="10" value="5" oninput="updateMeaningScore()">
-                        <div style="text-align: center; color: #a78bfa;">得分: <span id="meaningQ1Value">5</span></div>
+                        <input type="range" class="form-range" id="meaningQ1" min="1" max="10" value="5" data-selected="false" oninput="updateMeaningScore(this)">
+                        <div style="text-align: center; color: #a78bfa;">得分: <span id="meaningQ1Value">未选择</span></div>
                     </div>
                     <div style="margin-bottom: 12px;">
                         <label class="form-label" style="font-size: 0.9rem;">2. 享受过程的程度 (1-10)</label>
-                        <input type="range" class="form-range" id="meaningQ2" min="1" max="10" value="5" oninput="updateMeaningScore()">
-                        <div style="text-align: center; color: #a78bfa;">得分: <span id="meaningQ2Value">5</span></div>
+                        <input type="range" class="form-range" id="meaningQ2" min="1" max="10" value="5" data-selected="false" oninput="updateMeaningScore(this)">
+                        <div style="text-align: center; color: #a78bfa;">得分: <span id="meaningQ2Value">未选择</span></div>
                     </div>
                     <div style="margin-bottom: 12px;">
                         <label class="form-label" style="font-size: 0.9rem;">3. 价值取向责任感 (1-10)</label>
-                        <input type="range" class="form-range" id="meaningQ3" min="1" max="10" value="5" oninput="updateMeaningScore()">
-                        <div style="text-align: center; color: #a78bfa;">得分: <span id="meaningQ3Value">5</span></div>
+                        <input type="range" class="form-range" id="meaningQ3" min="1" max="10" value="5" data-selected="false" oninput="updateMeaningScore(this)">
+                        <div style="text-align: center; color: #a78bfa;">得分: <span id="meaningQ3Value">未选择</span></div>
                     </div>
                     <div style="text-align: center; padding: 12px; background: rgba(167, 139, 250, 0.2); border-radius: 12px;">
-                        <div style="font-size: 2rem; font-weight: 700; color: #a78bfa;" id="meaningTotalScore">15</div>
-                        <div style="font-size: 0.9rem; color: #6a4a7a;" id="meaningInterpretation">目标感一般</div>
+                        <div style="font-size: 2rem; font-weight: 700; color: #a78bfa;" id="meaningTotalScore">待评估</div>
+                        <div style="font-size: 0.9rem; color: #6a4a7a;" id="meaningInterpretation">请选择三项后查看结果</div>
                     </div>
                     <button class="add-btn" style="width: 100%; background: linear-gradient(135deg, #a78bfa, #8b5cf6); margin-top: 12px;" onclick="saveMeaningQuiz()">💾 保存评估</button>
                     <div style="margin-top: 12px; border-top: 1px solid rgba(167, 139, 250, 0.2); padding-top: 12px;">
@@ -970,7 +969,7 @@
             <div class="progress-ring">
                 <svg viewBox="0 0 100 100">
                     <circle class="bg" cx="50" cy="50" r="42"/>
-                    <circle class="fg" cx="50" cy="50" r="42" stroke="#ffb347" stroke-dasharray="264" stroke-dashoffset="70"/>
+                    <circle class="fg" cx="50" cy="50" r="42" stroke="#ffb347" stroke-dasharray="264" stroke-dashoffset="264" opacity="0.25"/>
                 </svg>
                 <div class="center"><div class="number streak-theme" id="streakProgress">0</div><div class="label">连续天数</div></div>
             </div>
@@ -998,7 +997,7 @@
                     <li><i class="fas fa-star"></i> 你的最长连续打卡：<span id="streakLongest">0天</span></li>
                     <li><i class="fas fa-calendar-check"></i> 本月打卡率：<span id="streakMonthRate">0%</span></li>
                     <li><i class="fas fa-clock"></i> 最常打卡时段：<span id="streakCommonTime">暂无数据</span></li>
-                    <li><i class="fas fa-trophy"></i> 继续保持，你的三层防御机制正在强化！</li>
+                    <li><i class="fas fa-trophy"></i> 统计仅依据已保存的打卡记录。</li>
                 </ul>
             </div>
         </div>
@@ -1013,7 +1012,7 @@
             <div class="progress-ring">
                 <svg viewBox="0 0 100 100">
                     <circle class="bg" cx="50" cy="50" r="42"/>
-                    <circle class="fg" cx="50" cy="50" r="42" stroke="#74ebd5" stroke-dasharray="264" stroke-dashoffset="50"/>
+                    <circle class="fg" cx="50" cy="50" r="42" stroke="#74ebd5" stroke-dasharray="264" stroke-dashoffset="264" opacity="0.25"/>
                 </svg>
                 <div class="center"><div class="number tasks-theme" id="tasksProgress">0</div><div class="label">累计完成</div></div>
             </div>
@@ -1051,7 +1050,7 @@
                     <circle class="bg" cx="50" cy="50" r="42"/>
                     <circle class="fg" cx="50" cy="50" r="42" stroke="#667eea" stroke-dasharray="264" stroke-dashoffset="38"/>
                 </svg>
-                <div class="center"><div class="number avg-theme" id="avgProgress">0</div><div class="label">平均得分</div></div>
+                <div class="center"><div class="number avg-theme" id="avgProgress">—</div><div class="label">平均得分</div></div>
             </div>
         </div>
         <div class="tabs">
@@ -1059,16 +1058,16 @@
             <button class="tab-btn" onclick="switchTab('avg', 'compare')">🆚 账户对比</button>
             <button class="tab-btn" onclick="switchTab('avg', 'insights')">💡 深度洞察</button>
         </div>
-        <div id="avg-trend" class="tab-content active"><div class="chart-container"><canvas id="avgChart"></canvas></div></div>
-        <div id="avg-compare" class="tab-content"><div class="chart-container"><canvas id="compareChart"></canvas></div></div>
+        <div id="avg-trend" class="tab-content active"><div class="chart-container" style="position: relative;"><canvas id="avgChart"></canvas><div id="avgChartEmpty" style="position: absolute; inset: 50% 0 auto; text-align: center; color: #8b7a7a;">待记录账户评分后展示趋势</div></div></div>
+        <div id="avg-compare" class="tab-content"><div class="chart-container" style="position: relative;"><canvas id="compareChart"></canvas><div id="compareChartEmpty" style="position: absolute; inset: 50% 0 auto; text-align: center; color: #8b7a7a;">待录入账户评分后展示对比</div></div></div>
         <div id="avg-insights" class="tab-content">
             <div class="guide-card">
-                <div class="theory-title"><i class="fas fa-lightbulb"></i> 基于你的画像的洞察</div>
+                <div class="theory-title"><i class="fas fa-lightbulb"></i> 数据使用说明</div>
                 <ul class="guide-list">
-                    <li><i class="fas fa-brain"></i> 你的思维账户表现最佳，继续保护深度创作时间</li>
-                    <li><i class="fas fa-heart"></i> 情感账户需要更多关注，建议增加感恩日记频率</li>
-                    <li><i class="fas fa-anchor"></i> 意志账户稳定且上升，说明你的价值观行动有效</li>
-                    <li><i class="fas fa-snowflake"></i> 警惕完美主义，允许状态波动，温柔安放你的三层防御</li>
+                    <li><i class="fas fa-brain"></i> 趋势只汇总已记录的账户评分，缺失日期保持空白</li>
+                    <li><i class="fas fa-heart"></i> 已记录的 0 分会按 0 分参与展示与汇总</li>
+                    <li><i class="fas fa-anchor"></i> 保存评分后，账户趋势与对比将基于这些记录更新</li>
+                    <li><i class="fas fa-snowflake"></i> 此处不预设个人评价；请结合自己的记录理解结果</li>
                 </ul>
             </div>
         </div>

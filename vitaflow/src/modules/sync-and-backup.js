@@ -264,11 +264,15 @@
         }
 
         function isLocalSyncPossible() {
-            return location.protocol === 'http:' || location.protocol === 'https:';
+            const browserOnly = /(?:^|[?&])mode=browser(?:&|$)/.test(location.search || '');
+            return !browserOnly && (location.protocol === 'http:' || location.protocol === 'https:');
         }
 
         async function initLocalSync() {
-            if (!isLocalSyncPossible()) return;
+            if (!isLocalSyncPossible()) {
+                showLocalSyncDiagnostic('当前浏览器本机保存（未启用跨设备同步）');
+                return;
+            }
             localSyncHasRemoteData = false;
             localSyncConflict = null;
             try {

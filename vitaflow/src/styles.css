@@ -327,3 +327,25 @@
             html { scroll-behavior: auto; }
             *, *::before, *::after { animation: none !important; transition: none !important; }
         }
+
+        body.ops-hub-embed { padding: 20px 16px 48px; }
+        .ops-hub-embed .app-header { display: none; }
+        .ops-hub-embed .user-profile { margin-bottom: 20px; }
+        body.ops-hub-embed[data-ops-theme="dark"] {
+            --page-bg: #0d0e16;
+            --surface: #181923;
+            --surface-muted: #22232f;
+            --text: #eeeeF5;
+            --muted: #a5a5b8;
+            --accent: #bca4d0;
+            --border: #363747;
+            --card-shadow: none;
+            color-scheme: dark;
+        }
+        .ops-hub-embed[data-ops-theme="dark"] :is(.account-title, .panel-title, .todo-text, .current-month, .stat-label, .section-heading h2, .profile-details summary, .data-tools summary) { color: var(--text); }
+        .ops-hub-embed[data-ops-theme="dark"] :is(.section-heading p, .backup-help, .user-intro, .summary-hint, .trend-badge) { color: var(--muted); }
+        @media (max-width:480px) {
+            #emotionBoard { grid-template-columns:repeat(7,minmax(0,1fr)) !important; gap:4px !important; }
+            #emotionBoard > div { min-width:0; padding:6px 2px !important; border-radius:8px !important; }
+            #emotionBoard > div > div { font-size:.75rem !important; }
+        }

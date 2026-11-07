@@ -41,6 +41,7 @@
             runInitStep('updateFilmCount', updateFilmCount);
             runInitStep('renderMediaCalendar', renderMediaCalendar);
             enableLocalSyncAfterInitialRender();
+            window.dispatchEvent(new Event('vitaflow:ready'));
         }
 
         if (document.readyState === 'loading') {

@@ -205,3 +205,75 @@ html:not(.dark) .tab-btn.active {
 html:not(.dark) ::-webkit-scrollbar-track { background: #f1f5f9; }
 html:not(.dark) ::-webkit-scrollbar-thumb { background: #cbd5e1; }
 html:not(.dark) ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Daily home */
+.today-intro { display:flex; align-items:flex-end; justify-content:space-between; gap:1rem; margin: 1.5rem 0; }
+.today-intro h2 { font-size:clamp(1.6rem,3vw,2.35rem); font-weight:800; letter-spacing:-.04em; color:#f4f4f5; margin:.3rem 0; }
+.today-intro p:not(.today-kicker), .today-muted, .today-footnote { color:#a1a1aa; font-size:.85rem; line-height:1.65; }
+.today-kicker { color:#a5b4fc; font-size:.7rem; font-weight:700; letter-spacing:.13em; }
+.today-date, .today-chip { border:1px solid #373461; border-radius:999px; color:#c7d2fe; padding:.35rem .7rem; font-size:.75rem; white-space:nowrap; }
+.today-grid { display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); gap:1rem; }
+.today-card { background:linear-gradient(145deg,rgba(29,29,41,.95),rgba(16,17,25,.95)); border:1px solid #30303d; border-radius:1.1rem; padding:1.4rem; }
+.today-card h3 { font-size:1.1rem; color:#fafafa; font-weight:750; margin:.35rem 0; }
+.today-card-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+.today-form { display:flex; gap:.55rem; margin-top:1.15rem; }
+.today-form input { flex:1; min-width:0; border:1px solid #52525b; border-radius:.7rem; background:#18181b; color:#fafafa; padding:.7rem .85rem; font-size:.875rem; }
+.today-form button { border-radius:.7rem; padding:.7rem 1rem; background:#6366f1; color:white; font-weight:700; }
+.today-form button:disabled { opacity:.45; cursor:not-allowed; }
+.today-feedback { min-height:1.3rem; color:#fbbf24; font-size:.75rem; margin-top:.4rem; }
+.today-list { display:grid; gap:.5rem; margin-top:.3rem; }
+.today-list li { display:flex; align-items:center; gap:.7rem; padding:.75rem; border:1px solid #3f3f46; border-radius:.7rem; background:rgba(0,0,0,.12); }
+.focus-toggle { color:#a5b4fc; font-size:1.15rem; flex:none; }
+.focus-text { flex:1; min-width:0; overflow-wrap:anywhere; color:#f4f4f5; font-size:.875rem; }
+.focus-text.done { color:#a1a1aa; text-decoration:line-through; }
+.focus-remove { color:#a1a1aa; font-size:.75rem; padding:.3rem; }
+.focus-progress { margin-top:.7rem; }
+.focus-previous { border-top:1px solid #3f3f46; margin-top:1.1rem; padding-top:1rem; }
+.focus-previous h4 { color:#e4e4e7; font-size:.9rem; font-weight:650; }
+.focus-previous .today-card-heading { margin-bottom:.3rem; flex-wrap:wrap; gap:.25rem .75rem; }
+.focus-carry { color:#c7d2fe; border:1px solid #525270; border-radius:.5rem; font-size:.75rem; padding:.4rem .55rem; flex:none; }
+.focus-carry:disabled { color:#a1a1aa; opacity:.6; cursor:not-allowed; }
+.today-home button:focus-visible, .today-form input:focus-visible { outline:2px solid #818cf8; outline-offset:3px; }
+.today-empty { color:#a1a1aa; font-size:.85rem; padding:1.2rem .2rem; }
+.today-links { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.6rem; margin-top:1.1rem; }
+.today-links button { display:flex; flex-direction:column; text-align:left; gap:.4rem; padding:.9rem; border:1px solid #3f3f46; border-radius:.75rem; background:#20202a; transition:border-color .15s; }
+.today-links button:hover { border-color:#818cf8; }
+.today-links strong { color:#f4f4f5; font-size:.85rem; }
+.today-links span { color:#a5b4fc; font-size:.75rem; }
+.today-footnote { margin:1rem 0; }
+html:not(.dark) .today-card { background:#fff; border-color:#d4d4d8; }
+html:not(.dark) .today-intro h2, html:not(.dark) .today-card h3, html:not(.dark) .focus-text, html:not(.dark) .today-links strong { color:#18181b; }
+html:not(.dark) .today-intro p:not(.today-kicker), html:not(.dark) .today-muted, html:not(.dark) .today-footnote, html:not(.dark) .today-empty, html:not(.dark) .focus-remove { color:#52525b; }
+html:not(.dark) .today-form input, html:not(.dark) .today-links button { background:#f4f4f5; color:#18181b; border-color:#d4d4d8; }
+html:not(.dark) .today-list li { background:#fafafa; border-color:#e4e4e7; }
+html:not(.dark) .today-kicker, html:not(.dark) .today-links span, html:not(.dark) .focus-toggle { color:#4338ca; }
+html:not(.dark) .today-date, html:not(.dark) .today-chip { color:#4338ca; border-color:#c7d2fe; }
+html:not(.dark) .focus-previous { border-color:#e4e4e7; }
+html:not(.dark) .focus-previous h4 { color:#27272a; }
+html:not(.dark) .focus-carry { color:#4338ca; border-color:#c7d2fe; }
+html:not(.dark) .focus-carry:disabled { color:#71717a; }
+html:not(.dark) .focus-text.done { color:#71717a; }
+html:not(.dark) .today-feedback { color:#92400e; }
+@media (max-width:720px) { .today-grid { grid-template-columns:1fr; } .today-intro { align-items:flex-start; } .today-card { padding:1.1rem; } }
+@media (prefers-reduced-motion:reduce) { .today-links button { transition:none; } }
+
+/* Complete VitaFlow workspace */
+.vitaflow-heading, .vitaflow-actions, .vitaflow-navigation { display:flex; align-items:center; gap:.6rem; }
+.vitaflow-heading { justify-content:space-between; flex-wrap:wrap; gap:1rem; }
+.vitaflow-actions { flex-wrap:wrap; }
+.vitaflow-actions :is(button,a), .vitaflow-navigation button { border:1px solid #3f3f46; border-radius:.55rem; padding:.5rem .7rem; font-size:.8rem; color:#d4d4d8; background:#20202a; }
+.vitaflow-navigation { margin-top:1rem; flex-wrap:wrap; }
+.vitaflow-navigation button:disabled { opacity:.5; cursor:wait; }
+.vitaflow-navigation button:focus-visible, .vitaflow-actions :is(button,a):focus-visible { outline:2px solid #818cf8; outline-offset:3px; }
+.vitaflow-connection { margin-top:1rem; border-top:1px solid #3f3f46; padding-top:.8rem; }
+.vitaflow-connection summary { cursor:pointer; color:#a1a1aa; font-size:.8rem; }
+.vitaflow-connection-fields { display:grid; grid-template-columns:minmax(0,1fr) minmax(140px,.5fr) auto; align-items:end; gap:.7rem; margin-top:.8rem; }
+.vitaflow-connection-fields label { color:#a1a1aa; font-size:.75rem; }
+.vitaflow-connection-fields input { display:block; width:100%; min-width:0; margin-top:.3rem; padding:.65rem; border:1px solid #52525b; border-radius:.55rem; color:#fafafa; background:#18181b; }
+.vitaflow-connection-fields button { padding:.65rem .9rem; border-radius:.55rem; color:white; background:#047857; font-size:.8rem; }
+.vitaflow-workspace { width:100%; height:88vh; min-height:680px; border:0; background:#f6f5f7; }
+html:not(.dark) .vitaflow-actions :is(button,a), html:not(.dark) .vitaflow-navigation button { background:#fafafa; color:#27272a; border-color:#d4d4d8; }
+html:not(.dark) .vitaflow-connection { border-color:#e4e4e7; }
+html:not(.dark) .vitaflow-connection :is(summary,label) { color:#52525b; }
+html:not(.dark) .vitaflow-connection-fields input { background:#fff; color:#18181b; border-color:#d4d4d8; }
+@media (max-width:640px) { .vitaflow-connection-fields { grid-template-columns:minmax(0,1fr); } .vitaflow-workspace { min-height:720px; } }

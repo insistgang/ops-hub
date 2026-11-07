@@ -6,6 +6,141 @@
 let globalStatus = window.__OPS_STATUS__ || null;
 let memoryRules = window.__OPS_MEMORY__ || null;
 let currentCareerFilter = "all";
+let snapshotSource = globalStatus ? "embedded" : "none";
+let snapshotLoadError = "";
+let dataLoadPromise = null;
+let memoryRulesSource = memoryRules ? "embedded" : "none";
+const DAILY_CHECK_KEYS = ["起了", "动了", "写了", "关了"];
+let dailyChecksEventsBound = false;
+
+function calendarDay(now = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit"
+  }).formatToParts(now);
+  const value = type => parts.find(part => part.type === type).value;
+  return `${value("year")}-${value("month")}-${value("day")}`;
+}
+
+function normalizeDailyChecks(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const checks = Object.fromEntries(DAILY_CHECK_KEYS.map(key => [key, false]));
+  for (const key of DAILY_CHECK_KEYS) {
+    if (Object.prototype.hasOwnProperty.call(value, key)) {
+      if (typeof value[key] !== "boolean") return null;
+      checks[key] = value[key];
+    }
+  }
+  return checks;
+}
+
+function readDailyChecks(day) {
+  const storageKey = `ops_checks_${day}`;
+  let raw;
+  try {
+    raw = localStorage.getItem(storageKey);
+  } catch (error) {
+    return {
+      checks: readSnapshotDailyChecks(day), raw: null, valid: false,
+      error: "浏览器本机存储读取失败，四勾暂时不能保存。"
+    };
+  }
+
+  if (raw !== null) {
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (error) {
+      return { checks: defaultDailyChecks(), raw, valid: false, error: "本机四勾记录损坏，已保留原记录，无法写入。" };
+    }
+    const checks = normalizeDailyChecks(parsed);
+    if (!checks) {
+      return { checks: defaultDailyChecks(), raw, valid: false, error: "本机四勾记录格式无效，已保留原记录，无法写入。" };
+    }
+    return { checks, raw, valid: true, error: "" };
+  }
+
+  return { checks: readSnapshotDailyChecks(day), raw: null, valid: true, error: "" };
+}
+
+function defaultDailyChecks() {
+  return Object.fromEntries(DAILY_CHECK_KEYS.map(key => [key, false]));
+}
+
+function readSnapshotDailyChecks(day) {
+  const record = globalStatus?.daily_checks;
+  if (record?.date !== day) return defaultDailyChecks();
+  if (!record.checks || typeof record.checks !== "object" || Array.isArray(record.checks)) return defaultDailyChecks();
+  return Object.fromEntries(DAILY_CHECK_KEYS.map(key => [
+    key, typeof record.checks[key] === "boolean" ? record.checks[key] : false
+  ]));
+}
+
+function setDailyChecksFeedback(message, kind = "") {
+  const feedback = document.getElementById("daily-checks-feedback");
+  if (feedback) {
+    feedback.textContent = message;
+    feedback.dataset.kind = kind;
+    feedback.dataset.day = calendarDay();
+  }
+}
+
+function bindDailyChecksEvents() {
+  if (dailyChecksEventsBound) return;
+  dailyChecksEventsBound = true;
+  window.addEventListener?.("storage", event => {
+    if (event.key !== null && !String(event.key || "").startsWith("ops_checks_")) return;
+    renderMemoryHub();
+    safeCreateIcons();
+  });
+  window.addEventListener?.("ops:day-changed", event => {
+    if (event?.detail?.day && event.detail.day !== calendarDay()) return;
+    renderMemoryHub();
+    safeCreateIcons();
+  });
+  document.addEventListener?.("visibilitychange", () => {
+    if (document.visibilityState !== "visible") return;
+    renderMemoryHub();
+    safeCreateIcons();
+  });
+}
+
+function dateOrdinal(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ""));
+  if (!match) return null;
+  const [, year, month, day] = match.map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+    ? date.getTime() / 86400000 : null;
+}
+
+function getExamState(entry, now = new Date()) {
+  if (["awaiting_result", "result_recorded"].includes(entry.phase)) return { ...entry, days_left: null };
+  const target = dateOrdinal(entry.target_date);
+  const today = dateOrdinal(calendarDay(now));
+  const days = target === null ? null : target - today;
+  const action = String(entry.next_action || "").replace(/^(?:考前\s*\d+\s*天\s*[·:：]?\s*|今日考试\s*[·:：]?\s*)/, "");
+  return {
+    ...entry,
+    days_left: days,
+    next_action: days === null ? action : days < 0 ? "考试日期已过，请核对后续安排" : `${days === 0 ? "今日考试" : `考前 ${days} 天`} · ${action}`
+  };
+}
+
+function getSnapshotInfo(now = new Date()) {
+  const value = globalStatus?.meta?.last_synced;
+  if (!value) return { state: "unknown", label: globalStatus ? "快照时间未知" : "暂无数据", ageSeconds: null };
+  if (typeof value !== "string" || dateOrdinal(value.slice(0, 10)) === null) return { state: "invalid", label: "快照时间无效", ageSeconds: null };
+  // Collector timestamps without an offset are generated on the owner's Shanghai clock.
+  const normalized = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}$/.test(value)
+    ? value.replace(" ", "T") + "+08:00" : value;
+  const timestamp = new Date(normalized).getTime();
+  if (!Number.isFinite(timestamp)) return { state: "invalid", label: "快照时间无效", ageSeconds: null };
+  const seconds = Math.floor((now.getTime() - timestamp) / 1000);
+  if (seconds < 0) return { state: "future", label: "快照时间在未来，请核对", ageSeconds: seconds };
+  const age = Math.max(0, seconds);
+  const relative = age < 60 ? "不足 1 分钟" : age < 3600 ? `${Math.floor(age / 60)} 分钟前` : age < 86400 ? `${Math.floor(age / 3600)} 小时前` : `${Math.floor(age / 86400)} 天前`;
+  return { state: age >= 86400 ? "stale" : "snapshot", label: `快照 · ${relative}${age >= 86400 ? "，需同步" : ""}`, ageSeconds: age };
+}
 
 /**
  * Escape external/user-controlled text before injecting into innerHTML (XSS guard).
@@ -68,47 +203,6 @@ function initWeightTracker() {
   if (frame && !frame.getAttribute("src")) frame.src = "weight-tracker/index.html";
 }
 
-function initVitaFlow() {
-  const urlInput = document.getElementById("vitaflow-url");
-  const keyInput = document.getElementById("vitaflow-key");
-  const connectButton = document.getElementById("vitaflow-connect");
-  const frame = document.getElementById("vitaflow-frame");
-  const frameWrap = document.getElementById("vitaflow-frame-wrap");
-  const status = document.getElementById("vitaflow-status");
-  if (!urlInput || !keyInput || !connectButton || !frame || !frameWrap || !status) return;
-
-  const savedUrl = localStorage.getItem("ops_vitaflow_url");
-  if (savedUrl) {
-    try {
-      const parsed = new URL(savedUrl);
-      urlInput.value = `${parsed.origin}${parsed.pathname}`;
-      keyInput.value = parsed.searchParams.get("key") || "";
-      frame.src = savedUrl;
-      frameWrap.classList.remove("hidden");
-      status.textContent = "已载入上次使用的本地 VitaFlow 地址。";
-    } catch {
-      localStorage.removeItem("ops_vitaflow_url");
-    }
-  }
-
-  connectButton.addEventListener("click", () => {
-    try {
-      const target = new URL(urlInput.value.trim());
-      if (!["http:", "https:"].includes(target.protocol)) throw new Error("protocol");
-      const key = keyInput.value.trim();
-      if (key) target.searchParams.set("key", key);
-      else target.searchParams.delete("key");
-      localStorage.setItem("ops_vitaflow_url", target.toString());
-      frame.src = target.toString();
-      frameWrap.classList.remove("hidden");
-      status.textContent = "正在打开 VitaFlow；若页面为空，请确认本地同步服务正在运行。";
-      frame.scrollIntoView({ behavior: "smooth", block: "start" });
-    } catch {
-      status.textContent = "请输入完整的 http:// 或 https:// 本地地址。";
-    }
-  });
-}
-
 /* ---------- Day/Night Theme ---------- */
 
 function applyTheme(theme) {
@@ -121,6 +215,7 @@ function applyTheme(theme) {
     btn.title = isDark ? "切换到日间模式" : "切换到夜间模式";
   }
   safeCreateIcons();
+  window.OpsVitaFlow?.setTheme(theme);
 }
 
 function initTheme() {
@@ -137,12 +232,19 @@ function toggleTheme() {
 
 function startLiveClock() {
   const clockEl = document.getElementById("live-clock");
+  let displayedDay = calendarDay();
   const update = () => {
     const now = new Date();
     const pad = n => String(n).padStart(2, '0');
     const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
     if (clockEl) clockEl.innerText = timeStr;
     updateSyncAge();
+    const day = calendarDay(now);
+    if (day !== displayedDay) {
+      displayedDay = day;
+      window.dispatchEvent(new CustomEvent("ops:day-changed", { detail: { day } }));
+      renderAll();
+    }
   };
   update();
   setInterval(update, 1000);
@@ -152,23 +254,14 @@ function updateSyncAge() {
   const ageEl = document.getElementById("sync-age-text");
   if (!ageEl) return;
 
-  if (!globalStatus?.meta?.last_synced) {
-    ageEl.innerText = "已加载";
-    return;
-  }
-
-  const syncDate = new Date(globalStatus.meta.last_synced.replace(/-/g, "/"));
-  const now = new Date();
-  const diffSec = Math.floor((now - syncDate) / 1000);
-
-  if (isNaN(diffSec) || diffSec < 60) {
-    ageEl.innerText = "刚刚同步";
-  } else if (diffSec < 3600) {
-    ageEl.innerText = `${Math.floor(diffSec / 60)} 分钟前同步`;
-  } else if (diffSec < 86400) {
-    ageEl.innerText = `${Math.floor(diffSec / 3600)} 小时前同步`;
-  } else {
-    ageEl.innerText = `${Math.floor(diffSec / 86400)} 天前同步`;
+  const info = getSnapshotInfo();
+  ageEl.innerText = info.label;
+  ageEl.dataset.state = info.state;
+  ageEl.title = `采集时间：${globalStatus?.meta?.last_synced || "未知"}。页面刷新只重新读取快照，不执行设备探测。${snapshotLoadError}`;
+  const notice = document.getElementById("data-load-notice");
+  if (notice) {
+    notice.textContent = snapshotLoadError || (!globalStatus ? "尚未取得状态快照，请检查连接后重新读取。" : snapshotSource === "local" ? "已读取本机快照" : "已读取公开快照；个人日程和浏览器打卡分别保存");
+    notice.dataset.state = snapshotLoadError ? "warning" : info.state;
   }
 }
 
@@ -200,31 +293,89 @@ function initTabs() {
 }
 
 async function loadData(silent = false) {
-  try {
-    const statusRes = await fetch("data/status.json?t=" + Date.now());
-    if (statusRes.ok) {
-      globalStatus = await statusRes.json();
-    }
-
-    const rulesRes = await fetch("data/memory_rules.json?t=" + Date.now());
-    if (rulesRes.ok) {
-      memoryRules = await rulesRes.json();
-    }
-
+  if (dataLoadPromise) return dataLoadPromise;
+  if (window.location.protocol === "file:") {
+    snapshotLoadError = "文件模式显示随页面载入的快照；重新打开页面可重读，本机同步请使用 ops sync。";
     renderAll();
-  } catch (err) {
-    if (window.__OPS_STATUS__) {
-      globalStatus = window.__OPS_STATUS__;
-    }
-    if (window.__OPS_MEMORY__) {
-      memoryRules = window.__OPS_MEMORY__;
-    }
-    renderAll();
+    updateSyncAge();
+    return;
   }
+  const local = ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname);
+  const load = async name => {
+    const isRules = name === "memory_rules";
+    // Public rules are shipped as memory_rules.js, not a JSON endpoint.
+    // Only a local preview may read the private JSON source.
+    const sources = isRules ? (local ? ["data/memory_rules.json"] : [])
+      : local ? [`data/${name}.json`, `data/public/${name}.json`] : [`data/public/${name}.json`];
+    for (const path of sources) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      try {
+        const response = await fetch(`${path}?t=${Date.now()}`, { cache: "no-store", signal: controller.signal });
+        if (!response.ok) continue;
+        const data = await response.json();
+        if (!data || typeof data !== "object" || Array.isArray(data)) continue;
+        if (name === "status" && (!data.meta || !Array.isArray(data.projects_and_exams))) continue;
+        return { data, source: path.startsWith("data/public/") ? "public" : "local" };
+      } catch (error) {
+        // Try the public snapshot on a local preview without private source files.
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+    if (isRules) {
+      const previousLocal = local && memoryRulesSource === "local" && memoryRules;
+      const embedded = window.__OPS_MEMORY__;
+      const data = previousLocal || embedded;
+      if (data && typeof data === "object" && !Array.isArray(data)) {
+        return {
+          data, source: previousLocal ? "local" : "embedded",
+          warning: previousLocal ? "本机秩序规则未能重新读取，沿用上次载入的规则。" : ""
+        };
+      }
+    }
+    throw new Error(name);
+  };
+  dataLoadPromise = (async () => {
+    const [status, rules] = await Promise.allSettled([load("status"), load("memory_rules")]);
+    if (status.status === "fulfilled") {
+      globalStatus = status.value.data;
+      snapshotSource = status.value.source;
+    }
+    if (rules.status === "fulfilled") {
+      memoryRules = rules.value.data;
+      memoryRulesSource = rules.value.source;
+    }
+    const failed = [status.status === "rejected" ? "状态快照" : "", rules.status === "rejected" ? "秩序规则" : ""].filter(Boolean);
+    snapshotLoadError = failed.length ? `${failed.join("、")}读取失败；${globalStatus ? "保留上次可用数据，请稍后重试" : "暂无可用数据，请检查连接"}。` : rules.value.warning || "";
+    renderAll();
+    updateSyncAge();
+  })();
+  try { await dataLoadPromise; } finally { dataLoadPromise = null; }
 }
 
 function renderAll() {
-  if (!globalStatus) return;
+  if (!globalStatus) {
+    const emptyLabels = {
+      "metric-career-total": "—", "metric-career-sub": "暂无投递快照",
+      "metric-exam-days": "—", "metric-exam-unit": "考期未载入", "metric-exam-sub": "暂无考试快照",
+      "metric-compute-lat": "—", "metric-compute-sub": "暂无设备快照",
+      "win-status-text": "Win 4070S: 尚未探测", "jetson-status-text": "Jetson: 尚未探测",
+      "career-records-list": "暂无可用投递快照，请重新读取数据。",
+      "projects-radar-list": "暂无可用项目快照，请重新读取数据。"
+    };
+    Object.entries(emptyLabels).forEach(([id, label]) => {
+      const element = document.getElementById(id);
+      if (element) element.innerText = label;
+    });
+    renderMemoryHub();
+    safeCreateIcons();
+    updateSyncAge();
+    window.dispatchEvent(new CustomEvent("ops:data-updated", {
+      detail: { status: null, memoryRules, source: snapshotSource, error: snapshotLoadError }
+    }));
+    return;
+  }
   try {
     renderHeader();
     renderHeroMetrics();
@@ -237,6 +388,10 @@ function renderAll() {
     safeCreateIcons();
   } catch (err) {
     console.error("renderAll 异常:", err);
+  } finally {
+    window.dispatchEvent(new CustomEvent("ops:data-updated", {
+      detail: { status: globalStatus, memoryRules, source: snapshotSource, error: snapshotLoadError }
+    }));
   }
 }
 
@@ -256,13 +411,13 @@ function renderHeader() {
 
   if (winPill && winDot && winText) {
     if (win.status === "Online") {
-      winDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-      winText.innerText = win.latency_ms != null ? `Win 4070S: ${win.latency_ms}ms` : "Win 4070S: Online";
-      winPill.className = "flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-950/40 text-emerald-300 border border-emerald-800/50";
+      winDot.className = "w-2 h-2 rounded-full bg-emerald-400";
+      winText.innerText = win.latency_ms != null ? `Win 4070S: ${win.latency_ms}ms（快照）` : "Win 4070S: 采集时在线";
+      winPill.className = "hidden md:flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-950/40 text-emerald-300 border border-emerald-800/50";
     } else {
       winDot.className = "w-2 h-2 rounded-full bg-rose-500";
-      winText.innerText = "Win 4070S: Offline";
-      winPill.className = "flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-rose-950/40 text-rose-300 border border-rose-800/50";
+      winText.innerText = win.status === "Offline" ? "Win 4070S: 采集时离线" : "Win 4070S: 尚未探测";
+      winPill.className = "hidden md:flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-rose-950/40 text-rose-300 border border-rose-800/50";
     }
   }
 
@@ -274,12 +429,12 @@ function renderHeader() {
   if (jetPill && jetDot && jetText) {
     if (jetson.status === "Online") {
       jetDot.className = "w-2 h-2 rounded-full bg-emerald-400";
-      jetText.innerText = jetson.latency_ms != null ? `Jetson: ${jetson.latency_ms}ms` : "Jetson: Online";
-      jetPill.className = "hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-950/40 text-emerald-300 border border-emerald-800/50";
+      jetText.innerText = jetson.latency_ms != null ? `Jetson: ${jetson.latency_ms}ms（快照）` : "Jetson: 采集时在线";
+      jetPill.className = "hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-950/40 text-emerald-300 border border-emerald-800/50";
     } else {
       jetDot.className = "w-2 h-2 rounded-full bg-zinc-500";
-      jetText.innerText = "Jetson: 局域网待命";
-      jetPill.className = "hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-zinc-900/60 text-zinc-400 border border-zinc-800";
+      jetText.innerText = jetson.status ? "Jetson: 采集时未在线" : "Jetson: 尚未探测";
+      jetPill.className = "hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-zinc-900/60 text-zinc-400 border border-zinc-800";
     }
   }
 }
@@ -287,7 +442,7 @@ function renderHeader() {
 function renderHeroMetrics() {
   const career = globalStatus.career_summary || {};
   const stats = career.stats || {};
-  const exams = (globalStatus.projects_and_exams || []).filter(p => p.type === "exam");
+  const exams = (globalStatus.projects_and_exams || []).filter(p => p.type === "exam").map(p => getExamState(p));
   const topo = globalStatus.topology || {};
   const win = topo.windows || {};
   const jetson = topo.jetson || {};
@@ -302,21 +457,27 @@ function renderHeroMetrics() {
   const eDays = document.getElementById("metric-exam-days");
   const eUnit = document.getElementById("metric-exam-unit");
   const eSub = document.getElementById("metric-exam-sub");
-  if (jiaoshi.phase === "awaiting_result") {
-    if (eDays) eDays.innerText = "等成绩";
-    if (eUnit) eUnit.innerText = "初试已结束";
-    if (eSub) eSub.innerText = `等待初试成绩 ｜ 六级剩 ${cet6.days_left || 0} 天`;
+  const cet6Days = cet6.days_left;
+  const cet6Label = cet6Days == null ? "六级考期待核对" : cet6Days < 0 ? "六级登记考期已过" : cet6Days === 0 ? "六级今日考试" : `六级剩 ${cet6Days} 天`;
+  if (jiaoshi.phase === "result_recorded") {
+    if (eDays) eDays.innerText = "已归档";
+    if (eUnit) eUnit.innerText = "查分已办结";
+    if (eSub) eSub.innerText = `教资查分完成，后续按需安排 ｜ ${cet6Label}`;
+  } else if (jiaoshi.phase === "awaiting_result") {
+    if (eDays) eDays.innerText = "已公布";
+    if (eUnit) eUnit.innerText = "个人结果待核对";
+    if (eSub) eSub.innerText = `教资成绩已公布，请核对个人结果 ｜ ${cet6Label}`;
   } else {
-    if (eDays) eDays.innerText = jiaoshi.days_left !== undefined && jiaoshi.days_left !== null ? jiaoshi.days_left : "-";
-    if (eUnit) eUnit.innerText = "天后笔试";
-    if (eSub) eSub.innerText = `六级剩 ${cet6.days_left || 0} 天`;
+    if (eDays) eDays.innerText = jiaoshi.days_left == null ? "待核对" : jiaoshi.days_left < 0 ? "已结束" : jiaoshi.days_left === 0 ? "今天" : jiaoshi.days_left;
+    if (eUnit) eUnit.innerText = jiaoshi.days_left == null ? "登记考期待核对" : jiaoshi.days_left < 0 ? "登记考期已过" : jiaoshi.days_left === 0 ? "考试日" : "天后笔试";
+    if (eSub) eSub.innerText = cet6Label;
   }
 
   const compLat = document.getElementById("metric-compute-lat");
   const compSub = document.getElementById("metric-compute-sub");
-  const onlineCount = (win.status === "Online" ? 1 : 0) + (jetson.status === "Online" ? 1 : 0) + 1;
-  if (compLat) compLat.innerText = `${onlineCount} 节点在线`;
-  if (compSub) compSub.innerText = `4070S:${win.latency_ms != null ? win.latency_ms + 'ms' : (win.status === "Online" ? '在线' : '离线')} ｜ Jetson:${jetson.latency_ms != null ? jetson.latency_ms + 'ms' : (jetson.status === "Online" ? '在线' : '待命')}`;
+  const onlineCount = [topo.mac, win, jetson].filter(device => device?.status === "Online").length;
+  if (compLat) compLat.innerText = `${onlineCount} 节点`;
+  if (compSub) compSub.innerText = `采集时在线 · 4070S:${win.latency_ms != null ? win.latency_ms + 'ms' : (win.status === "Online" ? '在线' : '离线')} ｜ Jetson:${jetson.latency_ms != null ? jetson.latency_ms + 'ms' : (jetson.status === "Online" ? '在线' : '待命')}`;
 }
 
 function renderCareerPipeline() {
@@ -394,33 +555,40 @@ function renderProjectsRadar() {
   if (!container) return;
   container.innerHTML = "";
 
-  projects.forEach(p => {
+  projects.forEach(entry => {
+    const p = entry.type === "exam" ? getExamState(entry) : entry;
     const isExam = p.type === "exam";
     const card = document.createElement("div");
     card.className = "glass-panel p-5 rounded-xl flex flex-col justify-between";
 
     if (isExam) {
       const waiting = p.phase === "awaiting_result";
-      const isUrgent = !waiting && p.days_left !== null && p.days_left !== undefined && p.days_left <= 20;
+      const recorded = p.phase === "result_recorded";
+      const resultPublished = waiting && p.id === "e-jiaoxi";
+      const isUrgent = !waiting && p.days_left !== null && p.days_left >= 0 && p.days_left <= 20;
+      const elapsed = p.days_left !== null && p.days_left < 0;
+      const daysLabel = recorded ? "已归档" : resultPublished ? "已公布" : waiting ? "等成绩" : p.days_left === null ? "待核对" : elapsed ? "已结束" : p.days_left === 0 ? "今天" : p.days_left;
+      const unitLabel = recorded ? "查分已办结" : resultPublished ? "个人结果待核对" : waiting ? "成绩状态待核对" : p.days_left === null ? "日期无效或未登记" : elapsed ? "登记考期已过" : p.days_left === 0 ? "考试日" : "天后开考";
       card.innerHTML = `
         <div>
           <div class="flex items-center justify-between mb-2">
             <span class="text-xs font-mono uppercase px-2 py-0.5 rounded ${isUrgent ? 'bg-rose-950 text-rose-300 border border-rose-800/60 danger-pulse' : 'bg-indigo-950 text-indigo-300 border border-indigo-800/60'}">
               ${esc(p.category)}
             </span>
-            <span class="text-xs text-slate-400 font-mono">${waiting ? "笔试已结束" : "考期: " + esc(p.target_date)}</span>
+            <span class="text-xs text-slate-400 font-mono">${recorded ? "查分已办结" : waiting ? "笔试已结束" : "考期: " + esc(p.target_date)}</span>
           </div>
           <h4 class="text-base font-bold text-slate-100 mt-1">${esc(p.name)}</h4>
           <div class="my-4 flex items-baseline gap-2">
-            <span class="text-3xl font-extrabold font-mono ${isUrgent ? 'text-rose-400' : 'text-amber-400'}">${waiting ? "等成绩" : esc(p.days_left)}</span>
-            <span class="text-xs text-slate-400">${waiting ? "初试成绩未出" : "天后开考"}</span>
+            <span class="text-3xl font-extrabold font-mono ${isUrgent ? 'text-rose-400' : 'text-amber-400'}">${esc(daysLabel)}</span>
+            <span class="text-xs text-slate-400">${esc(unitLabel)}</span>
           </div>
           <div class="bg-zinc-900/80 p-2.5 rounded-lg border border-zinc-800 text-xs text-slate-300">
-            <span class="text-indigo-400 font-semibold">${waiting ? "当前：" : "下一步冲刺："}</span>${esc(p.next_action)}
+            <span class="text-indigo-400 font-semibold">${recorded ? "后续：" : waiting ? "当前：" : "下一步冲刺："}</span>${esc(resultPublished ? "成绩已公布，请核对个人结果与后续安排。" : p.next_action)}
           </div>
         </div>
       `;
     } else {
+      const hasActivity = p.commit_hash && p.commit_hash !== "-" && p.commit_msg !== "路径不存在";
       card.innerHTML = `
         <div>
           <div class="flex items-center justify-between mb-2">
@@ -437,11 +605,11 @@ function renderProjectsRadar() {
 
           <div class="my-3 py-2 px-3 bg-zinc-950/60 rounded-lg border border-zinc-800/80 text-xs font-mono text-slate-400">
             <div class="flex items-center justify-between text-[11px] text-zinc-500 mb-1">
-              <span>最新代码动态</span>
+              <span>${hasActivity ? "快照中的工程活动" : "工程路径或活动待核对"}</span>
               <span>${esc(p.commit_time || '-')}</span>
             </div>
             <div class="text-slate-300 truncate">
-              <span class="text-indigo-400 font-semibold">[${esc(p.commit_hash || 'LOCAL')}]</span> ${esc(p.commit_msg || '-')}
+              ${hasActivity ? `<span class="text-indigo-400 font-semibold">[${esc(p.commit_hash)}]</span> ${esc(p.commit_msg || "")}` : esc(p.commit_msg || "尚无工程活动记录")}
             </div>
           </div>
 
@@ -456,39 +624,37 @@ function renderProjectsRadar() {
 }
 
 function renderMemoryHub() {
-  if (!memoryRules) return;
-
   // Web check-ins persist in localStorage (static site: browser is the only writable store).
   // CLI (`ops check`) remains the cross-device source of truth via daily_checks.json.
-  const now = new Date();
-  const pad = n => String(n).padStart(2, '0');
-  const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  bindDailyChecksEvents();
+  const todayStr = calendarDay();
   const storageKey = `ops_checks_${todayStr}`;
 
   const dateBadge = document.getElementById("daily-checks-date");
   if (dateBadge) dateBadge.innerText = todayStr;
 
-  let checksData = null;
-  try {
-    checksData = JSON.parse(localStorage.getItem(storageKey) || "null");
-  } catch (e) { checksData = null; }
-  if (!checksData || typeof checksData !== "object") {
-    // Fall back to JSON snapshot only when it is actually today's record
-    const jsonChecks = globalStatus.daily_checks || {};
-    checksData = Object.assign(
-      { "起了": false, "动了": false, "写了": false, "关了": false },
-      jsonChecks.date === todayStr ? (jsonChecks.checks || {}) : {}
-    );
-  }
+  const renderedRecord = readDailyChecks(todayStr);
+  const feedback = document.getElementById("daily-checks-feedback");
+  if (!renderedRecord.valid) setDailyChecksFeedback(renderedRecord.error, "read");
+  else if (feedback?.dataset.kind === "read" || (feedback?.dataset.day && feedback.dataset.day !== todayStr)) setDailyChecksFeedback("");
 
   const checksContainer = document.getElementById("daily-checks-container");
   if (checksContainer) {
+    const focusedKey = document.activeElement?.getAttribute("data-check-key");
+    let focusedButton = null;
+    const labels = {"起了": ["起床", "开始今天的节奏"], "动了": ["活动", "按自己的状态活动身体"], "写了": ["专注", "推进一件重要的事"], "关了": ["收工", "结束工作并休息"]};
     checksContainer.innerHTML = "";
 
-    (memoryRules.four_checks_definition || []).forEach(def => {
-      const isChecked = checksData[def.key] === true;
-      const item = document.createElement("div");
-      item.className = `p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+    const configured = Array.isArray(memoryRules?.four_checks_definition) ? memoryRules.four_checks_definition : [];
+    DAILY_CHECK_KEYS.forEach(key => {
+      const def = configured.find(entry => entry?.key === key) || { key };
+      const isChecked = renderedRecord.checks[key] === true;
+      const item = document.createElement("button");
+      item.type = "button";
+      item.setAttribute("aria-pressed", String(isChecked));
+      item.setAttribute("data-check-key", key);
+      if (focusedKey === key) focusedButton = item;
+      item.className = `w-full text-left p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
         isChecked ? 'bg-emerald-950/30 border-emerald-800/60 text-emerald-200' : 'bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:border-zinc-700'
       }`;
       item.innerHTML = `
@@ -497,8 +663,8 @@ function renderMemoryHub() {
             <i data-lucide="${esc(def.icon || 'check')}" class="w-4 h-4"></i>
           </div>
           <div>
-            <h5 class="text-sm font-bold text-slate-200">${esc(def.name)} (${esc(def.key)})</h5>
-            <p class="text-[11px] text-slate-400">${esc(def.desc)}</p>
+            <h5 class="text-sm font-bold text-slate-200">${esc(labels[def.key]?.[0] || def.key)} (${esc(def.key)})</h5>
+            <p class="text-[11px] text-slate-400">${esc(labels[def.key]?.[1] || "按当前计划记录")}</p>
           </div>
         </div>
         <div class="w-6 h-6 rounded-md border flex items-center justify-center ${isChecked ? 'bg-emerald-600 border-emerald-500 text-white' : 'border-zinc-700'}">
@@ -506,21 +672,46 @@ function renderMemoryHub() {
         </div>
       `;
       item.onclick = () => {
-        checksData[def.key] = !isChecked;
-        try { localStorage.setItem(storageKey, JSON.stringify(checksData)); } catch (e) {
-          console.warn("打卡持久化失败 (localStorage 不可用):", e);
+        if (calendarDay() !== todayStr) {
+          renderMemoryHub();
+          setDailyChecksFeedback("日期已变化，已切换到今天；请核对后再打卡。");
+          safeCreateIcons();
+          return;
         }
+
+        const currentRecord = readDailyChecks(todayStr);
+        if (!currentRecord.valid) {
+          setDailyChecksFeedback(currentRecord.error || "本机四勾记录无法读取，暂时不能保存。", "read");
+          return;
+        }
+        if (!renderedRecord.valid || currentRecord.raw !== renderedRecord.raw) {
+          renderMemoryHub();
+          setDailyChecksFeedback("本机四勾记录已在其他标签页更改，已刷新；请核对后重试。");
+          safeCreateIcons();
+          return;
+        }
+
+        const nextRecord = { ...currentRecord.checks, [key]: !currentRecord.checks[key] };
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(nextRecord));
+        } catch (error) {
+          setDailyChecksFeedback("本机四勾保存失败，当前勾选未改变；请检查浏览器存储后重试。");
+          return;
+        }
+
+        setDailyChecksFeedback("");
         renderMemoryHub();
         safeCreateIcons();
       };
       checksContainer.appendChild(item);
     });
+    focusedButton?.focus();
   }
 
   const scenesContainer = document.getElementById("scenes-container");
   if (scenesContainer) {
     scenesContainer.innerHTML = "";
-    (memoryRules.scene_contracts || []).forEach(sc => {
+    (memoryRules?.scene_contracts || []).forEach(sc => {
       const card = document.createElement("div");
       card.className = "p-4 rounded-xl bg-zinc-900/70 border border-zinc-800";
       card.innerHTML = `
@@ -539,7 +730,7 @@ function renderMemoryHub() {
   const principlesContainer = document.getElementById("principles-container");
   if (principlesContainer) {
     principlesContainer.innerHTML = "";
-    (memoryRules.focus_principles || []).forEach(fp => {
+    (memoryRules?.focus_principles || []).forEach(fp => {
       const card = document.createElement("div");
       card.className = "p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/80 text-xs";
       card.innerHTML = `
@@ -550,19 +741,7 @@ function renderMemoryHub() {
     });
   }
 
-  const hs = memoryRules.health_supplements || {};
-  const healthRuleEl = document.getElementById("health-rule-text");
-  if (healthRuleEl) healthRuleEl.innerText = hs.rule || "";
-  const healthList = document.getElementById("health-schedule-list");
-  if (healthList) {
-    healthList.innerHTML = "";
-    (hs.schedule || []).forEach(s => {
-      const li = document.createElement("div");
-      li.className = "flex items-center justify-between text-xs py-1 border-b border-zinc-800/50 last:border-0";
-      li.innerHTML = `<span class="text-indigo-300 font-mono font-medium">${esc(s.period)}</span><span class="text-slate-300">${esc(s.items)}</span>`;
-      healthList.appendChild(li);
-    });
-  }
+
 }
 
 function renderComputeTopology() {
