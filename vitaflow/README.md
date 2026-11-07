@@ -36,7 +36,7 @@ src/app.js                  页面逻辑
 src/modules/*.js            日历待办、健康工具、同步等功能模块
         │  npm run build:html
         ▼
-schedule-system-2.0.html   生成后的单文件应用（UI + 逻辑 + 内嵌数据快照）
+schedule-system-2.0.html   生成后的单文件应用（UI + 逻辑，不含私人快照）
         │  localStorage（vitaflow_* 键）
         ▼
 local-sync-server.mjs      局域网同步服务器（纯 Node 内置模块）
@@ -48,7 +48,7 @@ my-schedule.json           主数据文件（服务器模式下的数据源）
 两层数据来源：
 
 1. **服务器模式**（推荐）：数据读写 `my-schedule.json`，多设备准实时同步
-2. **直接双击 HTML**：使用内嵌数据快照，应急查看
+2. **直接双击公开 HTML**：使用当前浏览器的本机记录；首次打开为空。通过应用导出的私人 HTML 可以携带数据，用于应急查看和迁移，不能放入公开网站或 Git。
 
 服务器写入使用 revision 做并发保护：另一台设备已更新时不会静默覆盖，页面会要求选择
 保留本机或采用服务器版本。每次成功写入前会保留最近 7 个有效版本：`my-schedule.json.bak`
@@ -79,13 +79,13 @@ my-schedule.json           主数据文件（服务器模式下的数据源）
 npm run setup
 ```
 
-这会启用 git clean filter：提交时自动把 HTML 里的内嵌数据快照替换为占位符，
-避免每次数据变化产生几百 KB 的 diff。本地工作文件不受影响（双击打开仍带数据）。
+这会启用 git clean filter，作为提交时剥离私人 HTML 快照的额外防线。默认
+`npm run build:html` 已主动清除生成页面的内嵌快照，`npm test` 也会检查公开页面是否干净；
+不能仅凭 README 的配置步骤假定当前克隆已安装过滤器。
 配置同时启用 `required`：过滤器报错时 Git 会停止暂存，而不是直接提交原始文件。
 
-**注意**：换新电脑克隆后如果忘了跑 `npm run setup`，提交 HTML 时可能把整份数据
-快照带进 git 历史，造成隐私风险并让仓库膨胀。配置是每个克隆仓库单独保存的；新机器必须先执行上述命令。
-Git 只备份代码和剥离数据后的页面，不会备份被忽略的 `my-schedule.json`。请另行安全备份个人数据。
+配置按克隆仓库单独保存，不会修改已有提交。显式导出或迁移后的私人 HTML 仍须与公开页面分开；
+发布前重新执行构建和测试。Git 不备份被忽略的 `my-schedule.json`，请另行安全备份个人数据。
 
 ## 测试
 
@@ -101,7 +101,8 @@ npm test
 npm run build:html
 ```
 
-这会把拆分源码重新合并回 `schedule-system-2.0.html`，保留双击 HTML 可用的单文件形态。
+这会把拆分源码重新合并回 `schedule-system-2.0.html`，生成不携带私人快照的完整单文件应用。
+本机服务仍读取原 `my-schedule.json`；构建不会修改这份主数据。首次使用不生成示例待办、随机分数或虚构历史，缺失的状态显示为待记录。
 
 ## 迁移到新电脑
 
@@ -112,10 +113,10 @@ npm run build:html
 
 本机统一使用 `/Users/insistgang/Desktop/个人工具/ops-hub/vitaflow` 主工程。2026-10-03 核对确认，主工程包含原 `Projects/vitaflow` 旧版全部已保存的数据：旧版 42 项数据、400 条待办、51 天幸福感记录均完整保留，主版另有想法库、连续打卡记录、1 条待办和 3 天幸福感记录。旧版页面与 JSON 已按用户要求永久删除。
 
-`schedule-system-2.0.html` 的内嵌快照已同步到主工程 `my-schedule.json` 的 44 项数据；主工程 JSON 内容未被修改。使用主工程时仍按上面的启动方式操作。
+主工程 `my-schedule.json` 保留原有数据，默认生成页面不再携带它的 44 项快照。通过本机服务继续使用原真源；应急携带请使用应用的私人 HTML 导出功能。
 
 ## 隐私说明
 
-`my-schedule.json` 与 HTML 内嵌快照包含真实个人数据。
+`my-schedule.json` 与主动导出的私人 HTML 快照包含真实个人数据。
 代码随 Ops-Hub 公开维护，但 `my-schedule.json`、`sync-token.txt`、Cloudflare 真实配置与本地备份始终由 `.gitignore` 排除，不进入公开仓库；不得把真实数据补进提交或公开 Pages。
 本地数据仍以明文 JSON 保存；7 代自动备份用于误操作恢复，不能代替系统级或异地备份。

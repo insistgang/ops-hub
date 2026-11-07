@@ -25,10 +25,10 @@
 
             if (!localStorage.getItem('vitaflow_accounts')) {
                 accountsData = {
-                    physical: { score: 85, history: generateHistory(85) },
-                    emotional: { score: 78, history: generateHistory(78) },
-                    focus: { score: 92, history: generateHistory(92) },
-                    meaning: { score: 88, history: generateHistory(88) }
+                    physical: { score: null, history: [] },
+                    emotional: { score: null, history: [] },
+                    focus: { score: null, history: [] },
+                    meaning: { score: null, history: [] }
                 };
                 localStorage.setItem('vitaflow_accounts', JSON.stringify(accountsData));
             } else {
@@ -36,21 +36,11 @@
             }
 
             if (!localStorage.getItem('vitaflow_todos')) {
-                localStorage.setItem('vitaflow_todos', JSON.stringify([
-                    { id: 1, text: '晨间冥想15分钟', account: 'physical', happy: 7, date: today, completed: false },
-                    { id: 2, text: '阅读专业书籍', account: 'focus', happy: 8, date: today, completed: false },
-                    { id: 3, text: '给家人打电话', account: 'emotional', happy: 9, date: today, completed: false }
-                ]));
+                localStorage.setItem('vitaflow_todos', JSON.stringify([]));
             }
 
             if (!localStorage.getItem('vitaflow_happiness')) {
-                const happiness = {};
-                for (let i = -5; i <= 0; i++) {
-                    const d = new Date();
-                    d.setDate(d.getDate() + i);
-                    happiness[formatLocalDate(d)] = Math.floor(Math.random() * 5) + 5;
-                }
-                localStorage.setItem('vitaflow_happiness', JSON.stringify(happiness));
+                localStorage.setItem('vitaflow_happiness', JSON.stringify({}));
             }
 
             if (!localStorage.getItem('vitaflow_streak')) localStorage.setItem('vitaflow_streak', '0');
@@ -68,15 +58,4 @@
             document.getElementById('goalInput').value = localStorage.getItem('vitaflow_goal') || '';
 
             updateMainScores();
-        }
-
-        function generateHistory(baseScore) {
-            const history = [];
-            const today = new Date();
-            for (let i = 6; i >= 0; i--) {
-                const d = new Date(today);
-                d.setDate(d.getDate() - i);
-                history.push({ date: formatLocalDate(d), score: Math.max(0, Math.min(100, baseScore + Math.floor(Math.random() * 20) - 10)) });
-            }
-            return history;
         }

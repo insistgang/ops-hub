@@ -48,6 +48,14 @@ class ExamNextActionTests(unittest.TestCase):
         self.assertEqual(collector.career_label({"status": "todo", "stage": "准备投递"}), "准备中")
         self.assertEqual(collector.career_label({"status": "offer", "stage": "已接受实习 Offer"}), "已录用")
 
+    def test_recorded_results_do_not_restart_an_exam_countdown(self):
+        updated = collector.apply_exam_state({
+            "type": "exam", "phase": "result_recorded", "target_date": "2026-09-12",
+            "next_action": "查分已办结，后续按需安排，不做日常追踪",
+        }, today=date(2026, 11, 7))
+        self.assertIsNone(updated["days_left"])
+        self.assertEqual(updated["next_action"], "查分已办结，后续按需安排，不做日常追踪")
+
     def test_jiaoxi_days_left_from_known_date(self):
         self.assertEqual(
             collector.calculate_days_left("2026-09-12", today=date(2026, 8, 30)),

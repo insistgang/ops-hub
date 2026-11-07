@@ -228,11 +228,12 @@ def load_career_records():
 
 
 def apply_exam_state(entry, today=None):
-    """Past written exams wait for scores. Future exams keep a live countdown."""
+    """Pending and recorded results have no countdown; future exams count down."""
     entry = dict(entry)
-    if entry.get("phase") == "awaiting_result":
+    if entry.get("phase") in ("awaiting_result", "result_recorded"):
         entry["days_left"] = None
-        entry["next_action"] = (entry.get("next_action") or "等待初试成绩公布").strip()
+        fallback = "查分已办结，后续按需安排" if entry.get("phase") == "result_recorded" else "等待初试成绩公布"
+        entry["next_action"] = (entry.get("next_action") or fallback).strip()
         return entry
     days = calculate_days_left(entry.get("target_date", "2026-12-31"), today=today)
     entry["days_left"] = days
@@ -357,9 +358,12 @@ def collect_all():
     # Local truth source stays in data/ and is git-ignored; only the sanitized copy is tracked.
     try:
         import sanitize_public
-        sanitize_public.write_public_files()
+        if not sanitize_public.write_public_files():
+            raise RuntimeError("公开脱敏验证未通过")
     except Exception as e:
-        print(f"⚠️ 公开脱敏产物生成失败（本地真源不受影响）: {e}")
+        # Propagate failure so run_pipeline cannot commit or push stale/unsafe files.
+        # The local snapshot above remains usable even when publication is blocked.
+        raise RuntimeError("公开脱敏产物生成失败；本地快照已保留，已阻止提交与推送。") from e
 
     return status_snapshot
 

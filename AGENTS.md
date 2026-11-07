@@ -34,8 +34,10 @@ Desktop/个人工具/ops-hub/
 ├── css/
 │   └── custom.css             # 玻璃拟态样式 + 日间/夜间双主题覆盖层（暗色为默认）
 ├── js/
-│   └── app.js                 # 核心前端逻辑（Tab 切换、数据加载、指标计算、交互；所有 innerHTML 注入必须过 esc() 转义）
-├── data/                      # 真实数据真源目录（全部随 Git 提交公开）
+│   ├── app.js                 # 核心前端逻辑（Tab 切换、数据加载、指标计算、交互；所有 innerHTML 注入必须过 esc() 转义）
+│   ├── vitaflow.js            # 完整 VitaFlow 工作区入口、私有连接设置与受限导航消息
+│   └── today.js               # 今日重点、昨日未完成衔接与浏览器按日存储
+├── data/                      # 本地真源与 public/ 脱敏产物；私有真源不进入 Git
 │   ├── status.json            # 探针自动汇总的运行时状态快照（三端延迟、时间戳、统计）
 │   ├── status.js              # status.json 的 JS 镜像（file:/// 零 CORS 预加载）
 │   ├── career_records.json    # 本地真源：真实求职企业与投递状态（公开版已脱敏，不入库）
@@ -62,7 +64,13 @@ Desktop/个人工具/ops-hub/
 
 ## 3. 页面模块与 Tab 规范
 
-总台 UI 采用 **现代极客风 + 日间/夜间双主题**（暗色为默认，头部按钮切换，选择持久化在 localStorage `ops_theme`；亮色通过 `custom.css` 的 `html:not(.dark)` 覆盖层实现，新增 Tailwind 色阶时必须同步补覆盖规则），分为四大专属 Tab：
+总台 UI 采用 **现代极客风 + 日间/夜间双主题**（暗色为默认，头部按钮切换，选择持久化在 localStorage `ops_theme`；亮色通过 `custom.css` 的 `html:not(.dark)` 覆盖层实现，新增 Tailwind 色阶时必须同步补覆盖规则）。默认入口为「今日」，另有求职、项目、秩序、体重、VitaFlow 与算力六个 Tab。核心模块约定：
+
+0. **今日首页**
+   - `js/today.js` 复用 `app.js` 的 `calendarDay()` 和 `dateOrdinal()`；脚本加载顺序不得颠倒。网页日界统一为北京时间。
+   - 重点最多 3 件，存储键 `ops_focus_YYYY-MM-DD`；昨日未完成项只能显式带入今天，不改写昨日，不重复带入同文事项。
+   - 重点与四勾只在写入成功后更新界面；损坏记录保留并提示，旧标签页发现存储变化时刷新、提示重试。
+   - 现有时钟在换日时发送 `ops:day-changed`，今日首页同时监听页面可见性与相关 storage 事件。
 1. **Tab 1: 🎯 求职投递全景看板 (Career Pipeline)**
    - 过滤标签：全部、面试中、笔试中、初筛、已投递、Offer。
    - 字段：公司名称、岗位、投递日期、状态 Badge、简历指引、跟进备注。
@@ -82,6 +90,14 @@ Desktop/个人工具/ops-hub/
    - 一键复制 SSH 登录命令（Win 与 Jetson 均支持）。
    - Windows SSH (`22`) 与 SMB (`445`) 实时服务状态。
    - 外部直达：`（本地私有模块，公开版已移除）`。
+
+### VitaFlow 接入边界
+
+- `js/vitaflow.js` 在 `js/app.js` 之前加载，提供 `initVitaFlow()`；默认同源完整工作区，私有服务作为可选模式，不能宣称内置浏览器模式已读原 JSON 或已跨设备同步。
+- iframe 嵌入采用 `?embed=ops-hub`；桥接只允许就绪状态、主题和四个已列举的区域导航，不传日程正文、账户记录或口令。
+- 宿主仅接受当前 iframe 且来源匹配的就绪消息。VitaFlow 内部仅接受 parent 发来的白名单导航与主题，不接受任意函数或 HTML。
+- `vitaflow/build-html.mjs` 的默认 CLI 产出必须剥离私人快照，`test-public-html.mjs` 验证最终页面；修改 UI 源码后重建并运行 VitaFlow 测试。已有提交不会因此清除。
+- 考试 `phase=result_recorded` 表示查分已办结，不再生成考试倒计时。教资具体分数的维护源是私有知识库，不复制进公开快照。
 
 ---
 
@@ -105,3 +121,10 @@ CLI 必须用标准 Python 3 实现，使用内置库，严禁强依赖任何第
 * **路径容错**：本地项目目录若不存在或未初始化 Git，优雅显示“本地路径待关联”，不影响其余模块运行。
 * **探针诚实**：ping 可达但延迟解析失败时如实返回空值（页面显示"在线"而非虚构延迟），严禁编造探测数值。
 * **XSS 防护**：CLI 与第三方仓库 commit message 等一切外部数据进入 `innerHTML` 前必须经过 `esc()` 转义，新增渲染字段时不得例外。
+
+## 6. 本地验证入口
+
+- Ops-Hub：`python3 -m unittest discover -s tests -p 'test_*.py'`。
+- 前端与体重模块：`node --test tests/*.cjs weight-tracker/tests/*.cjs`；时间边界测试可在 `TZ=UTC` 下运行，确认仍按北京时间分日。
+- 语法：`node --check js/app.js`、`node --check js/today.js`。
+- VitaFlow：在 `vitaflow/` 执行 `npm test`。跨模块修改时按影响范围运行，不能用打开预览代替交互验证。

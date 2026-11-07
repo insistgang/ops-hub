@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { stripEmbeddedData } from './strip-embedded-data.mjs';
 
 const outputPath = 'schedule-system-2.0.html';
 const templatePath = 'src/schedule-template.html';
@@ -20,6 +21,7 @@ const appModules = {
   'idea-vault': 'src/modules/idea-vault.js',
   'sync-and-backup': 'src/modules/sync-and-backup.js',
   'boot': 'src/modules/boot.js',
+  'ops-hub-embed': 'src/modules/ops-hub-embed.js',
 };
 const embeddedPlaceholder = '<script>/* __EMBEDDED_DATA_PLACEHOLDER__ */</script>';
 
@@ -92,7 +94,7 @@ export function buildHtml({ existingHtml = '' } = {}) {
 function main() {
   const checkOnly = process.argv.includes('--check');
   const existingHtml = fs.existsSync(outputPath) ? readFile(outputPath) : '';
-  const html = buildHtml({ existingHtml });
+  const html = stripEmbeddedData(buildHtml({ existingHtml }));
 
   if (checkOnly) {
     assert.ok(html === existingHtml, 'schedule-system-2.0.html is not in sync with src/*; run npm run build:html');
