@@ -101,3 +101,37 @@ class PublicSnapshotSafetyTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PrivateAddressMaskingTests(unittest.TestCase):
+    """新地址漏登记也不能外泄：私网/CGNAT 一律按网段兜底掩码。"""
+
+    def test_private_ranges_masked(self):
+        cases = {
+            "10.120.61.77": "10.120.x.x",
+            "192.168.1.5": "192.168.x.x",
+            "172.16.4.9": "172.16.x.x",
+            "100.98.218.25": "100.98.x.x",
+            "127.0.0.1": "127.0.x.x",
+        }
+        for raw, masked in cases.items():
+            self.assertEqual(sanitize_public.mask_private_ips(raw), masked)
+
+    def test_public_ip_and_versions_untouched(self):
+        self.assertEqual(sanitize_public.mask_private_ips("223.6.255.45"), "223.6.255.45")
+        self.assertEqual(sanitize_public.mask_private_ips("v1.2.1"), "v1.2.1")
+
+    def test_unregistered_private_ip_scrubbed_from_snapshot(self):
+        status = {
+            "meta": {"version": "test"},
+            "topology": {"jetson": {"ip": "10.120.61.77", "ssh_cmd": "ssh jetson@10.120.61.77"}},
+            "career_summary": {"stats": {}, "records": []},
+            "projects_and_exams": [],
+            "daily_checks": {"date": "2026-11-07", "checks": {}, "history": []},
+            "device_allocation": {},
+        }
+        aliases = {"names": {}, "relations": {}, "ips": {}, "paths": {}}  # 故意不登记
+        public = sanitize_public.build_public_status(status, aliases)
+        blob = json.dumps(public, ensure_ascii=False)
+        self.assertNotIn("10.120.61.77", blob)
+        self.assertIn("10.120.x.x", blob)

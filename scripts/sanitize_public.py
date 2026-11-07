@@ -62,6 +62,45 @@ def load_aliases():
     return aliases
 
 
+_IPV4 = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
+
+
+def _is_private_ip(text):
+    """RFC1918 私网 / 回环 / CGNAT(Tailscale 100.64.0.0/10)。"""
+    try:
+        octets = [int(part) for part in text.split(".")]
+    except ValueError:
+        return False
+    if len(octets) != 4 or any(o < 0 or o > 255 for o in octets):
+        return False
+    a, b = octets[0], octets[1]
+    return (
+        a in (0, 10, 127)
+        or (a == 172 and 16 <= b <= 31)
+        or (a == 192 and b == 168)
+        or (a == 100 and 64 <= b <= 127)
+    )
+
+
+def mask_private_ips(value):
+    """兜底掩码：任何私网/CGNAT 地址都保留前两段，避免漏登记新地址就外泄。
+
+    对照表的 ips 组是显式登记，但设备换 DHCP 地址、换机器时容易漏登记——
+    这里按网段兜底，宁可多掩码，不可漏明文。
+    """
+    if not isinstance(value, str):
+        return value
+
+    def replace(match):
+        candidate = match.group(0)
+        if not _is_private_ip(candidate):
+            return candidate
+        head = ".".join(candidate.split(".")[:2])
+        return head + ".x.x"
+
+    return _IPV4.sub(replace, value)
+
+
 def scrub_text(value, aliases):
     """对任意字符串做脱敏：IP、绝对路径、真名、第三方称谓。"""
     if not isinstance(value, str):
@@ -77,6 +116,8 @@ def scrub_text(value, aliases):
         out = out.replace(real_rel, alias)
     # 兜底：残留的 /Users/<name>/ 开头路径
     out = re.sub(r"/Users/[^/\s\"']+", "~", out)
+    # 兜底：任何未登记的私网/CGNAT 地址
+    out = mask_private_ips(out)
     return out
 
 
@@ -198,6 +239,11 @@ def write_public_files():
         return False
 
     blob = "".join(artifacts.values())
+    leaked_ips = [ip for ip in _IPV4.findall(blob) if _is_private_ip(ip)]
+    if leaked_ips:
+        # 不回显具体地址，只报数量与类别
+        print(f"❌ 公开产物仍含 {len(leaked_ips)} 处未脱敏私网地址，本次发布已中止。")
+        return False
     if any(needle in blob for group in ALIAS_GROUPS for needle in aliases[group]):
         # Never repeat the private identifiers in logs.
         print("❌ 公开产物仍含未脱敏标识，保留上次公开产物，本次发布已中止。")
