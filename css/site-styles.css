@@ -214,6 +214,12 @@ html[data-ops-style] #vitaflow-native :is(.theory-text, .form-label, .user-intro
   color: var(--ops-muted);
 }
 
+html[data-ops-style] #weight-native .button-primary {
+  background: var(--ops-accent);
+  border-color: var(--ops-accent);
+  color: var(--ops-accent-contrast);
+}
+
 html[data-ops-style="mono"] :is(.glass-panel, .today-card, .today-links button, .today-list li, header.sticky),
 html[data-ops-style="mono"] #vitaflow-native :is(.vf-panel, .panel, .card, .glass-panel, .record-form, .guide-card, .account-card, .calendar-panel, .chart-container, .detail-header) {
   background-image: none;
