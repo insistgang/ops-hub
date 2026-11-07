@@ -590,6 +590,16 @@ function renderProjectsRadar() {
       // 用显式字段判断，不能依赖 commit_msg 的具体文案（文案一改判断就失效）
       const hasActivity = p.git_available === true
         || (typeof p.commit_hash === "string" && p.commit_hash !== "-" && p.commit_hash !== "");
+      // 状态文案是手写的，会随时间失真；这里用提交时间给出「距今多久」的客观提示
+      const staleDays = (() => {
+        if (!hasActivity || !p.commit_time || p.commit_time === "-") return null;
+        const when = new Date(String(p.commit_time).replace(" ", "T"));
+        if (Number.isNaN(when.getTime())) return null;
+        const days = Math.floor((Date.now() - when.getTime()) / 86400000);
+        return days >= 0 ? days : null;
+      })();
+      const stale = staleDays !== null && staleDays > 14;
+      const staleNote = stale ? ` · 已 ${staleDays} 天无提交` : "";
       card.innerHTML = `
         <div>
           <div class="flex items-center justify-between gap-2 mb-2">
@@ -605,9 +615,9 @@ function renderProjectsRadar() {
           <p class="text-xs text-indigo-300 font-mono mt-1">${esc(p.tech_stack)}</p>
 
           <div class="my-3 py-2 px-3 bg-zinc-950/60 rounded-lg border border-zinc-800/80 text-xs font-mono text-slate-400">
-            <div class="flex items-center justify-between text-[11px] text-zinc-500 mb-1">
+            <div class="flex items-center justify-between text-[11px] ${stale ? 'text-amber-400' : 'text-zinc-500'} mb-1">
               <span>${hasActivity ? "快照中的工程活动" : "工程路径或活动待核对"}</span>
-              <span>${esc(p.commit_time || '-')}</span>
+              <span>${esc(p.commit_time || '-')}${esc(staleNote)}</span>
             </div>
             <div class="text-slate-300 truncate">
               ${hasActivity ? `<span class="text-indigo-400 font-semibold">[${esc(p.commit_hash)}]</span> ${esc(p.commit_msg || "")}` : esc(p.commit_msg || "尚无工程活动记录")}
