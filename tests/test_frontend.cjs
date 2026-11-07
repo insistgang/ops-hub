@@ -150,12 +150,13 @@ test('invalid, missing and future timestamps cannot be reported as fresh', () =>
   assert.equal(future.context.getSnapshotInfo(new Date('2026-11-07T00:00:00Z')).state, 'future');
 });
 
-test('snapshots become stale after 24 hours and keep their original age', () => {
+test('snapshots become stale after 13 hours and keep their original age', () => {
+  // 定时同步 12 小时一轮，超过 13 小时说明至少漏了一轮，必须提前提示。
   const app = createApp({ status: statusFixture('2026-11-06T08:00:00+08:00') });
-  assert.equal(app.context.getSnapshotInfo(new Date('2026-11-06T23:59:59Z')).state, 'snapshot');
-  const info = app.context.getSnapshotInfo(new Date('2026-11-07T00:00:00Z'));
+  assert.equal(app.context.getSnapshotInfo(new Date('2026-11-06T12:59:59Z')).state, 'snapshot');
+  const info = app.context.getSnapshotInfo(new Date('2026-11-06T13:00:00Z'));
   assert.equal(info.state, 'stale');
-  assert.equal(info.ageSeconds, 86400);
+  assert.equal(info.ageSeconds, 13 * 3600);
   assert.match(info.label, /需同步/);
 });
 
