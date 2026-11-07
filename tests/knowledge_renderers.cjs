@@ -141,3 +141,55 @@ test('日记精力优先用公开快照，且无数据时隐藏', () => {
   const hidden = run('knowledge-energy.js', {}, ids);
   assert.equal(hidden['knowledge-energy'].hidden, true);
 });
+
+test('日记状态作为账户参考展示日期与原始分数，不写入手动评分', () => {
+  const ids = ['knowledge-energy', 'knowledge-energy-label', 'knowledge-energy-rows',
+    'knowledge-energy-extra', 'knowledge-energy-source', 'physicalScore', 'emotionalScore', 'focusScore', 'meaningScore'];
+  const { store, document } = makeDocument(ids);
+  for (const id of ['physicalScore', 'emotionalScore', 'focusScore', 'meaningScore']) {
+    store[id].textContent = '手动 6';
+    store[id].parentElement = node('button');
+  }
+  const window = { __OPS_PUBLIC_ENERGY__: { days: [{ date: '2026-11-07', metrics: {
+    精力: { score: 7, scale: 10 }, 情绪: { score: 8, scale: 10 }, 专注: { score: 6, scale: 10 },
+  }, extra: {} }] }, addEventListener() {} };
+  vm.runInNewContext(read('knowledge-energy.js'), { document, window, location: { protocol: 'file:' }, Date, Math, Number });
+  assert.match(flatten(store.emotionalScore.parentElement), /日记情绪.*8\/10.*2026-11-07/);
+  assert.match(flatten(store.focusScore.parentElement), /日记专注.*6\/10.*2026-11-07/);
+  assert.match(flatten(store.physicalScore.parentElement), /日记整体精力.*7\/10.*2026-11-07/);
+  assert.equal(store.meaningScore.parentElement.children.length, 0, '没有对应日记指标的意志账户不应被推断');
+  for (const id of ['physicalScore', 'emotionalScore', 'focusScore', 'meaningScore']) assert.equal(store[id].textContent, '手动 6');
+});
+
+test('私有日记优先，缺少的评分不推断也不请求公开快照', () => {
+  const ids = ['knowledge-energy', 'knowledge-energy-label', 'knowledge-energy-rows',
+    'knowledge-energy-extra', 'knowledge-energy-source', 'physicalScore', 'emotionalScore', 'focusScore'];
+  const { store, document } = makeDocument(ids);
+  for (const id of ['physicalScore', 'emotionalScore', 'focusScore']) store[id].parentElement = node('button');
+  const day = { date: '2026-11-07', metrics: { 情绪: { score: 4, scale: 10 } }, extra: {} };
+  const window = { __OPS_KNOWLEDGE__: { available: true, energy: { days: [day] } }, addEventListener() {} };
+  let requested = false;
+  vm.runInNewContext(read('knowledge-energy.js'), { document, window, location: { protocol: 'https:' }, Date, Math, Number,
+    fetch() { requested = true; throw new Error('不应请求公开数据覆盖私有快照'); } });
+  assert.equal(requested, false);
+  assert.match(flatten(store.emotionalScore.parentElement), /日记情绪.*4\/10/);
+  assert.equal(store.physicalScore.parentElement.children.length, 0);
+  assert.equal(store.focusScore.parentElement.children.length, 0);
+});
+
+test('日记卡放入四账户区域，原生工作区延迟就绪时也能重新定位', () => {
+  const ids = ['knowledge-energy', 'knowledge-energy-label', 'knowledge-energy-rows',
+    'knowledge-energy-extra', 'knowledge-energy-source', 'energyOverview'];
+  const { store, document } = makeDocument(ids);
+  const listeners = {};
+  const window = { addEventListener(type, fn) { listeners[type] = fn; } };
+  vm.runInNewContext(read('knowledge-energy.js'), { document, window, location: { protocol: 'file:' }, Date, Math, Number });
+  let placed = null;
+  store.energyOverview.nextElementSibling = {
+    classList: { contains: value => value === 'accounts-grid' },
+    insertAdjacentElement(where, element) { placed = [where, element]; },
+  };
+  listeners['ops:vitaflow-ready']();
+  assert.equal(placed[0], 'afterend');
+  assert.equal(placed[1], store['knowledge-energy']);
+});

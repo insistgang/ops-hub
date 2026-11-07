@@ -214,6 +214,16 @@ html[data-ops-style] #vitaflow-native :is(.theory-text, .form-label, .user-intro
   color: var(--ops-muted);
 }
 
+html[data-ops-style] #vitaflow-native .diary-account-reference:not([hidden]) {
+  display: block;
+  margin-top: 0.65rem;
+  color: var(--ops-muted);
+  font-size: 0.72rem;
+  font-weight: 400;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
 html[data-ops-style] #weight-native .button-primary {
   background: var(--ops-accent);
   border-color: var(--ops-accent);

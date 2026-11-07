@@ -427,42 +427,6 @@ var define = undefined;
             </div>
 
             </details>
-            <!-- 数据备份 / 迁移 / 自动保存 工具栏 -->
-            <details class="data-tools">
-                <summary>
-                    <span>数据保险箱 <span class="summary-hint">备份、导入与保存</span></span>
-                    <span id="saveStatus" role="status" aria-live="polite">就绪</span>
-                </summary>
-                <div class="backup-actions">
-                    <button id="exportHtmlBtn" onclick="exportHtmlWithData()" style="background: linear-gradient(135deg, #c4679c, #8b5e9e); color: white; border: none; border-radius: 22px; padding: 10px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; box-shadow: 0 4px 12px rgba(196, 103, 156, 0.25);">
-                        📤 导出当前 HTML（含数据）
-                    </button>
-                    <button id="saveFileBtn" onclick="saveToOriginalFile()" style="background: linear-gradient(135deg, #a78bfa, #8b5cf6); color: white; border: none; border-radius: 22px; padding: 10px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; box-shadow: 0 4px 12px rgba(167, 139, 250, 0.25);">
-                        💾 直接保存到原文件
-                    </button>
-                    <button id="exportJsonBtn" onclick="exportJsonFile()" style="background: linear-gradient(135deg, #74ebd5, #9face6); color: white; border: none; border-radius: 22px; padding: 10px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; box-shadow: 0 4px 12px rgba(116, 235, 213, 0.25);">
-                        📤 导出 JSON
-                    </button>
-                    <button id="saveJsonBtn" onclick="saveToJsonFile()" style="background: linear-gradient(135deg, #22c55e, #14b8a6); color: white; border: none; border-radius: 22px; padding: 10px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);">
-                        💾 保存到 JSON
-                    </button>
-                    <button onclick="importFromHtmlFile()" style="background: rgba(255, 255, 255, 0.85); color: #8b5e9e; border: 1.5px solid #bc8fcf; border-radius: 22px; padding: 10px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">
-                        📥 从 HTML 导入数据
-                    </button>
-                    <button onclick="importFromJsonFile()" style="background: rgba(255, 255, 255, 0.85); color: #0f766e; border: 1.5px solid #5eead4; border-radius: 22px; padding: 10px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">
-                        📥 从 JSON 导入
-                    </button>
-                    <button id="autoSaveToggle" onclick="toggleAutoSave()" style="background: rgba(255, 255, 255, 0.85); color: #8b5e9e; border: 1.5px solid #bc8fcf; border-radius: 22px; padding: 10px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">
-                        ⏰ 自动保存: 开
-                    </button>
-                </div>
-                <div class="backup-help">
-                    💡 <strong>导出 HTML</strong> = 打包当前所有数据到一个新 HTML 文件，可换电脑继续用；<br>
-                    💡 <strong>保存到 JSON</strong> = 把网页里的最新记录写进 my-schedule.json，方便手机/电脑/平板互相导入；<br>
-                    💡 <strong>直接保存</strong> = 首次会选一次原文件，之后覆盖保存（仅 Edge/Chrome 支持）；<br>
-                    💡 <strong>从 HTML/JSON 导入</strong> = 完整恢复其他设备的备份，会替换当前 VitaFlow 数据。
-                </div>
-            </details>
         </div>
 
         <div class="section-heading" id="energyOverview"><h2>四账户精力</h2><p>点击账户，记录与回看自己的状态。</p></div>
@@ -795,6 +759,42 @@ var define = undefined;
             </div>
             <div id="reviewList"></div>
         </div>
+            <!-- 数据备份 / 迁移 / 自动保存 工具栏 -->
+            <details class="data-tools">
+                <summary>
+                    <span>备份与恢复 <span class="summary-hint">导入、导出与保存</span></span>
+                    <span id="saveStatus" role="status" aria-live="polite">就绪</span>
+                </summary>
+                <div class="backup-actions">
+                    <button id="exportHtmlBtn" onclick="exportHtmlWithData()" style="background: linear-gradient(135deg, #c4679c, #8b5e9e); color: white; border: none; border-radius: 22px; padding: 10px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; box-shadow: 0 4px 12px rgba(196, 103, 156, 0.25);">
+                        📤 导出当前 HTML（含数据）
+                    </button>
+                    <button id="saveFileBtn" onclick="saveToOriginalFile()" style="background: linear-gradient(135deg, #a78bfa, #8b5cf6); color: white; border: none; border-radius: 22px; padding: 10px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; box-shadow: 0 4px 12px rgba(167, 139, 250, 0.25);">
+                        💾 直接保存到原文件
+                    </button>
+                    <button id="exportJsonBtn" onclick="exportJsonFile()" style="background: linear-gradient(135deg, #74ebd5, #9face6); color: white; border: none; border-radius: 22px; padding: 10px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; box-shadow: 0 4px 12px rgba(116, 235, 213, 0.25);">
+                        📤 导出 JSON
+                    </button>
+                    <button id="saveJsonBtn" onclick="saveToJsonFile()" style="background: linear-gradient(135deg, #22c55e, #14b8a6); color: white; border: none; border-radius: 22px; padding: 10px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);">
+                        💾 保存到 JSON
+                    </button>
+                    <button onclick="importFromHtmlFile()" style="background: rgba(255, 255, 255, 0.85); color: #8b5e9e; border: 1.5px solid #bc8fcf; border-radius: 22px; padding: 10px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">
+                        📥 从 HTML 导入数据
+                    </button>
+                    <button onclick="importFromJsonFile()" style="background: rgba(255, 255, 255, 0.85); color: #0f766e; border: 1.5px solid #5eead4; border-radius: 22px; padding: 10px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">
+                        📥 从 JSON 导入
+                    </button>
+                    <button id="autoSaveToggle" onclick="toggleAutoSave()" style="background: rgba(255, 255, 255, 0.85); color: #8b5e9e; border: 1.5px solid #bc8fcf; border-radius: 22px; padding: 10px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">
+                        ⏰ 自动保存: 开
+                    </button>
+                </div>
+                <div class="backup-help">
+                    💡 <strong>导出 HTML</strong> = 打包当前所有数据到一个新 HTML 文件，可换电脑继续用；<br>
+                    💡 <strong>保存到 JSON</strong> = 把网页里的最新记录写进 my-schedule.json，方便手机/电脑/平板互相导入；<br>
+                    💡 <strong>直接保存</strong> = 首次会选一次原文件，之后覆盖保存（仅 Edge/Chrome 支持）；<br>
+                    💡 <strong>从 HTML/JSON 导入</strong> = 完整恢复其他设备的备份，会替换当前 VitaFlow 数据。
+                </div>
+            </details>
     </div>
 
     <!-- 体能账户详情页 -->

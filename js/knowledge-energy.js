@@ -5,7 +5,7 @@
  * 边界：
  *   - 分数与推断依据都是你日记里写下的原话，这里只读呈现，不重算、不推分。
  *   - 不写入 VitaFlow 的四账户记录，也不与手动打卡合并。
- *   - 公开站拿不到私有快照，整块隐藏。
+ *   - 已授权的公开快照可在公开站展示，缺少数据时不补分。
  */
 (() => {
   'use strict';
@@ -20,11 +20,52 @@
   })();
 
   let rendered = false;
+  let latestDay = null;
+  const references = new Map();
+
+  function placeInAccounts() {
+    const grid = document.getElementById('energyOverview')?.nextElementSibling;
+    if (grid?.classList?.contains('accounts-grid') && grid.insertAdjacentElement) {
+      grid.insertAdjacentElement('afterend', box);
+    }
+  }
+
+  function renderAccountReferences(day) {
+    const links = [
+      ['physicalScore', '精力', '日记整体精力'],
+      ['emotionalScore', '情绪', '日记情绪'],
+      ['focusScore', '专注', '日记专注'],
+    ];
+    for (const [id, metricName, label] of links) {
+      const parent = document.getElementById(id)?.parentElement;
+      const metric = day?.metrics?.[metricName];
+      if (!parent) continue;
+      let reference = references.get(id);
+      if (!reference && metric && Number.isFinite(metric.score) && Number.isFinite(metric.scale) && metric.scale > 0) {
+        reference = document.createElement('span');
+        reference.className = 'diary-account-reference';
+        parent.appendChild(reference);
+        references.set(id, reference);
+      }
+      if (!reference) continue;
+      const valid = metric && Number.isFinite(metric.score) && Number.isFinite(metric.scale) && metric.scale > 0;
+      reference.hidden = !valid;
+      reference.textContent = valid ? `${label} ${metric.score}/${metric.scale} · ${day.date || '日期未知'}` : '';
+    }
+  }
+
+  window.addEventListener('ops:vitaflow-ready', () => {
+    placeInAccounts();
+    renderAccountReferences(latestDay);
+  });
+  placeInAccounts();
 
   function render(energy) {
   const days = energy && Array.isArray(energy.days) ? energy.days.slice() : [];
   if (!days.length) {
     box.hidden = true;
+    latestDay = null;
+    renderAccountReferences(null);
     return;
   }
 
@@ -36,6 +77,8 @@
   };
 
   const latest = days[0];
+  latestDay = latest;
+  renderAccountReferences(latest);
   const metrics = ['精力', '情绪', '专注'];
   const label = document.getElementById('knowledge-energy-label');
   if (label) label.textContent = '日记精力 · 最近 ' + days.length + ' 天';
@@ -92,7 +135,7 @@
   const source = document.getElementById('knowledge-energy-source');
   if (source) {
     const origin = latest.file ? '来源：' + latest.file : '来源：' + (latest.date || '日记') + ' 日记（公开快照）';
-    source.textContent = origin + '（只读，不计入四账户）';
+    source.textContent = origin + '（日记参考，与手动账户评分独立）';
   }
 
   box.hidden = false;
@@ -105,7 +148,7 @@
   // energy.js 用固定 ?v= 加载会被浏览器长期缓存，每日同步改的是内容不是 URL。
   // 线上改为直接取 energy.json（带时间戳、no-store）；file:// 或离线时 fetch 失败，
   // 保留上面的内联数据，不报错、不显示假数据。
-  if (location.protocol === 'http:' || location.protocol === 'https:') {
+  if (!privateEnergy && (location.protocol === 'http:' || location.protocol === 'https:')) {
     fetch('data/public/energy.json?t=' + Date.now(), { cache: 'no-store' })
       .then(response => (response.ok ? response.json() : null))
       .then(fresh => { if (fresh && Array.isArray(fresh.days) && fresh.days.length) render(fresh); })

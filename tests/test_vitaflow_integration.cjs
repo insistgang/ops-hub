@@ -16,6 +16,20 @@ test('the complete app mounts in the host document and the home page exposes its
   }
 });
 
+test('backup and restore controls sit below the four-account overview and keep their handlers', () => {
+  const template = fs.readFileSync(path.join(__dirname, '../vitaflow/src/schedule-template.html'), 'utf8');
+  const energyPosition = template.indexOf('id="energyOverview"');
+  const backupPosition = template.indexOf('class="data-tools"');
+  assert.ok(energyPosition >= 0 && backupPosition > energyPosition, '备份与恢复应放在四账户精力之后');
+  assert.match(template, /<summary>\s*<span>备份与恢复\s*<span class="summary-hint">导入、导出与保存<\/span><\/span>\s*<span id="saveStatus"/);
+  for (const id of ['exportHtmlBtn', 'saveFileBtn', 'exportJsonBtn', 'saveJsonBtn', 'autoSaveToggle']) {
+    assert.ok(template.includes(`id="${id}"`), `备份控件 ID 不得改变：${id}`);
+  }
+  for (const handler of ['exportHtmlWithData', 'saveToOriginalFile', 'exportJsonFile', 'saveToJsonFile', 'importFromHtmlFile', 'importFromJsonFile', 'toggleAutoSave']) {
+    assert.ok(template.includes(`onclick="${handler}(`), `备份处理函数不得移除：${handler}`);
+  }
+});
+
 function setup(saved = {}, { failWrites = false, ready = true, connected = true, conflict = false } = {}) {
   class Element {
     constructor() { this.value = ''; this.textContent = ''; this.disabled = false; this.dataset = {}; this.listeners = {}; this.attrs = {}; this.classes = new Set(); this.classList = { contains: key => this.classes.has(key) }; }
