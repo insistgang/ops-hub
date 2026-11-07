@@ -290,6 +290,14 @@ def _parse_date_token(token: str) -> date | None:
         return None
 
 
+def _date_precision(cell: str) -> str:
+    """返回 day / month / unknown。只写到月份的日期（如 2027-01）不能当月初倒计时。"""
+    m = DATE_RE.search(_strip_md(cell))
+    if not m:
+        return "unknown"
+    return "day" if m.group(3) else "month"
+
+
 def _effective_date(cell: str) -> tuple[date | None, str]:
     """从日期列推出用于提醒的日期，并返回口径说明。"""
     cell = _strip_md(cell)
@@ -360,6 +368,7 @@ def parse_hard_nodes(knowledge_dir: Path = KNOWLEDGE_DIR, today: date | None = N
             date_cell, node_type, title = cells[0], cells[1], cells[2]
             decision, impact, status = cells[3], cells[4], cells[6]
             entry_date, day_basis = _effective_date(date_cell)
+            precision = _date_precision(date_cell)
             status_text = _strip_md(status)
             # 台账规则 2：到期日 != 决策日。续费类已经过了起始日、但决策日仍在未来时，
             # 按决策日提醒，不能误报成逾期。
@@ -374,12 +383,14 @@ def parse_hard_nodes(knowledge_dir: Path = KNOWLEDGE_DIR, today: date | None = N
                 "decision": _clip(_strip_md(decision), 80),
                 "status": status_text,
                 "day_basis": day_basis,
-                "effective_date": entry_date.isoformat() if entry_date else None,
-                "days_left": (entry_date - today).days if entry_date else None,
+                "date_precision": precision,
+                # 只到月份的日期不给倒计时，避免把「2027-01 待定」说成「1 月 1 日还有 N 天」
+                "effective_date": entry_date.isoformat() if entry_date and precision == "day" else None,
+                "days_left": (entry_date - today).days if entry_date and precision == "day" else None,
                 "impact": _clip(_strip_md(impact), 200),
             }
             if status_text == "活跃":
-                if entry_date and (entry_date - today).days < 0:
+                if entry_date and precision == "day" and (entry_date - today).days < 0:
                     row["overdue_days"] = (today - entry_date).days
                     # 续费/扣费类节点日期已过、但仍标活跃，通常表示「事件已发生、还有待确认事项」，
                     # 不是逾期未办，不能报成红色的逾期。

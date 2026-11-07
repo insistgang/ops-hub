@@ -40,6 +40,7 @@ NODES = """# 硬节点台账
 | 2026-11-01 起 | 续费核对 | 域名续费决策 | 2026-11-30 前 | 影响乙 | 某来源 | 活跃 |
 | 2026-10-20 | 到期 | 已过期的活跃节点 | — | 影响丙 | 某来源 | 活跃 |
 | 2026-10-27 | 续费 | 已续订待确认开关的订阅 | — | 影响己 | 某来源 | 活跃 |
+| 2027-01 | 硬截止 | 只登记到月份的节点 | — | 影响庚 | 某来源 | 活跃 |
 | 2026-11-06 | 放榜 | 已经办结的节点 | — | 影响丁 | 某来源 | 已闭环 |
 
 | 2026-11-16 至 11-18 | 里程碑 | 数据冻结 | — | 影响戊 | 某来源 | 活跃 |
@@ -142,6 +143,13 @@ class KnowledgeSourceTests(unittest.TestCase):
         self.assertTrue(active["已续订待确认开关的订阅"]["needs_confirm"])
         # 硬截止类该逾期还是要逾期
         self.assertIn("已过期的活跃节点", overdue_titles)
+
+    def test_month_precision_has_no_countdown(self):
+        nodes = knowledge_source.parse_hard_nodes(self.root, self.today)
+        row = {r["title"]: r for r in nodes["active"]}["只登记到月份的节点"]
+        self.assertEqual(row["date_precision"], "month")
+        self.assertIsNone(row["days_left"])
+        self.assertIsNone(row["effective_date"])
 
     def test_overdue_split(self):
         nodes = knowledge_source.parse_hard_nodes(self.root, self.today)
