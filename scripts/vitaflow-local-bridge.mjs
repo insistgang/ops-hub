@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 export const DEFAULT_BRIDGE_PORT = 18789;
 const UPSTREAM_ORIGIN = 'https://insistgang.top';
-const ALLOWED_ORIGINS = new Set([UPSTREAM_ORIGIN, 'https://finance.insistgang.top']);
+const ALLOWED_ORIGINS = new Set([UPSTREAM_ORIGIN, 'https://finance.insistgang.top', 'https://ops.insistgang.top']);
 const UPSTREAM = 'https://finance.insistgang.top/api/data';
 const METHODS = new Set(['GET', 'POST', 'PUT']);
 const PREFLIGHT_HEADERS = new Set(['content-type']);

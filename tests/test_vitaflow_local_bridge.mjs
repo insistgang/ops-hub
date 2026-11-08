@@ -7,6 +7,7 @@ import { createVitaFlowLocalBridge } from '../scripts/vitaflow-local-bridge.mjs'
 
 const origin = 'https://insistgang.top';
 const serverSiteOrigin = 'https://finance.insistgang.top';
+const opsSiteOrigin = 'https://ops.insistgang.top';
 const token = 'synthetic-bridge-token-0123456789abcdef0123456789';
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'vitaflow-bridge-test-'));
 const tokenFile = path.join(root, 'token');
@@ -43,6 +44,8 @@ try {
     { origin: '' }, { origin: 'null' }, { origin: 'https://untrusted.example' },
     { origin: 'http://finance.insistgang.top' }, { origin: 'https://finance.insistgang.top/' },
     { origin: 'https://finance.insistgang.top.attacker.example' }, { origin: 'https://attacker.finance.insistgang.top' },
+    { origin: 'http://ops.insistgang.top' }, { origin: 'https://ops.insistgang.top/' },
+    { origin: 'https://ops.insistgang.top.attacker.example' }, { origin: 'https://attacker.ops.insistgang.top' },
     { host: 'attacker.example' }, { host: `127.0.0.1:${server.address().port + 1}` },
     { host: `127.0.0.1.attacker.example:${server.address().port}` },
   ]) {
@@ -56,6 +59,7 @@ try {
   assert.equal((await request(server, { omitHost: true })).status, 400, 'HTTP/1.1 without a Host is rejected by Node before reaching the bridge');
   assert.equal((await request(server, { headers: { origin: [origin, origin] } })).status, 403);
   assert.equal((await request(server, { headers: { origin: [origin, serverSiteOrigin] } })).status, 403);
+  assert.equal((await request(server, { headers: { origin: [serverSiteOrigin, opsSiteOrigin] } })).status, 403);
 
   for (const target of ['/','/api/public','//attacker.example/api/data','/api/data?key=secret','/api/data?token=secret','/api/data?target=https://attacker.example']) {
     assert.ok([400, 404].includes((await request(server, { target })).status));
@@ -76,6 +80,14 @@ try {
   assert.equal(serverSitePreflight.headers['access-control-allow-origin'], serverSiteOrigin);
   assert.equal(serverSitePreflight.headers['access-control-allow-private-network'], 'true');
   assert.equal(serverSitePreflight.headers['access-control-allow-credentials'], undefined);
+  const opsSitePreflight = await request(server, { method: 'OPTIONS', headers: {
+    origin: opsSiteOrigin,
+    'access-control-request-method': 'POST', 'access-control-request-headers': 'content-type', 'access-control-request-private-network': 'true',
+  } });
+  assert.equal(opsSitePreflight.status, 204);
+  assert.equal(opsSitePreflight.headers['access-control-allow-origin'], opsSiteOrigin);
+  assert.equal(opsSitePreflight.headers['access-control-allow-private-network'], 'true');
+  assert.equal(opsSitePreflight.headers['access-control-allow-credentials'], undefined);
   for (const extra of [
     { 'access-control-request-method': 'DELETE' },
     { 'access-control-request-method': 'POST', 'access-control-request-headers': 'authorization' },
@@ -112,6 +124,16 @@ try {
   const serverSiteError = await request(server, { target: '/api/public', headers: { origin: serverSiteOrigin } });
   assert.equal(serverSiteError.status, 404);
   assert.equal(serverSiteError.headers['access-control-allow-origin'], serverSiteOrigin);
+  const opsSiteRead = await request(server, { headers: { origin: opsSiteOrigin } });
+  assert.equal(opsSiteRead.status, 200);
+  assert.equal(opsSiteRead.headers['access-control-allow-origin'], opsSiteOrigin);
+  assert.equal(opsSiteRead.headers['set-cookie'], undefined);
+  assert.equal(opsSiteRead.body.includes(token), false);
+  assert.equal(calls.at(-1).options.headers.origin, origin, 'ops browser origin must not change the fixed upstream origin');
+  assert.equal(calls.at(-1).options.headers['x-vitaflow-token'], token);
+  const opsSiteError = await request(server, { target: '/api/public', headers: { origin: opsSiteOrigin } });
+  assert.equal(opsSiteError.status, 404);
+  assert.equal(opsSiteError.headers['access-control-allow-origin'], opsSiteOrigin);
 
   const body = JSON.stringify({ baseRevision: 'abc', patch: { vitaflow_todos: '[]' } });
   const write = await request(server, { method: 'POST', headers: { 'content-type': 'application/json' }, body });
@@ -121,6 +143,11 @@ try {
   assert.equal(serverSiteWrite.status, 200);
   assert.equal(serverSiteWrite.headers['access-control-allow-origin'], serverSiteOrigin);
   assert.equal(serverSiteWrite.body.includes(token), false);
+  const opsSiteWrite = await request(server, { method: 'POST', headers: { origin: opsSiteOrigin, 'content-type': 'application/json' }, body });
+  assert.equal(opsSiteWrite.status, 200);
+  assert.equal(opsSiteWrite.headers['access-control-allow-origin'], opsSiteOrigin);
+  assert.equal(opsSiteWrite.body.includes(token), false);
+  assert.equal(calls.at(-1).options.body.toString(), body);
   const count = calls.length;
   assert.equal((await request(server, { method: 'POST', body })).status, 415);
   assert.equal((await request(server, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{broken' })).status, 400);
