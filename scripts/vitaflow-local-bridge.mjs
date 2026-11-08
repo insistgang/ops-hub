@@ -5,7 +5,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const DEFAULT_BRIDGE_PORT = 18789;
-const ALLOWED_ORIGIN = 'https://insistgang.top';
+const UPSTREAM_ORIGIN = 'https://insistgang.top';
+const ALLOWED_ORIGINS = new Set([UPSTREAM_ORIGIN, 'https://finance.insistgang.top']);
 const UPSTREAM = 'https://finance.insistgang.top/api/data';
 const METHODS = new Set(['GET', 'POST', 'PUT']);
 const PREFLIGHT_HEADERS = new Set(['content-type']);
@@ -62,14 +63,14 @@ function rawHeaderCount(req, name) {
   return count;
 }
 
-function sendJson(res, status, payload, cors = false) {
+function sendJson(res, status, payload, corsOrigin = '') {
   const headers = {
     'content-type': 'application/json; charset=utf-8',
     'cache-control': 'no-store',
     'referrer-policy': 'no-referrer',
     'x-content-type-options': 'nosniff',
     vary: 'Origin, Access-Control-Request-Method, Access-Control-Request-Headers, Access-Control-Request-Private-Network',
-    ...(cors ? { 'access-control-allow-origin': ALLOWED_ORIGIN } : {}),
+    ...(ALLOWED_ORIGINS.has(corsOrigin) ? { 'access-control-allow-origin': corsOrigin } : {}),
   };
   res.writeHead(status, headers);
   res.end(status === 204 || status === 304 ? undefined : JSON.stringify(payload));
@@ -160,14 +161,14 @@ export function createVitaFlowLocalBridge(options = {}) {
   if (typeof fetchImpl !== 'function') throw new Error('Node fetch is required');
 
   const server = http.createServer(async (req, res) => {
-    let cors = false, controller, timer;
+    let corsOrigin = '', controller, timer;
     try {
       const actualPort = server.address()?.port;
       if (rawHeaderCount(req, 'host') !== 1 || ![`127.0.0.1:${actualPort}`, `localhost:${actualPort}`].includes(req.headers.host)) {
         throw requestError(403, 'Host is not allowed');
       }
-      if (rawHeaderCount(req, 'origin') !== 1 || req.headers.origin !== ALLOWED_ORIGIN) throw requestError(403, 'Origin is not allowed');
-      cors = true;
+      if (rawHeaderCount(req, 'origin') !== 1 || !ALLOWED_ORIGINS.has(req.headers.origin)) throw requestError(403, 'Origin is not allowed');
+      corsOrigin = req.headers.origin;
       if (!/^\/api\/data(?:\?[^#]*)?$/.test(req.url) || req.url.length > 2048) throw requestError(404, 'Not found');
       const incoming = new URL(req.url, 'http://127.0.0.1');
       for (const [key, value] of incoming.searchParams) {
@@ -183,7 +184,7 @@ export function createVitaFlowLocalBridge(options = {}) {
         res.setHeader('access-control-allow-methods', 'GET,POST,PUT,OPTIONS');
         res.setHeader('access-control-allow-headers', 'content-type');
         if (privateNetwork === 'true') res.setHeader('access-control-allow-private-network', 'true');
-        sendJson(res, 204, null, true);
+        sendJson(res, 204, null, corsOrigin);
         return;
       }
       if (!METHODS.has(req.method)) throw requestError(405, 'Method is not allowed');
@@ -204,11 +205,11 @@ export function createVitaFlowLocalBridge(options = {}) {
       target.search = incoming.search;
       const upstream = await abortable(fetchImpl(target.href, {
         method: req.method,
-        headers: { origin: ALLOWED_ORIGIN, 'x-vitaflow-token': token, ...(body ? { 'content-type': 'application/json' } : {}) },
+        headers: { origin: UPSTREAM_ORIGIN, 'x-vitaflow-token': token, ...(body ? { 'content-type': 'application/json' } : {}) },
         ...(body ? { body } : {}), redirect: 'error', credentials: 'omit', signal: controller.signal,
       }), controller.signal);
       if (upstream.status >= 300 && upstream.status < 400 && upstream.status !== 304) throw requestError(502, 'Upstream redirects are not accepted');
-      if (upstream.status === 304 || upstream.status === 204) { sendJson(res, upstream.status, null, true); return; }
+      if (upstream.status === 304 || upstream.status === 204) { sendJson(res, upstream.status, null, corsOrigin); return; }
       if (!/^application\/json(?:\s*;|$)/i.test(upstream.headers.get('content-type') || '')) throw requestError(502, 'Sync service returned an invalid response');
       const raw = await readUpstreamBody(upstream, maximumResponse, controller.signal);
       if (raw.includes(Buffer.from(token))) throw requestError(502, 'Sync service returned an invalid response');
@@ -217,12 +218,12 @@ export function createVitaFlowLocalBridge(options = {}) {
       if (!payload || typeof payload !== 'object' || Array.isArray(payload) || JSON.stringify(payload).includes(token)) {
         throw requestError(502, 'Sync service returned an invalid response');
       }
-      sendJson(res, upstream.status, payload, true);
+      sendJson(res, upstream.status, payload, corsOrigin);
     } catch (error) {
       if (!res.destroyed && !res.writableEnded) {
         const safeError = error instanceof BridgeError;
         const status = controller?.signal.aborted ? 504 : safeError ? error.status : 502;
-        sendJson(res, status, { ok: false, error: status === 504 ? 'Sync service timed out' : safeError ? error.message : 'Sync service is unavailable' }, cors);
+        sendJson(res, status, { ok: false, error: status === 504 ? 'Sync service timed out' : safeError ? error.message : 'Sync service is unavailable' }, corsOrigin);
         if (!req.complete) { res.once('finish', () => req.destroy()); req.pause(); }
       }
     } finally {
