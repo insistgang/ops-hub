@@ -298,6 +298,59 @@ test('denied loopback permission provides an action without issuing a request', 
   assert.match(app.ids['vitaflow-status'].textContent, /网站设置|权限/);
 });
 
+test('explicit successful enable survives reload when the permission query is unsupported', async () => {
+  const app = setup({}, { permission: 'unsupported', fetchImpl: async () => bridgeResponse(bridgePayload()) });
+  await flushBridge();
+  assert.equal(app.probeCalls.length, 0);
+  await app.ids['vitaflow-enable-bridge'].click();
+  await flushBridge();
+  assert.equal(app.storage.get('ops_vitaflow_bridge_initialized'), '1');
+  assert.equal(app.ids['vitaflow-enable-bridge'].hidden, true);
+
+  const restored = setup(Object.fromEntries(app.storage), { permission: 'unsupported', fetchImpl: async () => bridgeResponse(bridgePayload()) });
+  await flushBridge();
+  assert.equal(restored.probeCalls.length, 1, 'a previously successful owner activation may reconnect without another click');
+  assert.deepEqual(restored.calls.find(([type]) => type === 'connect'), ['connect', 'http://127.0.0.1:18789/', '']);
+  restored.ids['vitaflow-builtin'].click();
+  const optedOut = setup(Object.fromEntries(restored.storage), { permission: 'unsupported', fetchImpl: async () => bridgeResponse(bridgePayload()) });
+  await flushBridge();
+  assert.equal(optedOut.probeCalls.length, 0);
+});
+
+test('failed unsupported enable never marks owner activation or starts automatic retry', async () => {
+  for (const options of [
+    { fetchImpl: async () => { throw new Error('bridge unavailable'); } },
+    { connected: false, fetchImpl: async () => bridgeResponse(bridgePayload()) },
+  ]) {
+    const app = setup({}, { permission: 'unsupported', ...options });
+    await flushBridge();
+    await app.ids['vitaflow-enable-bridge'].click();
+    await flushBridge();
+    assert.equal(app.probeCalls.length, 1);
+    assert.equal(app.storage.has('ops_vitaflow_bridge_initialized'), false);
+    app.advance(600000);
+    app.setOnline(true);
+    app.setVisible(true);
+    await flushBridge();
+    assert.equal(app.probeCalls.length, 1);
+    const restored = setup(Object.fromEntries(app.storage), { permission: 'unsupported', fetchImpl: async () => bridgeResponse(bridgePayload()) });
+    await flushBridge();
+    assert.equal(restored.probeCalls.length, 0);
+  }
+});
+
+test('prompt or denied permission never auto-probes even with a successful activation marker', async () => {
+  for (const permission of ['prompt', 'denied']) {
+    const app = setup({ ops_vitaflow_bridge_initialized: '1' }, { permission, fetchImpl: async () => bridgeResponse(bridgePayload()) });
+    await flushBridge();
+    app.advance(600000);
+    app.setOnline(true);
+    app.setVisible(true);
+    await flushBridge();
+    assert.equal(app.probeCalls.length, 0);
+  }
+});
+
 test('granted bridge startup retries with bounded backoff and recovers without a reload', async () => {
   let attempts = 0;
   const app = setup({}, { fetchImpl: async () => {

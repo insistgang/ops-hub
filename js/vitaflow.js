@@ -183,9 +183,16 @@ function initVitaFlow() {
       Object.entries(payload.data).every(([key, value]) => key.startsWith('vitaflow_') && typeof value === 'string');
   }
 
+  function automaticBridgePermissionAllowed() {
+    // Some Chrome versions can complete the explicit owner request while not
+    // implementing the permission query. Only a successful prior activation
+    // permits automatic reconnect in that case; prompt/denied never do.
+    return bridgePermission === 'granted' || (bridgePermission === 'unsupported' && bridgeInitialized);
+  }
+
   function updateBridgeButton() {
     if (!bridgeEnable) return;
-    bridgeEnable.hidden = bridgePermission === 'granted' && !bridgeOptedOut;
+    bridgeEnable.hidden = automaticBridgePermissionAllowed() && !bridgeOptedOut;
     bridgeEnable.disabled = !native()?.isReady() || bridgeAttemptInFlight;
     bridgeEnable.textContent = bridgePermission === 'denied' ? '检查本机同步权限' : '启用本机后台同步';
   }
@@ -198,13 +205,13 @@ function initVitaFlow() {
   function applyBridgePermission() {
     const next = bridgePermissionStatus?.state;
     bridgePermission = ['granted', 'prompt', 'denied'].includes(next) ? next : 'unsupported';
-    if (bridgePermission !== 'granted') clearBridgeRetry();
+    if (!automaticBridgePermissionAllowed()) clearBridgeRetry();
     updateBridgeButton();
   }
 
   function bridgePermissionChanged() {
     applyBridgePermission();
-    if (bridgePermission === 'granted') resumeAutomaticBridge();
+    if (automaticBridgePermissionAllowed()) resumeAutomaticBridge();
     else {
       if (bridgeAttemptInFlight) connectionGeneration += 1;
       bridgeProbeController?.abort();
@@ -244,7 +251,7 @@ function initVitaFlow() {
   }
 
   function scheduleBridgeRetry() {
-    if (bridgeRetryTimer !== null || bridgePermission !== 'granted' || automaticBridgeBlocked() ||
+    if (bridgeRetryTimer !== null || !automaticBridgePermissionAllowed() || automaticBridgeBlocked() ||
         typeof window.fetch !== 'function' || typeof window.AbortController !== 'function') return;
     const delay = Math.max(30000, bridgeRetryDelay, bridgeNextAllowedAt - Date.now());
     bridgeRetryTimer = setTimeout(() => {
@@ -294,7 +301,7 @@ function initVitaFlow() {
   }
 
   async function attemptAutomaticBridge({ gesture = false, initial = false } = {}) {
-    if (bridgeAttemptInFlight || automaticBridgeBlocked() || (!gesture && bridgePermission !== 'granted')) return;
+    if (bridgeAttemptInFlight || automaticBridgeBlocked() || (!gesture && !automaticBridgePermissionAllowed())) return;
     if (!gesture && Date.now() < bridgeNextAllowedAt) { scheduleBridgeRetry(); return; }
     clearBridgeRetry();
     const generation = connectionGeneration;
@@ -319,7 +326,7 @@ function initVitaFlow() {
     const generation = connectionGeneration;
     await readBridgePermission();
     if (automaticStopped || generation !== connectionGeneration) return;
-    if (!bridgeOptedOut && bridgePermission === 'granted') {
+    if (!bridgeOptedOut && automaticBridgePermissionAllowed()) {
       await attemptAutomaticBridge({ initial: true });
       return;
     }
