@@ -351,6 +351,52 @@ test('prompt or denied permission never auto-probes even with a successful activ
   }
 });
 
+test('a successful explicit owner enable reconnects when Chrome continues to report prompt', async () => {
+  const app = setup({}, { permission: 'prompt', fetchImpl: async () => bridgeResponse(bridgePayload()) });
+  await flushBridge();
+  assert.equal(app.probeCalls.length, 0, 'ordinary prompt-state visitors cannot probe');
+  await app.ids['vitaflow-enable-bridge'].click();
+  await flushBridge();
+  assert.equal(app.storage.get('ops_vitaflow_bridge_initialized'), '1');
+  assert.equal(app.storage.get('ops_vitaflow_bridge_owner_enabled'), '1', 'only an explicitly enabled and connected owner receives this marker');
+  assert.equal(app.ids['vitaflow-enable-bridge'].hidden, true);
+
+  const restored = setup(Object.fromEntries(app.storage), { permission: 'prompt', fetchImpl: async () => bridgeResponse(bridgePayload()) });
+  await flushBridge();
+  assert.equal(restored.probeCalls.length, 1);
+  assert.equal(restored.calls.filter(([type]) => type === 'connect').length, 1);
+
+  const denied = setup(Object.fromEntries(app.storage), { permission: 'denied', fetchImpl: async () => bridgeResponse(bridgePayload()) });
+  await flushBridge();
+  assert.equal(denied.probeCalls.length, 0, 'an owner marker cannot override browser denial');
+
+  restored.ids['vitaflow-builtin'].click();
+  const optedOut = setup(Object.fromEntries(restored.storage), { permission: 'prompt', fetchImpl: async () => bridgeResponse(bridgePayload()) });
+  await flushBridge();
+  assert.equal(optedOut.probeCalls.length, 0);
+});
+
+test('failed prompt-state enable never grants owner reconnect permission', async () => {
+  for (const options of [
+    { fetchImpl: async () => { throw new Error('bridge unavailable'); } },
+    { connected: false, fetchImpl: async () => bridgeResponse(bridgePayload()) },
+  ]) {
+    const app = setup({}, { permission: 'prompt', ...options });
+    await flushBridge();
+    await app.ids['vitaflow-enable-bridge'].click();
+    await flushBridge();
+    assert.equal(app.storage.has('ops_vitaflow_bridge_owner_enabled'), false);
+    app.advance(600000);
+    app.setVisible(true);
+    app.setOnline(true);
+    await flushBridge();
+    assert.equal(app.probeCalls.length, 1);
+    const restored = setup(Object.fromEntries(app.storage), { permission: 'prompt', fetchImpl: async () => bridgeResponse(bridgePayload()) });
+    await flushBridge();
+    assert.equal(restored.probeCalls.length, 0);
+  }
+});
+
 test('granted bridge startup retries with bounded backoff and recovers without a reload', async () => {
   let attempts = 0;
   const app = setup({}, { fetchImpl: async () => {

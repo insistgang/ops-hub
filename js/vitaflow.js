@@ -4,6 +4,7 @@ function initVitaFlow() {
   const ownerBridgeOrigin = 'http://127.0.0.1:18789';
   const connectionStorageKey = 'ops_vitaflow_connection';
   const bridgeInitializedKey = 'ops_vitaflow_bridge_initialized';
+  const bridgeOwnerEnabledKey = 'ops_vitaflow_bridge_owner_enabled';
   const bridgeOptOutKey = 'ops_vitaflow_bridge_optout';
   // 注意：不再包含 'open'——独立版入口已移除，缺失的必需节点会让整个控制器静默罢工
   const ids = ['url', 'key', 'connect', 'status', 'builtin', 'source', 'native'];
@@ -24,6 +25,7 @@ function initVitaFlow() {
   let connectionGeneration = 0;
   let bridgeProbeController = null;
   let bridgeInitialized = false;
+  let bridgeOwnerEnabled = false;
   let bridgeOptedOut = false;
   let connectionKind = 'browser';
   let automaticStopped = false;
@@ -156,6 +158,7 @@ function initVitaFlow() {
     savedUrl = localStorage.getItem('ops_vitaflow_url');
     savedMode = localStorage.getItem('ops_vitaflow_mode');
     bridgeInitialized = localStorage.getItem(bridgeInitializedKey) === '1';
+    bridgeOwnerEnabled = localStorage.getItem(bridgeOwnerEnabledKey) === '1';
     bridgeOptedOut = localStorage.getItem(bridgeOptOutKey) === '1';
   } catch (_) { settingsReadable = false; notice = '浏览器未允许读取连接设置。'; }
   let privateUrl = null;
@@ -184,10 +187,12 @@ function initVitaFlow() {
   }
 
   function automaticBridgePermissionAllowed() {
-    // Some Chrome versions can complete the explicit owner request while not
-    // implementing the permission query. Only a successful prior activation
-    // permits automatic reconnect in that case; prompt/denied never do.
-    return bridgePermission === 'granted' || (bridgePermission === 'unsupported' && bridgeInitialized);
+    // Chrome can permit an explicit owner request while still reporting prompt.
+    // That application-level choice is retained only after the click actually
+    // connected; the browser continues to enforce every request and denial wins.
+    return bridgePermission === 'granted' ||
+      (bridgePermission === 'unsupported' && bridgeInitialized) ||
+      (bridgePermission === 'prompt' && bridgeInitialized && bridgeOwnerEnabled);
   }
 
   function updateBridgeButton() {
@@ -313,6 +318,12 @@ function initVitaFlow() {
     finally { bridgeAttemptInFlight = false; updateBridgeButton(); }
     if (gesture) await readBridgePermission();
     if (automaticStopped || bridgeOptedOut) return;
+    if (gesture && outcome?.connected) {
+      bridgeOwnerEnabled = true;
+      if (!remember(bridgeOwnerEnabledKey, '1')) notice = '浏览器未保存后台连接偏好；当前连接仍可使用。';
+      updateBridgeButton();
+      status(connectionMessage);
+    }
     const loopbackPrivate = privateUrl && ['127.0.0.1', 'localhost', '::1', '[::1]'].includes(privateUrl.hostname);
     if (!outcome?.attempted && initial && !bridgeInitialized && generation === connectionGeneration && privateUrl && savedMode !== 'builtin' && (!loopbackPrivate || bridgePermission === 'granted')) {
       await connect(privateUrl, nodes.key.value, false);
