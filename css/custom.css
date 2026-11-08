@@ -288,6 +288,12 @@ html:not(.dark) .vitaflow-connection-fields input { background:#fff; color:#1818
 .diary-todo-import { border: 1px solid var(--ops-border); border-radius: .55rem; padding: .35rem .65rem; color: var(--ops-accent); font-size: .75rem; }
 .diary-todo-import:not(:disabled):hover { border-color: var(--ops-accent); }
 .diary-todo-import:disabled { opacity: .65; cursor: default; }
+.public-vita-notes { margin-top: .8rem; color: var(--ops-text); }
+.public-vita-notes > summary { cursor: pointer; font-size: .85rem; font-weight: 600; }
+.public-vita-note { padding: .65rem 0; border-bottom: 1px solid var(--ops-border); }
+.public-vita-note summary { cursor: pointer; color: var(--ops-accent); }
+.public-vita-note h4 { margin-top: .7rem; font-size: .75rem; color: var(--ops-muted); }
+.public-vita-note-content { margin-top: .3rem; font-size: .85rem; line-height: 1.6; }
 .style-switch button { display:inline-flex; align-items:center; justify-content:center; min-width:1.9rem; padding:.3rem .4rem; border:0; border-radius:.4rem; background:transparent; color:var(--ops-muted,#a1a1aa); font-size:.72rem; line-height:1; cursor:pointer; transition:background .15s ease, color .15s ease; }
 .style-switch button:hover { color:var(--ops-text,#e4e4e7); background:var(--ops-surface,#27272a); }
 .style-switch button.is-active { background:var(--ops-accent,#6366f1); color:var(--ops-accent-contrast,#fff); }

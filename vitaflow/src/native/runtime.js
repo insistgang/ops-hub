@@ -64,7 +64,10 @@
       const headers = { ...options.headers };
       for (const name of Object.keys(headers)) if (name.toLowerCase() === 'x-vitaflow-token') delete headers[name];
       if (nativeContext.key) headers['x-vitaflow-token'] = nativeContext.key;
-      const response = await realWindow.fetch(new URL(input, nativeContext.origin).href, { ...options, headers, signal: controller.signal });
+      const response = await realWindow.fetch(new URL(input, nativeContext.origin).href, {
+        ...options, headers, signal: controller.signal,
+        ...(nativeContext.origin === 'http://127.0.0.1:18789' ? { targetAddressSpace: 'loopback' } : {})
+      });
       const current = () => {
         if (generation !== nativeContext.generation) {
           const error = new Error('VitaFlow connection changed');

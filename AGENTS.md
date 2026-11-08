@@ -115,7 +115,7 @@ Desktop/个人工具/ops-hub/
 - 原生构建由 `vitaflow/build-native.mjs` 生成 JS/CSS；只读取无快照公开源码，DOM 查询与弹窗限定在原生根，CSS 选择器限定同根。Chart vendor 在真实 window/document 上初始化，业务 facade 不得包住图表库的浏览器上下文。
 - UI 事件函数白名单为 `vitaflow/src/native/ui-handlers.json`，业务状态留在闭包；新增交互需同步名单和原生测试。根与 VitaFlow 模板 ID 不得重复，宿主 Tab 选择范围不可包含内部 Tab。
 - `OpsVitaFlowNative` 提供导航、摘要、待办操作、主题与私有连接接口；今日与详情共用 `vitaflow_*`，保留辅助同步键和 IndexedDB 格式。首页导航传入北京时间日期，详细页自主选日保留原行为。
-- `ops:vitaflow-ready`、`ops:vitaflow-data` 只发布状态元数据，不广播记录或口令。默认浏览器模式不探测 API；主动连接私有服务沿用既有鉴权、revision 和冲突选择，不能静默覆盖本机数据。空 key 不得回退发送旧凭据，过期请求不得改变最新连接状态。
+- `ops:vitaflow-ready`、`ops:vitaflow-data` 只发布状态元数据，不广播记录或口令。公开快照只读，不写入访客本地存储；服务器仅允许约定的日程、精力和笔记字段匿名读取，写入仍须鉴权。配置了本机桥接的设备在权限允许时自动连接，浏览器需要授权时由用户手动启用；沿用 revision 与冲突选择，不能静默覆盖本机数据。空 key 不得回退发送旧凭据，过期请求不得改变最新连接状态。
 - HTML 导出使用保留的独立源码，导入只刷新当前工作区；构建与测试不读写真实个人 JSON，公开产物不嵌入私人快照。修改 VitaFlow 源码后在其目录运行 `npm run build:html`（同时生成独立和原生版本）及 `npm test`，用 `--check` 核对原生产物。
 - 考试 `phase=result_recorded` 表示查分已办结；教资归档保留但不在网页展示，考试主卡仅取六级。私有分数不复制进公开快照。
 

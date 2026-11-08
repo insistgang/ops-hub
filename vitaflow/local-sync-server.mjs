@@ -34,7 +34,40 @@ const STATIC_FILE_ALIASES = {
 const PUBLIC_STATIC_FILES = new Set([DEFAULT_HTML_FILE]);
 const CLOUD_METHODS = new Set(['GET', 'POST', 'PUT']);
 const CLOUD_HEADERS = new Set(['content-type', 'x-vitaflow-token', 'authorization']);
+const PUBLIC_DATA_KEYS = new Set([
+  'vitaflow_accounts', 'vitaflow_todos', 'vitaflow_happiness', 'vitaflow_streak',
+  'vitaflow_streak_records', 'vitaflow_completed', 'vitaflow_goal', 'vitaflow_calendar',
+  'vitaflow_media_calendar', 'vitaflow_pomodoro', 'vitaflow_emotion_notes',
+  'vitaflow_emotion_activities', 'vitaflow_meaning_quiz', 'vitaflow_reflection',
+  'vitaflow_reviews', 'vitaflow_rituals', 'vitaflow_values',
+  'vitaflow_writing', 'vitaflow_lazyy', 'vitaflow_ideas', 'vitaflow_learning_notes',
+  'vitaflow_reading_notes', 'vitaflow_film_notes', 'vitaflow_deepseek_docs',
+  'vitaflow_literature_docs', 'vitaflow_novel_outlines',
+]);
+const CREDENTIAL_FIELDS = new Set([
+  'apikey', 'accesstoken', 'refreshtoken', 'token', 'password', 'passwd', 'secret',
+  'authorization', 'privatekey', 'credential', 'credentials',
+]);
 const responseCorsHeaders = new WeakMap();
+const publicResponseTokens = new WeakMap();
+
+function containsServerToken(value, token) {
+  if (!token || typeof value !== 'string') return false;
+  let candidate = value;
+  const escapes = { '"': '"', '/': '/', b: '\b', f: '\f', n: '\n', r: '\r', t: '\t' };
+  for (let pass = 0; pass < 8; pass += 1) {
+    if (candidate.includes(token)) return true;
+    const decoded = candidate
+      .replace(/\\\\/g, () => '\\')
+      .replace(/\\u([0-9a-f]{4})/gi, (_, code) => String.fromCharCode(parseInt(code, 16)))
+      .replace(/\\x([0-9a-f]{2})/gi, (_, code) => String.fromCharCode(parseInt(code, 16)))
+      .replace(/\\(["/bfnrt])/g, (_, code) => escapes[code]);
+    if (decoded === candidate) return false;
+    candidate = decoded;
+  }
+  // Deeply layered escape text is not safe to publish without bounded decoding.
+  return true;
+}
 
 function normalizeCloudOrigins(value) {
   const origins = Array.isArray(value) ? value : typeof value === 'string' ? value.split(',').map(item => item.trim()) : [];
@@ -185,6 +218,33 @@ function createDataRevision(data) {
   return crypto.createHash('sha256').update(JSON.stringify(normalizeData(data))).digest('hex').slice(0, 24);
 }
 
+function publicDataProjection(data, token) {
+  // This is an allowlisted read view, never a write to the owner's records.
+  // Prose may still contain personal information; enabling publication is an
+  // explicit owner decision, not a promise of automatic text anonymization.
+  const redact = value => {
+    if (typeof value === 'string') {
+      const redacted = value.split(token).join('[已移除凭据]');
+      return containsServerToken(redacted, token) ? '[已移除凭据]' : redacted;
+    }
+    if (Array.isArray(value)) return value.map(redact);
+    if (isDataObject(value)) {
+      return Object.fromEntries(Object.entries(value)
+        .filter(([key]) => !containsServerToken(key, token) && !CREDENTIAL_FIELDS.has(key.toLowerCase().replace(/[-_\s]/g, '')))
+        .map(([key, child]) => [key, redact(child)]));
+    }
+    return value;
+  };
+  return Object.fromEntries(Object.entries(data)
+    .filter(([key]) => PUBLIC_DATA_KEYS.has(key))
+    .map(([key, value]) => {
+      let parsed;
+      try { parsed = JSON.parse(value); }
+      catch { return [key, redact(value)]; }
+      return [key, JSON.stringify(redact(parsed))];
+    }));
+}
+
 function moveFileReplacing(sourcePath, targetPath) {
   if (!fs.existsSync(sourcePath)) return;
   if (fs.existsSync(targetPath)) fs.unlinkSync(targetPath);
@@ -306,7 +366,12 @@ function readRequestJson(req, maxRequestBytes) {
 }
 
 function sendJson(res, status, payload, extraHeaders) {
-  const body = JSON.stringify(payload);
+  let body = JSON.stringify(payload);
+  const publicToken = publicResponseTokens.get(res);
+  if (publicToken && containsServerToken(body, publicToken)) {
+    status = 500;
+    body = '{"ok":false}';
+  }
   res.writeHead(status, {
     'content-type': 'application/json; charset=utf-8',
     'cache-control': 'no-store',
@@ -371,7 +436,10 @@ function serveStaticFile(req, res, rootDir, extraHeaders) {
 
 export function createLocalSyncServer(options = {}) {
   if (options.cloudMode !== undefined && typeof options.cloudMode !== 'boolean') throw new Error('cloudMode must be an explicit boolean');
+  if (options.publicRead !== undefined && typeof options.publicRead !== 'boolean') throw new Error('publicRead must be an explicit boolean');
   const cloudMode = options.cloudMode === true;
+  const publicRead = options.publicRead === true;
+  if (publicRead && !cloudMode) throw new Error('public reads require cloud mode');
   const allowedOrigins = cloudMode ? normalizeCloudOrigins(options.allowedOrigins) : null;
   const rootDir = options.rootDir || __dirname;
   if (cloudMode && !options.dataPath && !options.dataDir) throw new Error('cloud mode requires an explicit data directory or path');
@@ -425,6 +493,8 @@ export function createLocalSyncServer(options = {}) {
     }
     try {
       const url = new URL(req.url, 'http://local');
+      const publicReadPath = cloudMode && publicRead && url.pathname === '/api/public';
+      if (publicReadPath) publicResponseTokens.set(res, token);
       if (cloudMode) {
         const origin = req.headers.origin;
         if (origin !== undefined && !allowedOrigins.has(origin)) {
@@ -435,9 +505,9 @@ export function createLocalSyncServer(options = {}) {
           responseCorsHeaders.set(res, {
             vary: 'Origin',
             'access-control-allow-origin': origin,
-            'access-control-allow-credentials': 'true',
-            'access-control-allow-methods': 'GET,POST,PUT,OPTIONS',
-            'access-control-allow-headers': 'content-type,x-vitaflow-token,authorization',
+            ...(publicReadPath ? {} : { 'access-control-allow-credentials': 'true' }),
+            'access-control-allow-methods': publicReadPath ? 'GET,OPTIONS' : 'GET,POST,PUT,OPTIONS',
+            'access-control-allow-headers': publicReadPath ? 'content-type' : 'content-type,x-vitaflow-token,authorization',
           });
         }
         if (['key', 'token', 'access_token', 'password', 'authorization'].some(name => url.searchParams.has(name)) || url.username || url.password) {
@@ -450,12 +520,31 @@ export function createLocalSyncServer(options = {}) {
           const method = req.headers['access-control-request-method'];
           const requestedHeaders = String(req.headers['access-control-request-headers'] || '')
             .split(',').map(header => header.trim().toLowerCase()).filter(Boolean);
-          if (!req.headers.origin || !CLOUD_METHODS.has(method) || requestedHeaders.some(header => !CLOUD_HEADERS.has(header))) {
+          const methodAllowed = publicReadPath ? method === 'GET' : CLOUD_METHODS.has(method);
+          const headersAllowed = publicReadPath
+            ? requestedHeaders.every(header => header === 'content-type')
+            : requestedHeaders.every(header => CLOUD_HEADERS.has(header));
+          if (!req.headers.origin || !methodAllowed || !headersAllowed) {
             sendJson(res, 403, { ok: false, error: 'Preflight is not allowed' });
             return;
           }
         }
         sendJson(res, 204, {});
+        return;
+      }
+      if (publicReadPath) {
+        if (req.method !== 'GET') {
+          sendJson(res, 405, { ok: false, error: 'Public records are read-only' }, { allow: 'GET,OPTIONS' });
+          return;
+        }
+        const info = getFileInfo();
+        const data = publicDataProjection(info.data, token);
+        const revision = createDataRevision(data);
+        if (url.searchParams.get('revision') === revision) {
+          sendNotModified(res);
+          return;
+        }
+        sendJson(res, 200, { data, revision, updatedAt: info.updatedAt, keys: Object.keys(data).length, readOnly: true });
         return;
       }
       const authed = isTokenMatch(getRequestToken(req, url, cloudMode), token);
@@ -629,6 +718,11 @@ if (process.argv[1] === __filename) {
     process.exit(1);
   }
   const cloudMode = process.env.VITAFLOW_CLOUD_MODE === '1';
+  if (process.env.VITAFLOW_PUBLIC_READ && !['0', '1'].includes(process.env.VITAFLOW_PUBLIC_READ)) {
+    console.error('VITAFLOW_PUBLIC_READ must be 1 (public read enabled) or 0 (disabled)');
+    process.exit(1);
+  }
+  const publicRead = process.env.VITAFLOW_PUBLIC_READ === '1';
   if (process.argv.includes('--print-token')) {
     if (cloudMode) {
       console.error('Token printing is disabled in cloud mode');
@@ -649,7 +743,7 @@ if (process.argv[1] === __filename) {
     if (cloudMode && !process.env.VITAFLOW_TOKEN_FILE) throw new Error('VITAFLOW_TOKEN_FILE is required in cloud mode');
     const token = cloudMode ? undefined : loadOrCreateToken(__dirname);
     const server = createLocalSyncServer({
-      cloudMode, token, maxRequestBytes,
+      cloudMode, publicRead, token, maxRequestBytes,
       ...(cloudMode ? {
         allowedOrigins: process.env.VITAFLOW_ALLOWED_ORIGINS,
         dataDir: process.env.VITAFLOW_DATA_DIR,
