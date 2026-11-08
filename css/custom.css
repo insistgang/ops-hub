@@ -282,6 +282,12 @@ html:not(.dark) .vitaflow-connection-fields input { background:#fff; color:#1818
 
 /* 顶部右侧的风格切换按钮组（替代原来的内容区下拉框） */
 .style-switch { display:flex; align-items:center; gap:2px; padding:2px; border:1px solid var(--ops-border,#3f3f46); border-radius:.6rem; background:var(--ops-surface-muted,#18181b); }
+.diary-todo-title { flex: 1 1 12rem; min-width: 0; overflow-wrap: anywhere; color: var(--ops-text); }
+#diary-todos-list li { flex-wrap: wrap; }
+.diary-todo-source-status { color: var(--ops-muted); font-size: .72rem; white-space: nowrap; }
+.diary-todo-import { border: 1px solid var(--ops-border); border-radius: .55rem; padding: .35rem .65rem; color: var(--ops-accent); font-size: .75rem; }
+.diary-todo-import:not(:disabled):hover { border-color: var(--ops-accent); }
+.diary-todo-import:disabled { opacity: .65; cursor: default; }
 .style-switch button { display:inline-flex; align-items:center; justify-content:center; min-width:1.9rem; padding:.3rem .4rem; border:0; border-radius:.4rem; background:transparent; color:var(--ops-muted,#a1a1aa); font-size:.72rem; line-height:1; cursor:pointer; transition:background .15s ease, color .15s ease; }
 .style-switch button:hover { color:var(--ops-text,#e4e4e7); background:var(--ops-surface,#27272a); }
 .style-switch button.is-active { background:var(--ops-accent,#6366f1); color:var(--ops-accent-contrast,#fff); }

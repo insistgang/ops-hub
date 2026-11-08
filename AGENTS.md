@@ -129,6 +129,7 @@ Desktop/个人工具/ops-hub/
 - **财务月度复盘投影**：`parse_finance` 只读 `06-Growth/Finance/YYYY-MM-*-review.md` 的最新月份，抽取「本月概况」与「支出结构」两张表的原始金额与口径，不重算、不四舍五入、不补缺失项；金额无法解析时写 warning 而不猜。渲染由 `js/knowledge-finance.js` 负责，挂在财务 Tab 上方，与真实账本互不替代——账本仍需在财务页主动读取，两块同时存在时以账本为准。
 - **日记精力投影**：`parse_energy` 只读 `01-Daily/YYYY-MM/YYYY-MM-DD.md` 的「## 状态」段，取最近 7 天的精力／情绪／专注评分与本人写下的推断依据；睡眠／运动不在该段内，按全文首个同名字段兜底，找不到就不写。`js/knowledge-energy.js` 在四账户旁只读展示日记参考与日期，整体精力不等同于体能评分；原始分数不重算、不补分，不写入或覆盖 VitaFlow 手动记录。
 - **精力公开投影**：本人 2026-11-07 明确选择 C 档，日记精力连推断依据一起公开。`sanitize_public.build_public_energy` 只保留日期、分数、依据与睡眠/运动，丢弃本地文件路径，文本统一过 `scrub_text`；产物为 `data/public/energy.json` 与 `energy.js`。页面优先读私有快照，缺失时回退公开文件；公开站在 http(s) 下改用 `fetch('data/public/energy.json?t=…', {cache:'no-store'})` 取最新，因为 `energy.js` 用固定 `?v=` 加载会被浏览器长期缓存、每日同步改内容不改 URL；`file://` 或离线时保留内联数据。**公开意味着日记片段会进入 git 历史与公网，改动前必须确认是本人意愿。**
+- **日记待办公开投影**：本人于 2026-11-08 同意公开指定日记待办标题和勾选状态。只读取当日日记「今日计划与执行状态」及前一天「明日计划」的复选项，限定日期并进行脱敏；只发布日期、稳定 ID、标题、来源日期和状态，不发布完整日记。网页仅在用户逐条点击后导入 VitaFlow，重复条目不覆盖，日程的勾选不回写日记。公开产物 `data/public/diary-todos.{json,js}` 会进入 Git 历史及公网。
 - **失败不造假**：解析不到写 `warnings` 或 `available: false` 并给出原因，不构造占位行；知识库不存在不得拖垮硬件探针。
 - **口径以台账为准**：硬节点按「到期日 ≠ 决策日」计算提醒日，决策日仍在未来的节点不算逾期；处置列已写明闭环的不计入逾期。
 - **隐私**：`data/knowledge.json` 与 `data/private/` 已 git-ignore，`sanitize_public.py` 在中整块剔除 `knowledge` 段。公开站拿不到私有快照，页面自动隐藏该区块。

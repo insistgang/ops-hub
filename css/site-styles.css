@@ -204,7 +204,7 @@ html[data-ops-style] #vitaflow-native :is(.tab-btn.active, .cal-day.selected, .a
   color: var(--ops-accent-contrast);
 }
 
-html[data-ops-style] #vitaflow-native .add-btn:not([id^="stop"]) {
+html[data-ops-style] #vitaflow-native .add-btn:not([id^="stop"]):not(.danger):not([onclick*="delete" i]) {
   background: var(--ops-accent) !important;
   border-radius: var(--ops-radius);
   color: var(--ops-accent-contrast) !important;
@@ -222,6 +222,125 @@ html[data-ops-style] #vitaflow-native .diary-account-reference:not([hidden]) {
   font-weight: 400;
   line-height: 1.45;
   overflow-wrap: anywhere;
+}
+
+/* VitaFlow keeps its standalone palette; the embedded workspace follows the host.
+   Only known decorative legacy colors are overridden below. Success, warning,
+   danger and user-selected mood colors retain their meaning. */
+html[data-ops-style] #vitaflow-native {
+  --page-bg: var(--ops-page);
+  --surface: var(--ops-surface);
+  --surface-muted: var(--ops-surface-muted);
+  --text: var(--ops-text);
+  --muted: var(--ops-muted);
+  --accent: var(--ops-accent);
+  --border: var(--ops-border);
+  --card-shadow: var(--ops-shadow);
+  --vf-danger: #b4233f;
+  --vf-danger-contrast: #ffffff;
+  color-scheme: light;
+}
+
+html.dark[data-ops-style] #vitaflow-native {
+  --vf-danger: #fda4af;
+  --vf-danger-contrast: #4c0519;
+  color-scheme: dark;
+}
+
+html[data-ops-style] #vitaflow-native :is(.theory-card, .guide-card, .goal-suggestions, .review-card, .doc-card, .idea-vault-panel, .history-item, .pomodoro-item, .media-card) {
+  background: var(--ops-surface);
+  border-color: var(--ops-border);
+  border-radius: var(--ops-radius);
+}
+
+html[data-ops-style] #vitaflow-native :is(.month-btn, .back-btn, .tab-btn, .account-add-btn, .idea-vault-small-btn:not(.danger)) {
+  background: var(--ops-surface-muted);
+  border-color: var(--ops-border);
+  color: var(--ops-text);
+}
+
+html[data-ops-style] #vitaflow-native :is(.tag, .trend-badge, .todo-account, .idea-vault-chip, .section-nav a:hover) {
+  background: var(--ops-surface-muted);
+  border-color: var(--ops-border);
+  color: var(--ops-accent);
+}
+
+html[data-ops-style] #vitaflow-native :is(.account-title, .panel-title, .current-month, .todo-text, .suggestion-title, .theory-title, .history-date, .media-title, .doc-title, .review-title, .review-section-title, .idea-vault-panel-title, .idea-vault-item-title, .idea-vault-line strong) {
+  color: var(--ops-text);
+}
+
+html[data-ops-style] #vitaflow-native :is(.weekdays, .stat-label, .suggestion-text, .progress-ring .label, .doc-preview, .doc-meta, .idea-vault-empty, .idea-vault-meta, .idea-vault-line, .pomodoro-day, .pomodoro-time, .todo-text.completed) {
+  color: var(--ops-muted);
+}
+
+html[data-ops-style] #vitaflow-native :is(.user-name, .detail-title, .progress-ring .number, .account-score, .stat-value) {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--ops-accent);
+}
+
+html[data-ops-style] #vitaflow-native :is(.review-dates, .pomodoro-count, .media-count, .idea-vault-kicker, .guide-list li i) {
+  color: var(--ops-accent);
+}
+
+html[data-ops-style] #vitaflow-native :is(.delete-btn, .idea-vault-small-btn.danger) {
+  color: var(--vf-danger);
+}
+
+html[data-ops-style] #vitaflow-native :is(input:not([type="range"]):not([type="checkbox"]), select, textarea) {
+  background: var(--ops-surface-muted) !important;
+  border-color: var(--ops-border) !important;
+  color: var(--ops-text) !important;
+}
+
+html[data-ops-style] #vitaflow-native :is(input, textarea)::placeholder { color: var(--ops-muted); }
+html[data-ops-style] #vitaflow-native :is(input[type="range"], input[type="checkbox"]) { accent-color: var(--ops-accent); }
+html[data-ops-style] #vitaflow-native :is(.suggestion-item, .idea-vault-item) { border-color: var(--ops-border); }
+html[data-ops-style] #vitaflow-native :is(.todo-list, .history-list, .idea-vault-list) { scrollbar-color: var(--ops-border) transparent; }
+html[data-ops-style] #vitaflow-native .progress-ring .bg { stroke: var(--ops-border); }
+html[data-ops-style] #vitaflow-native .progress-ring .fg { stroke: var(--ops-accent); }
+
+/* These declarations beat inline styles emitted by the legacy templates. They
+   target their old palette, rather than recoloring every descendant. */
+html[data-ops-style] #vitaflow-native :is([style*="color: #6a4a"], [style*="color:#6a4a"], [style*="color: #4a3a"], [style*="color:#4a3a"], [style*="color: #3a2a47"], [style*="color:#3a2a47"]) {
+  color: var(--ops-text) !important;
+}
+
+html[data-ops-style] #vitaflow-native :is([style*="color: #8b7a7a"], [style*="color:#8b7a7a"], [style*="color: #aa9a9a"], [style*="color:#aa9a9a"], [style*="color: #999"], [style*="color:#999"]) {
+  color: var(--ops-muted) !important;
+}
+
+html[data-ops-style] #vitaflow-native :is([style*="color: #8b5e9e"], [style*="color: #c4679c"], [style*="color: #a78bfa"], [style*="color: #8b5cf6"], [style*="color: #ec4899"], [style*="color: #667eea"]) {
+  color: var(--ops-accent) !important;
+}
+
+html[data-ops-style] #vitaflow-native [style*="background-clip: text"][style*="color: transparent"] {
+  background: none !important;
+  color: var(--ops-accent) !important;
+  -webkit-text-fill-color: currentColor;
+}
+
+html[data-ops-style] #vitaflow-native :is([style*="background: rgba(255, 250, 252"], [style*="background: rgba(255,255,255"], [style*="background: rgba(255, 255, 255"], [style*="background: white"], [style*="background: #fff"]) {
+  background: var(--ops-surface) !important;
+  border-color: var(--ops-border) !important;
+}
+
+html[data-ops-style] #vitaflow-native :is([style*="background: rgba(196,103,156"], [style*="background: rgba(196, 103, 156"], [style*="background: rgba(200,160,200"], [style*="background: rgba(200, 160, 200"], [style*="background: rgba(244, 114, 182"], [style*="background: rgba(139,92,246"], [style*="background: rgba(139, 92, 246"], [style*="background: rgba(167,139,250"], [style*="background: rgba(167, 139, 250"], [style*="background: rgba(236,72,153"], [style*="background: rgba(236, 72, 153"], [style*="background: linear-gradient"][style*="rgba(139, 94, 158"], [style*="background: linear-gradient"][style*="rgba(196, 103, 156"], [style*="background: linear-gradient"][style*="rgba(167, 139, 250"]) {
+  background: var(--ops-surface-muted) !important;
+  border-color: var(--ops-border) !important;
+}
+
+html[data-ops-style] #vitaflow-native :is(button[style*="background: linear-gradient"]:not(.danger):not([id^="stop"]):not([onclick*="delete" i]), .backup-actions #saveJsonBtn, .tab-btn.active, .cal-day.selected, .account-add-btn.active) {
+  background: var(--ops-accent) !important;
+  border-color: var(--ops-accent) !important;
+  color: var(--ops-accent-contrast) !important;
+  box-shadow: none;
+}
+
+html[data-ops-style] #vitaflow-native :is(button.add-btn[onclick*="delete" i], button.add-btn[id^="stop"], button.add-btn.danger) {
+  background: var(--vf-danger) !important;
+  border-color: var(--vf-danger) !important;
+  color: var(--vf-danger-contrast) !important;
 }
 
 html[data-ops-style] #weight-native .button-primary {

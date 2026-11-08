@@ -31,6 +31,8 @@ GITOPS_FILES = [
     "data/public/memory_rules.js",
     "data/public/energy.json",
     "data/public/energy.js",
+    "data/public/diary-todos.json",
+    "data/public/diary-todos.js",
 ]
 
 def load_json(path, default):
@@ -370,6 +372,8 @@ def collect_all():
         knowledge = {
             "available": False,
             "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+            "today": datetime.now().astimezone().date().isoformat(),
+            "diary_todos": {"date": datetime.now().astimezone().date().isoformat(), "items": []},
             "error": f"{type(exc).__name__}: {exc}",
             "warnings": [], "today_plan": None, "hard_nodes": None,
         }

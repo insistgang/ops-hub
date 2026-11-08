@@ -15,11 +15,13 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
 import sys
-from datetime import date, datetime
+import unicodedata
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 # 知识库根目录；可用 OPS_KNOWLEDGE_DIR 覆盖（例如换机器或测试）。
@@ -197,6 +199,112 @@ def parse_today_plan(knowledge_dir: Path = KNOWLEDGE_DIR, day: date | None = Non
         "items": items,
         "warnings": warnings,
     }
+
+
+# --------------------------------------------------------------------------
+# 日记待办公开投影（严格限定两个日期章节）
+# --------------------------------------------------------------------------
+
+DIARY_CHECKBOX_RE = re.compile(r"^\s*[-*+]\s+\[([ xX])\]\s+(.+?)\s*$")
+DIARY_HEADING_RE = re.compile(r"^(#{1,6})[ \t]+(.*?)[ \t]*#*[ \t]*$")
+DIARY_FENCE_RE = re.compile(r"^\s*(```+|~~~+)")
+
+
+def _normalized_diary_title(title: str) -> str:
+    return " ".join(unicodedata.normalize("NFKC", title).split()).casefold()
+
+
+def _diary_todo_id(target_day: date, normalized_title: str) -> str:
+    source = f"{target_day.isoformat()}\0{normalized_title}".encode("utf-8")
+    return "diary-" + hashlib.sha256(source).hexdigest()[:24]
+
+
+def _parse_diary_todo_section(path: Path, section_name: str, target_day: date) -> list[dict]:
+    """Read checkboxes only inside an exact Markdown section heading."""
+    lines = _read(path).splitlines()
+    items = []
+    index = 0
+    in_outer_fence = False
+    outer_fence_char = ""
+    while index < len(lines):
+        fence = DIARY_FENCE_RE.match(lines[index])
+        if fence:
+            marker = fence.group(1)
+            if not in_outer_fence:
+                in_outer_fence = True
+                outer_fence_char = marker[0]
+            elif marker[0] == outer_fence_char:
+                in_outer_fence = False
+            index += 1
+            continue
+        if in_outer_fence:
+            index += 1
+            continue
+        heading = DIARY_HEADING_RE.match(lines[index])
+        if not heading or heading.group(2).strip() != section_name:
+            index += 1
+            continue
+
+        level = len(heading.group(1))
+        index += 1
+        in_fence = False
+        fence_char = ""
+        while index < len(lines):
+            line = lines[index]
+            fence = DIARY_FENCE_RE.match(line)
+            if fence:
+                marker = fence.group(1)
+                if not in_fence:
+                    in_fence = True
+                    fence_char = marker[0]
+                elif marker[0] == fence_char:
+                    in_fence = False
+                index += 1
+                continue
+
+            next_heading = None if in_fence else DIARY_HEADING_RE.match(line)
+            if next_heading and len(next_heading.group(1)) <= level:
+                break
+            if not in_fence:
+                checkbox = DIARY_CHECKBOX_RE.match(line)
+                if checkbox:
+                    title = _strip_md(checkbox.group(2)).strip()
+                    title = _clip(title, 160)
+                    normalized = _normalized_diary_title(title)
+                    if normalized:
+                        items.append({
+                            "id": _diary_todo_id(target_day, normalized),
+                            "title": title,
+                            "completed": checkbox.group(1).casefold() == "x",
+                            "source_date": path.stem,
+                        })
+            index += 1
+        # Continue after a sibling/parent heading; another exact target section
+        # later in the file is still part of the allowlisted source.
+    return items
+
+
+def parse_diary_todos(knowledge_dir: Path = KNOWLEDGE_DIR, day: date | None = None) -> dict:
+    """Project today's and yesterday's explicitly dated task checkboxes only."""
+    day = day or _today()
+    yesterday = day - timedelta(days=1)
+    daily_dir = knowledge_dir / "01-Daily"
+    sources = (
+        (daily_dir / day.strftime("%Y-%m") / f"{day.isoformat()}.md", "今日计划与执行状态"),
+        (daily_dir / yesterday.strftime("%Y-%m") / f"{yesterday.isoformat()}.md", "明日计划"),
+    )
+    items = []
+    seen = set()
+    for path, section in sources:  # current diary wins duplicate status/title
+        if not path.is_file():
+            continue
+        for item in _parse_diary_todo_section(path, section, day):
+            normalized = _normalized_diary_title(item["title"])
+            if normalized in seen:
+                continue
+            seen.add(normalized)
+            items.append(item)
+    return {"date": day.isoformat(), "items": items}
 
 
 # --------------------------------------------------------------------------
@@ -854,6 +962,7 @@ def collect(knowledge_dir: Path | None = None, today: date | None = None) -> dic
         "source_root": str(root),
         "today": today.isoformat(),
         "warnings": [],
+        "diary_todos": {"date": today.isoformat(), "items": []},
         "today_plan": None,
         "wip": None,
         "hard_nodes": None,
@@ -867,6 +976,13 @@ def collect(knowledge_dir: Path | None = None, today: date | None = None) -> dic
         return result
 
     degraded = False
+    try:
+        result["diary_todos"] = parse_diary_todos(root, today)
+    except KnowledgeSourceError as exc:
+        result["diary_todos"] = {"date": today.isoformat(), "items": []}
+        degraded = True
+        result["warnings"].append(f"日记待办：{exc}")
+
     try:
         plan = parse_today_plan(root, today)
         result["today_plan"] = plan

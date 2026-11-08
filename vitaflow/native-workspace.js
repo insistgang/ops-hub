@@ -130,6 +130,98 @@ var define = undefined;
             return escapeHtml(serialized === undefined ? 'null' : serialized);
         }
 
+        // VITAFLOW_CHART_THEME_START
+        // This factory is local to VitaFlow; other workspaces keep their own Chart instances.
+        const vitaFlowChartThemes = {
+            classic: [['#4f46e5', '#0284c7', '#0f766e', '#7c3aed', '#a16207'], ['#a5b4fc', '#67e8f9', '#6ee7b7', '#c4b5fd', '#fcd34d']],
+            paper: [['#49657f', '#81704f', '#50785d', '#79618a', '#8c5e3c'], ['#a8c0d5', '#cfbd98', '#a4c5ad', '#c5b1d5', '#dfb391']],
+            forest: [['#326844', '#387a8a', '#81703d', '#70628f', '#906344'], ['#a2d0a8', '#82c7d3', '#d6c180', '#b5a6d3', '#d4ac87']],
+            ocean: [['#12688e', '#248784', '#526eae', '#78649e', '#96742e'], ['#80cce7', '#78d3c4', '#a8b9ef', '#c7b2e7', '#dfc27f']],
+        };
+        const vitaFlowChartRecords = new Map();
+        const vitaFlowThemeBrowser = typeof window === 'undefined' ? null : (window.window || window);
+
+        function readVitaFlowChartTheme() {
+            const browser = vitaFlowThemeBrowser;
+            const root = browser?.document?.documentElement || (typeof document === 'undefined' ? null : document.documentElement);
+            const name = root?.getAttribute?.('data-ops-style');
+            if (!vitaFlowChartThemes[name]) return null;
+            const dark = root.classList?.contains('dark') === true;
+            let styles;
+            try { styles = browser.getComputedStyle?.(root); } catch (_) {}
+            const token = (key, fallback) => styles?.getPropertyValue?.(key)?.trim() || fallback;
+            return {
+                series: vitaFlowChartThemes[name][dark ? 1 : 0],
+                accent: token('--ops-accent', vitaFlowChartThemes[name][dark ? 1 : 0][0]),
+                muted: token('--ops-muted', dark ? '#a1a1aa' : '#64748b'),
+                border: token('--ops-border', dark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(15, 23, 42, 0.12)'),
+                surface: token('--ops-surface-muted', dark ? '#181a23' : '#e8edf4'),
+            };
+        }
+
+        function vitaFlowChartColor(value, theme) {
+            if (Array.isArray(value)) return value.map(item => vitaFlowChartColor(item, theme));
+            if (!theme || typeof value !== 'string') return value;
+            const original = value.toLowerCase().replace(/\s/g, '');
+            const roles = { '#e88a4c': 0, '#c4679c': 1, '#8b5e9e': 2, '#a78bfa': 3, '#ffb347': 4 };
+            const rgba = original.match(/^rgba?\((\d+),(\d+),(\d+)(?:,([\d.]+))?\)$/);
+            const base = rgba ? '#' + rgba.slice(1, 4).map(part => Number(part).toString(16).padStart(2, '0')).join('') : original.slice(0, 7);
+            let color = roles[base] === undefined ? null : theme.series[roles[base]];
+            if (base === '#667eea' || base === '#74ebd5') color = theme.accent;
+            if (base === '#8b7a7a' || base === '#6a4a5a') return theme.muted;
+            if (base === '#c8a0c8') return theme.border;
+            if (base === '#ffffff' || original === '#fff') return theme.surface;
+            if (!color) return value; // Explicit success/danger colors are not decorative roles.
+            const alpha = rgba?.[4] ?? (original.length === 9 && original[0] === '#' ? parseInt(original.slice(7), 16) / 255 : null);
+            return alpha === null ? color : `rgba(${[1, 3, 5].map(index => parseInt(color.slice(index, index + 2), 16)).join(', ')}, ${alpha})`;
+        }
+
+        function vitaFlowChartColorSlots(value, path = [], slots = []) {
+            if (!value || typeof value !== 'object') return slots;
+            for (const [key, child] of Object.entries(value)) {
+                const next = path.concat(key);
+                if (/color$/i.test(key) && (typeof child === 'string' || Array.isArray(child))) slots.push([next, Array.isArray(child) ? child.slice() : child]);
+                else if (child && typeof child === 'object') vitaFlowChartColorSlots(child, next, slots);
+            }
+            return slots;
+        }
+
+        function applyVitaFlowChartColors(target, slots, theme) {
+            for (const [path, original] of slots) {
+                let owner = target;
+                for (const key of path.slice(0, -1)) owner = owner?.[key];
+                if (owner) owner[path.at(-1)] = vitaFlowChartColor(original, theme);
+            }
+        }
+
+        function createVitaFlowChart(context, config) {
+            const slots = vitaFlowChartColorSlots({ data: config.data, options: config.options });
+            applyVitaFlowChartColors(config, slots, readVitaFlowChartTheme());
+            config.plugins = [...(config.plugins || []), {
+                id: 'vitaflow-host-theme',
+                afterDestroy(chart) { vitaFlowChartRecords.delete(chart); },
+            }];
+            const chart = new Chart(context, config);
+            vitaFlowChartRecords.set(chart, slots);
+            return chart;
+        }
+
+        function refreshVitaFlowChartColors() {
+            const theme = readVitaFlowChartTheme();
+            for (const [chart, slots] of vitaFlowChartRecords) {
+                applyVitaFlowChartColors({ data: chart.data, options: chart.options }, slots, theme);
+                chart.update('none');
+            }
+        }
+
+        const vitaFlowThemeRoot = vitaFlowThemeBrowser?.document?.documentElement || (typeof document === 'undefined' ? null : document.documentElement);
+        if (vitaFlowThemeRoot && typeof vitaFlowThemeBrowser?.MutationObserver === 'function') {
+            new vitaFlowThemeBrowser.MutationObserver(refreshVitaFlowChartColors).observe(vitaFlowThemeRoot, { attributes: true, attributeFilter: ['class', 'data-ops-style'] });
+        } else {
+            vitaFlowThemeBrowser?.addEventListener?.('ops:style-changed', refreshVitaFlowChartColors);
+        }
+        // VITAFLOW_CHART_THEME_END
+
         function formatLocalDate(date = new Date()) {
             if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
             const year = date.getFullYear();
@@ -762,7 +854,7 @@ var define = undefined;
             const chartKey = canvasId.replace('Chart', '');
             if (window[chartKey]) window[chartKey].destroy();
 
-            window[chartKey] = new Chart(ctx, {
+            window[chartKey] = createVitaFlowChart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
@@ -809,7 +901,7 @@ var define = undefined;
                 return (d.getMonth() + 1) + '/' + d.getDate();
             });
 
-            accountCharts[account] = new Chart(ctx, {
+            accountCharts[account] = createVitaFlowChart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
@@ -840,7 +932,7 @@ var define = undefined;
             if (streakChart) streakChart.destroy();
             const trend = getStreakTrend(getStoredStreakRecords());
 
-            streakChart = new Chart(ctx, {
+            streakChart = createVitaFlowChart(ctx, {
                 type: 'bar',
                 data: {
                     labels: trend.labels,
@@ -912,7 +1004,7 @@ var define = undefined;
             const todos = JSON.parse(localStorage.getItem('vitaflow_todos') || '[]');
             const trend = getCompletedTaskTrend(todos);
 
-            tasksChart = new Chart(ctx, {
+            tasksChart = createVitaFlowChart(ctx, {
                 type: 'line',
                 data: {
                     labels: trend.labels,
@@ -945,7 +1037,7 @@ var define = undefined;
             const emptyState = document.getElementById('avgChartEmpty');
             if (emptyState) emptyState.style.display = trend.values.some(value => value !== null) ? 'none' : 'block';
 
-            avgChart = new Chart(ctx, {
+            avgChart = createVitaFlowChart(ctx, {
                 type: 'line',
                 data: {
                     labels: trend.labels,
@@ -980,7 +1072,7 @@ var define = undefined;
             const emptyState = document.getElementById('compareChartEmpty');
             if (emptyState) emptyState.style.display = accounts.length ? 'none' : 'block';
 
-            compareChart = new Chart(ctx, {
+            compareChart = createVitaFlowChart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: accounts.map(([, label]) => label),
@@ -3277,7 +3369,7 @@ var define = undefined;
 
             if (meaningQuizChart) meaningQuizChart.destroy();
 
-            meaningQuizChart = new Chart(ctx, {
+            meaningQuizChart = createVitaFlowChart(ctx, {
                 type: 'line',
                 data: {
                     labels,
@@ -3320,7 +3412,7 @@ var define = undefined;
 
             if (meaningQuizHistoryChart) meaningQuizHistoryChart.destroy();
 
-            meaningQuizHistoryChart = new Chart(ctx, {
+            meaningQuizHistoryChart = createVitaFlowChart(ctx, {
                 type: 'line',
                 data: {
                     labels,
@@ -3821,7 +3913,7 @@ var define = undefined;
                 data.push(dayRecords.length);
             }
             if (window.pomodoroChartInstance) window.pomodoroChartInstance.destroy();
-            window.pomodoroChartInstance = new Chart(ctx, {
+            window.pomodoroChartInstance = createVitaFlowChart(ctx, {
                 type: 'bar',
                 data: { labels, datasets: [{ label: '专注次数', data, backgroundColor: 'rgba(139, 94, 158, 0.4)', borderColor: '#8b5e9e', borderWidth: 2 }] },
                 options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#8b7a7a' }, grid: { color: 'rgba(200, 160, 200, 0.2)' } }, y: { ticks: { color: '#8b7a7a' }, grid: { color: 'rgba(200, 160, 200, 0.2)' }, suggestedMin: 0 } } }
@@ -4073,7 +4165,7 @@ var define = undefined;
             const ctx = canvas.getContext('2d');
             if (window.emotionChart) window.emotionChart.destroy();
 
-            window.emotionChart = new Chart(ctx, {
+            window.emotionChart = createVitaFlowChart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
@@ -6002,7 +6094,7 @@ var define = undefined;
             const ctx = document.getElementById('mediaCalendarStatsChart').getContext('2d');
             if (mediaCalendarStatsChart) mediaCalendarStatsChart.destroy();
 
-            mediaCalendarStatsChart = new Chart(ctx, {
+            mediaCalendarStatsChart = createVitaFlowChart(ctx, {
                 type: 'bar',
                 data: {
                     labels: ['抖音', '网易', '大号', '小号', '小小号'],
@@ -7316,6 +7408,28 @@ updateScorePreview: updateScorePreview };
     const raw = localStorage.getItem(key);
     return raw === null ? fallback : JSON.parse(raw);
   }
+  function importDiaryTodo(item) {
+    if (!nativeReady) throw new Error('日程工作区尚未就绪');
+    if (localSyncConflict) throw new Error('请先处理数据同步冲突');
+    const id = item?.id, title = typeof item?.title === 'string' ? item.title.trim() : '', day = item?.date;
+    if (typeof id !== 'string' || !/^diary-[a-f0-9]{24}$/.test(id) || !title || title.length > 500 ||
+        typeof day !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new Error('待办数据无效');
+    const parsed = new Date(day + 'T00:00:00Z');
+    if (!Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== day) throw new Error('待办日期无效');
+    const todos = nativeRead('vitaflow_todos', []);
+    if (!Array.isArray(todos)) throw new Error('待办记录格式有误，原记录已保留');
+    const canonical = text => text.normalize('NFKC').trim().replace(/\s+/g, ' ').toLowerCase();
+    if (todos.some(todo => todo && (todo.id === id || (todo.date === day && typeof todo.text === 'string' && canonical(todo.text) === canonical(title))))) {
+      return { added: false };
+    }
+    todos.push({ id, text: title, account: null, happy: null, date: day, completed: false });
+    localStorage.setItem('vitaflow_todos', JSON.stringify(todos));
+    syncLocalDataNow('vitaflow_todos');
+    renderTodoList();
+    renderTodoKanban();
+    nativeNotify();
+    return { added: true };
+  }
   function nativeSummary(day) {
     let savedAccounts = {}, savedTodos = [], error = '';
     try {
@@ -7431,6 +7545,7 @@ updateScorePreview: updateScorePreview };
     activate: nativeActivate,
     setTheme(theme) { if (['dark', 'light'].includes(theme)) nativeRoot.setAttribute('data-ops-theme', theme); },
     getSummary: nativeSummary,
+    importDiaryTodo,
     toggleTodo(id) { const result = toggleTodo(id); nativeNotify(); return result; },
     connect: nativeConnect,
     useBrowser: nativeUseBrowser,

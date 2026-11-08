@@ -103,6 +103,28 @@
     const raw = localStorage.getItem(key);
     return raw === null ? fallback : JSON.parse(raw);
   }
+  function importDiaryTodo(item) {
+    if (!nativeReady) throw new Error('日程工作区尚未就绪');
+    if (localSyncConflict) throw new Error('请先处理数据同步冲突');
+    const id = item?.id, title = typeof item?.title === 'string' ? item.title.trim() : '', day = item?.date;
+    if (typeof id !== 'string' || !/^diary-[a-f0-9]{24}$/.test(id) || !title || title.length > 500 ||
+        typeof day !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new Error('待办数据无效');
+    const parsed = new Date(day + 'T00:00:00Z');
+    if (!Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== day) throw new Error('待办日期无效');
+    const todos = nativeRead('vitaflow_todos', []);
+    if (!Array.isArray(todos)) throw new Error('待办记录格式有误，原记录已保留');
+    const canonical = text => text.normalize('NFKC').trim().replace(/\s+/g, ' ').toLowerCase();
+    if (todos.some(todo => todo && (todo.id === id || (todo.date === day && typeof todo.text === 'string' && canonical(todo.text) === canonical(title))))) {
+      return { added: false };
+    }
+    todos.push({ id, text: title, account: null, happy: null, date: day, completed: false });
+    localStorage.setItem('vitaflow_todos', JSON.stringify(todos));
+    syncLocalDataNow('vitaflow_todos');
+    renderTodoList();
+    renderTodoKanban();
+    nativeNotify();
+    return { added: true };
+  }
   function nativeSummary(day) {
     let savedAccounts = {}, savedTodos = [], error = '';
     try {
@@ -218,6 +240,7 @@
     activate: nativeActivate,
     setTheme(theme) { if (['dark', 'light'].includes(theme)) nativeRoot.setAttribute('data-ops-theme', theme); },
     getSummary: nativeSummary,
+    importDiaryTodo,
     toggleTodo(id) { const result = toggleTodo(id); nativeNotify(); return result; },
     connect: nativeConnect,
     useBrowser: nativeUseBrowser,

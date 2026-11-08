@@ -24,11 +24,13 @@ ops-hub 是公开仓库。本地 `data/` 目录保存真实数据（求职投递
 只做减法与掩码，不做任何推断或编造；被移除的字段不会以任何形式留在公开产物中。
 """
 
+import hashlib
 import json
 import os
 import re
 import tempfile
-from datetime import datetime
+import unicodedata
+from datetime import datetime, timedelta
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -246,6 +248,91 @@ def build_public_energy(knowledge, aliases):
     }
 
 
+_DIARY_TODO_ID = re.compile(r"^diary-[0-9a-f]{24}$")
+_FILESYSTEM_PATH = re.compile(r"(?<![\w])(?:~[/\\]|/(?:Users|home|var|tmp|opt|private)/|[A-Za-z]:[\\/])[^\s\"'<>]+")
+
+
+def _valid_iso_date(value):
+    if not isinstance(value, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+        return False
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date().isoformat() == value
+    except ValueError:
+        return False
+
+
+def build_public_diary_todos(knowledge, aliases):
+    """Publish only the explicitly selected checkbox title/date/status fields."""
+    if knowledge is None:
+        knowledge = {}
+    if not isinstance(knowledge, dict):
+        raise ValueError("知识库投影必须是 JSON 对象")
+
+    source = knowledge.get("diary_todos")
+    if source is None:
+        # An empty snapshot intentionally clears yesterday's published checklist.
+        target_day = knowledge.get("today")
+        if not _valid_iso_date(target_day):
+            target_day = datetime.now().astimezone().date().isoformat()
+        return {"date": target_day, "items": []}
+    if not isinstance(source, dict) or not _valid_iso_date(source.get("date")):
+        raise ValueError("日记待办日期无效")
+    target_day = source["date"]
+    if knowledge.get("today") and knowledge["today"] != target_day:
+        raise ValueError("日记待办日期与快照日期不一致")
+    raw_items = source.get("items")
+    if not isinstance(raw_items, list):
+        raise ValueError("日记待办条目必须是数组")
+
+    validated = []
+    for item in raw_items:
+        if not isinstance(item, dict):
+            raise ValueError("日记待办条目格式无效")
+        todo_id = item.get("id")
+        title = item.get("title")
+        completed = item.get("completed")
+        source_date = item.get("source_date")
+        if not isinstance(todo_id, str) or not _DIARY_TODO_ID.fullmatch(todo_id):
+            raise ValueError("日记待办 ID 无效")
+        if not isinstance(title, str) or not title.strip() or len(title) > 160:
+            raise ValueError("日记待办标题无效")
+        if type(completed) is not bool:
+            raise ValueError("日记待办状态无效")
+        if not _valid_iso_date(source_date):
+            raise ValueError("日记待办来源日期无效")
+        previous_day = (datetime.strptime(target_day, "%Y-%m-%d").date() - timedelta(days=1)).isoformat()
+        if source_date not in (target_day, previous_day):
+            raise ValueError("日记待办来源日期超出允许范围")
+        normalized = " ".join(unicodedata.normalize("NFKC", title).split()).casefold()
+        expected_id = "diary-" + hashlib.sha256(f"{target_day}\0{normalized}".encode("utf-8")).hexdigest()[:24]
+        if todo_id != expected_id:
+            raise ValueError("日记待办 ID 与标题不匹配")
+        validated.append((source_date, normalized, item))
+
+    public_items = []
+    seen_titles = set()
+    # Prefer the current diary's status when titles occur in both sources.
+    for source_date, normalized, item in sorted(validated, key=lambda row: row[0] != target_day):
+        title = item["title"]
+        todo_id = item["id"]
+        completed = item["completed"]
+        if normalized in seen_titles:
+            continue
+        seen_titles.add(normalized)
+        public_title = scrub_text(title.strip(), aliases)
+        public_title = _FILESYSTEM_PATH.sub("[路径已隐藏]", public_title)
+        if not public_title.strip():
+            raise ValueError("脱敏后日记待办标题为空")
+        public_items.append({
+            "id": todo_id,
+            "title": public_title,
+            "completed": completed,
+            "source_date": source_date,
+        })
+
+    return {"date": target_day, "items": public_items}
+
+
 def build_public_memory(memory, aliases):
     """脱敏记忆规则：仅保留通用秩序条款。"""
     if not isinstance(memory, dict):
@@ -279,10 +366,13 @@ def write_public_files():
             if not isinstance(knowledge, dict):
                 raise ValueError("知识库快照必须是 JSON 对象")
         public_energy = build_public_energy(knowledge, aliases)
+        public_diary_todos = build_public_diary_todos(knowledge, aliases)
         artifacts = {
             "status.json": json.dumps(public_status, ensure_ascii=False, indent=2) + "\n",
             "status.js": "window.__OPS_STATUS__ = " + json.dumps(public_status, ensure_ascii=False) + ";\n",
             "memory_rules.js": "window.__OPS_MEMORY__ = " + json.dumps(public_memory, ensure_ascii=False) + ";\n",
+            "diary-todos.json": json.dumps(public_diary_todos, ensure_ascii=False, indent=2) + "\n",
+            "diary-todos.js": "window.__OPS_DIARY_TODOS__ = " + json.dumps(public_diary_todos, ensure_ascii=False) + ";\n",
         }
         if public_energy:
             artifacts["energy.json"] = json.dumps(public_energy, ensure_ascii=False, indent=2) + "\n"

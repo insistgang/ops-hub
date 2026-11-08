@@ -142,7 +142,7 @@ const compareContext = vm.createContext({
       return id === 'compareChart' ? { getContext: () => ({}) } : compareEmptyState;
     },
   },
-  Chart: function (_canvas, config) { compareConfigs.push(config); return { destroy() {} }; },
+  createVitaFlowChart(_canvas, config) { compareConfigs.push(config); return { destroy() {} }; },
 });
 vm.runInContext(extract('        function renderCompareChart()', '        function recordStreak()'), compareContext);
 vm.runInContext('renderCompareChart()', compareContext);
