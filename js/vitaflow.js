@@ -1,10 +1,13 @@
 /* VitaFlow is a native workspace in the same document and storage context. */
 function initVitaFlow() {
+  const defaultCloudOrigin = 'https://finance.insistgang.top';
+  const connectionStorageKey = 'ops_vitaflow_connection';
   // 注意：不再包含 'open'——独立版入口已移除，缺失的必需节点会让整个控制器静默罢工
   const ids = ['url', 'key', 'connect', 'status', 'builtin', 'source', 'native'];
   const nodes = Object.fromEntries(ids.map(id => [id, document.getElementById('vitaflow-' + id)]));
   if (Object.values(nodes).some(node => !node) || nodes.native.dataset.opsHostBound) return;
   nodes.native.dataset.opsHostBound = 'true';
+  nodes.url.value = defaultCloudOrigin + '/';
   const navigation = Array.from(document.querySelectorAll('[data-vf-view]'));
   const shortcuts = Array.from(document.querySelectorAll('[data-vita-view]'));
   const views = new Set(['energyOverview', 'dailyPlan', 'energyTrends', 'creativeSpace', 'physical', 'emotional', 'focus', 'meaning']);
@@ -45,16 +48,20 @@ function initVitaFlow() {
   }
   function validUrl(value) {
     const url = new URL(value);
-    if (!['http:', 'https:'].includes(url.protocol)) throw new Error('protocol');
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) throw new Error('protocol');
+    // Native sync uses the origin and sends the key separately in a request header.
+    // Strip query/fragment credentials before displaying, saving or passing a URL.
+    url.search = '';
+    url.hash = '';
     return url;
   }
   async function connect(url, key, save) {
     if (!native()?.isReady()) { status('工作区尚未就绪，请稍后再连接。'); return; }
     const generation = ++connectionGeneration;
     if (save) {
-      const savedUrl = remember('ops_vitaflow_url', url.href);
+      const savedConnection = remember(connectionStorageKey, JSON.stringify({ url: url.href, key }));
       const savedMode = remember('ops_vitaflow_mode', 'private');
-      notice = savedUrl && savedMode ? '' : '浏览器未保存本次连接设置。';
+      notice = savedConnection && savedMode ? '' : '浏览器未保存本次连接设置。';
     }
     status('正在连接原日程数据，本机记录会保留并按已有冲突规则处理。');
     try {
@@ -91,26 +98,37 @@ function initVitaFlow() {
       return;
     }
     const key = nodes.key.value.trim();
-    if (key) url.searchParams.set('key', key); else url.searchParams.delete('key');
+    nodes.url.value = url.href;
+    if (url.origin === defaultCloudOrigin && !key) {
+      status('请填写同步口令；网站和本机记录仍可直接使用。');
+      return;
+    }
     await connect(url, key, true);
   });
 
   let savedUrl = null;
+  let savedConnection = null;
   let savedMode = null;
   try {
+    savedConnection = localStorage.getItem(connectionStorageKey);
     savedUrl = localStorage.getItem('ops_vitaflow_url');
     savedMode = localStorage.getItem('ops_vitaflow_mode');
   } catch (_) { notice = '浏览器未允许读取连接设置。'; }
   let privateUrl = null;
-  if (savedUrl) {
+  if (savedConnection !== null) {
     try {
+      const settings = JSON.parse(savedConnection);
+      if (!settings || typeof settings.url !== 'string' || typeof settings.key !== 'string') throw new Error('settings');
+      privateUrl = validUrl(settings.url);
+      nodes.key.value = settings.key;
+      nodes.url.value = privateUrl.href;
+    } catch (_) { privateUrl = null; notice = '旧连接设置无效，已保留原设置并使用浏览器记录。'; }
+  } else if (savedUrl) {
+    try {
+      const legacy = new URL(savedUrl);
       privateUrl = validUrl(savedUrl);
-      nodes.key.value = privateUrl.searchParams.get('key') || '';
-      const editable = new URL(privateUrl);
-      editable.searchParams.delete('key');
-      editable.searchParams.delete('embed');
-      editable.searchParams.delete('mode');
-      nodes.url.value = editable.href;
+      nodes.key.value = legacy.searchParams.get('key') || '';
+      nodes.url.value = privateUrl.href;
     } catch (_) { notice = '旧连接地址无效，已保留原设置并使用浏览器记录。'; }
   }
   function ready() {

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import vm from 'node:vm';
+import { buildHtml } from './build-html.mjs';
 
-const html = fs.readFileSync('schedule-system-2.0.html', 'utf8');
+const html = buildHtml();
 const start = html.indexOf('// 数据备份 / 单文件携带 / 跨设备迁移 系统');
 const end = html.indexOf('        function refreshVisibleData()', start);
 
@@ -474,5 +474,84 @@ assert.equal(vm.runInContext('localSyncHasRemoteData', reloadContext), true);
 await vm.runInContext("resolveLocalSyncConflict('remote')", reloadContext);
 assert.equal(reloadStorage.getItem('vitaflow_todos'), '[{"id":6,"text":"server edit"}]');
 assert.equal(reloadStorage.getItem('__vitaflow_sync_pending'), null, 'resolving with the server copy should clear the marker');
+
+async function connectInitialCopies(localData, remoteData) {
+  class InitialStorage extends FakeStorage {
+    constructor(data) { super(data); this.recordWrites = []; }
+    setItem(key, value) { this.recordWrites.push(['set', key]); this.store[key] = String(value); }
+    removeItem(key) { this.recordWrites.push(['remove', key]); delete this.store[key]; }
+  }
+  const storage = new InitialStorage(localData);
+  const calls = [];
+  const timers = [];
+  const initialContext = vm.createContext({
+    Storage: InitialStorage,
+    URLSearchParams,
+    localStorage: storage,
+    location: { protocol: 'http:', search: '' },
+    clearTimeout() {},
+    setTimeout(fn, delay) { timers.push({ fn, delay }); return timers.length; },
+    setInterval() { return 1; },
+    fetch: async (url, options = {}) => {
+      calls.push({ url, options });
+      return { status: 200, ok: true, json: async () => ({ data: remoteData, revision: 'initial-server-revision', features: { patch: true, revision: true } }) };
+    },
+    updateSaveStatus() {},
+  });
+  vm.runInContext(syncScript, initialContext);
+  await vm.runInContext('initLocalSync()', initialContext);
+  return { storage, calls, timers, context: initialContext, read: expression => vm.runInContext(expression, initialContext) };
+}
+
+const existingLocal = { vitaflow_todos: '[{"id":10,"text":"local record"}]' };
+const differentRemote = { vitaflow_todos: '[{"id":11,"text":"server record"}]' };
+const firstConflict = await connectInitialCopies(existingLocal, differentRemote);
+assert.equal(firstConflict.read('Boolean(localSyncConflict)'), true, 'different non-empty copies require a choice even without a pending marker');
+assert.equal(firstConflict.storage.getItem('vitaflow_todos'), existingLocal.vitaflow_todos, 'initial connection cannot replace existing local records');
+assert.ok(firstConflict.storage.recordWrites.every(([, key]) => !key.startsWith('vitaflow_')), 'no business data may be written before a conflict choice');
+assert.equal(firstConflict.calls.length, 1, 'initial conflict must not upload either version');
+
+const emptyDefaults = {
+  vitaflow_accounts: JSON.stringify({ physical: { score: null, history: [] }, emotional: { score: null, history: [] }, focus: { score: null, history: [] }, meaning: { score: null, history: [] } }),
+  vitaflow_todos: '[]', vitaflow_happiness: '{}', vitaflow_streak: '0', vitaflow_streak_records: '[]', vitaflow_completed: '0', vitaflow_goal: '',
+};
+const blankCopy = await connectInitialCopies(emptyDefaults, differentRemote);
+assert.equal(blankCopy.read('Boolean(localSyncConflict)'), false, 'empty initData defaults alone are not private records');
+assert.equal(blankCopy.storage.getItem('vitaflow_todos'), differentRemote.vitaflow_todos, 'a blank client can adopt real server records');
+const freshCopy = await connectInitialCopies({}, differentRemote);
+assert.equal(freshCopy.read('Boolean(localSyncConflict)'), false);
+assert.equal(freshCopy.storage.getItem('vitaflow_todos'), differentRemote.vitaflow_todos, 'a truly empty client can adopt server records');
+
+const pendingDeletion = await connectInitialCopies({ ...emptyDefaults, __vitaflow_sync_pending: '1' }, differentRemote);
+assert.equal(pendingDeletion.read('Boolean(localSyncConflict)'), true, 'an empty pending copy may represent intentional deletion and still requires a choice');
+assert.equal(pendingDeletion.storage.getItem('vitaflow_todos'), '[]');
+
+const recordedZero = await connectInitialCopies({ vitaflow_accounts: '{"physical":{"score":0,"history":[]}}' }, differentRemote);
+assert.equal(recordedZero.read('Boolean(localSyncConflict)'), true, 'recorded zero scores are meaningful and cannot be treated as empty defaults');
+
+const sameData = await connectInitialCopies({ ...existingLocal, vitaflow_goal: '', __vitaflow_sync_pending: '1' }, { vitaflow_todos: '[ { "text": "local record", "id": 10 } ]' });
+assert.equal(sameData.read('Boolean(localSyncConflict)'), false, 'equivalent data does not conflict because of property order, whitespace, or empty defaults');
+assert.equal(sameData.storage.getItem('vitaflow_todos'), existingLocal.vitaflow_todos, 'identical connection preserves existing local bytes');
+assert.equal(sameData.storage.getItem('__vitaflow_sync_pending'), null);
+assert.ok(sameData.storage.recordWrites.every(([, key]) => !key.startsWith('vitaflow_')));
+
+const seedCopy = await connectInitialCopies({ ...existingLocal, __vitaflow_sync_pending: '1' }, {});
+assert.equal(seedCopy.read('Boolean(localSyncConflict)'), false, 'an actually empty remote can be seeded without replacing local data');
+assert.equal(seedCopy.read('localSyncShouldSeed'), true);
+assert.equal(seedCopy.storage.getItem('vitaflow_todos'), existingLocal.vitaflow_todos);
+assert.ok(seedCopy.storage.recordWrites.every(([, key]) => !key.startsWith('vitaflow_')));
+const defaultServer = await connectInitialCopies(existingLocal, emptyDefaults);
+assert.equal(defaultServer.read('Boolean(localSyncConflict)'), false, 'a default-only server has no meaningful records to lose');
+assert.equal(defaultServer.read('localSyncShouldSeed'), true);
+assert.equal(defaultServer.storage.getItem('vitaflow_todos'), existingLocal.vitaflow_todos);
+
+const corruptedCopy = await connectInitialCopies({ vitaflow_todos: '{broken' }, differentRemote);
+assert.equal(corruptedCopy.read('localSyncAvailable'), false, 'a corrupt local copy cannot be silently replaced by initial sync');
+assert.equal(corruptedCopy.storage.getItem('vitaflow_todos'), '{broken');
+assert.ok(corruptedCopy.storage.recordWrites.every(([, key]) => !key.startsWith('vitaflow_')));
+const corruptRemote = await connectInitialCopies(existingLocal, { vitaflow_todos: '{broken' });
+assert.equal(corruptRemote.read('localSyncAvailable'), false, 'invalid server records must be rejected before any replacement');
+assert.equal(corruptRemote.storage.getItem('vitaflow_todos'), existingLocal.vitaflow_todos);
+assert.ok(corruptRemote.storage.recordWrites.every(([, key]) => !key.startsWith('vitaflow_')));
 
 console.log('local sync client tests passed');

@@ -385,7 +385,7 @@
     <section id="tab-vitaflow" data-ops-workspace class="tab-content hidden space-y-4" aria-labelledby="vitaflow-title">
       <div class="vitaflow-heading"><div><h3 id="vitaflow-title">日程与精力</h3><p id="vitaflow-source" class="today-muted">日程页与今日入口共用记录。</p></div><div class="vitaflow-actions"><button id="vitaflow-builtin" type="button">使用本机记录</button></div></div>
       <nav class="vitaflow-navigation" aria-label="日程与精力分区"><button type="button" data-vf-view="energyOverview" disabled>精力概览</button><button type="button" data-vf-view="dailyPlan" disabled>日程待办</button><button type="button" data-vf-view="energyTrends" disabled>状态趋势</button><button type="button" data-vf-view="creativeSpace" disabled>创作与学习</button></nav>
-      <details class="vitaflow-connection"><summary>同步与数据设置</summary><p class="today-muted">原有私人日程可通过私有服务接入，沿用原来的数据校对与冲突保护。</p><div class="vitaflow-connection-fields"><label>私有服务地址<input id="vitaflow-url" type="url" value="http://127.0.0.1:8787/schedule-system-2.0.html"></label><label>访问口令<input id="vitaflow-key" type="password" placeholder="仅保存在当前浏览器"></label><button id="vitaflow-connect" type="button">连接私有服务</button></div></details>
+      <details class="vitaflow-connection"><summary>同步与数据设置（可选）</summary><p class="today-muted">网站和本机记录可直接使用。需要跨设备同步时，在每台设备首次填写同步口令并主动连接；数据有差异时先核对再选择。</p><div class="vitaflow-connection-fields"><label>同步服务地址<input id="vitaflow-url" type="url" value="https://finance.insistgang.top/" autocomplete="url"></label><label>同步口令<input id="vitaflow-key" type="password" placeholder="首次连接填写，仅保存在当前浏览器" autocomplete="off" spellcheck="false"></label><button id="vitaflow-connect" type="button">连接同步服务</button></div></details>
       <p id="vitaflow-status" class="today-muted" role="status" aria-live="polite">正在准备日程工作区。</p>
       <section id="diary-todos" class="glass-panel p-4 rounded-xl mb-4" aria-labelledby="diary-todos-title">
         <div class="today-card-heading"><h3 id="diary-todos-title">日记待办</h3><span id="diary-todos-date" class="today-chip"></span></div>
@@ -559,8 +559,8 @@
   </div>
 
   <script src="js/site-style.js?v=1.2.0"></script>
-  <script src="vitaflow/native-workspace.js?v=1.3.0"></script>
-  <script src="js/vitaflow.js?v=2.0.1"></script>
+  <script src="vitaflow/native-workspace.js?v=1.4.0"></script>
+  <script src="js/vitaflow.js?v=2.1.0"></script>
   <script src="weight-tracker/native-workspace.js?v=1.0.0"></script>
   <script src="finance/native-workspace.js?v=1.0.1"></script>
   <script src="js/app.js?v=1.9.1"></script>

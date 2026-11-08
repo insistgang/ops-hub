@@ -182,6 +182,34 @@
 	            });
 	        }
 
+        function comparableLocalSyncSnapshot(data) {
+            validateBackupData(data);
+            const canonical = value => {
+                if (Array.isArray(value)) return value.map(canonical);
+                if (value && typeof value === 'object') {
+                    return Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])]));
+                }
+                return value;
+            };
+            const defaultAccounts = value => value && typeof value === 'object' && !Array.isArray(value) &&
+                Object.entries(value).every(([key, account]) =>
+                    ['physical', 'emotional', 'focus', 'meaning'].includes(key) && account && typeof account === 'object' && !Array.isArray(account) &&
+                    Object.keys(account).every(field => field === 'score' || field === 'history') &&
+                    account.score == null && Array.isArray(account.history) && account.history.length === 0);
+            const snapshot = {};
+            for (const key of Object.keys(data).sort()) {
+                const raw = data[key];
+                if (raw === '') continue;
+                let value = raw;
+                try { value = JSON.parse(raw); } catch (_) {}
+                if ((key === 'vitaflow_streak' || key === 'vitaflow_completed') && value === 0) continue;
+                if (key === 'vitaflow_accounts' && defaultAccounts(value)) continue;
+                if (value && typeof value === 'object' && Object.keys(value).length === 0) continue;
+                snapshot[key] = canonical(value);
+            }
+            return JSON.stringify(snapshot);
+        }
+
 	        function writeVitaFlowStorage(normalized) {
 	            const currentKeys = [];
 	            for (let i = 0; i < localStorage.length; i++) {
@@ -297,30 +325,41 @@
             }
             localSyncHasRemoteData = false;
             localSyncConflict = null;
+            localSyncShouldSeed = false;
             try {
                 const response = await fetch(localSyncApiPath + '?t=' + Date.now(), { cache: 'no-store', headers: localSyncHeaders() });
                 if (response.status === 401) throw new Error('缺少访问口令，请用终端里带 ?key= 的地址打开本页面');
                 if (!response.ok) throw new Error('HTTP ' + response.status);
                 const payload = await response.json();
                 const remoteData = normalizeBackupData(payload.data || payload);
+                const localSnapshot = comparableLocalSyncSnapshot(getAllData());
+                const remoteSnapshot = comparableLocalSyncSnapshot(remoteData);
+                const localHasRecords = localSnapshot !== '{}';
+                const remoteHasRecords = remoteSnapshot !== '{}';
+                const copiesDiffer = localSnapshot !== remoteSnapshot;
                 const hasPendingLocalChanges = hasLocalSyncPending();
                 localSyncAvailable = true;
                 localSyncSupportsPatch = !!(payload.features && payload.features.patch);
                 localSyncLastUpdatedAt = payload.updatedAt || null;
                 localSyncLastRevision = payload.revision || null;
-                if (hasPendingLocalChanges) {
+                if (remoteHasRecords && copiesDiffer && (hasPendingLocalChanges || localHasRecords)) {
                     localSyncHasRemoteData = true;
                     localSyncLastSyncedSnapshot = JSON.stringify(remoteData);
                     handleLocalSyncConflict({ ...payload, data: remoteData });
-                } else if (Object.keys(remoteData).length > 0) {
-                    localSyncApplyingRemote = true;
-                    try {
-                        restoreBackupData(remoteData);
-                    } finally {
-                        localSyncApplyingRemote = false;
+                } else if (remoteHasRecords || (!localHasRecords && Object.keys(remoteData).length > 0)) {
+                    if (copiesDiffer) {
+                        localSyncApplyingRemote = true;
+                        try {
+                            restoreBackupData(remoteData);
+                        } finally {
+                            localSyncApplyingRemote = false;
+                        }
                     }
                     localSyncHasRemoteData = true;
                     localSyncLastSyncedSnapshot = JSON.stringify(getAllData());
+                    localSyncChangedKeys.clear();
+                    localSyncDeletedKeys.clear();
+                    setLocalSyncPending(false);
                     updateSaveStatus('☁️ 已连接本地同步：' + Object.keys(remoteData).length + ' 项');
                     showLocalSyncDiagnostic('本地同步已连接：' + Object.keys(remoteData).length + ' 项');
                 } else {

@@ -155,7 +155,7 @@ assert.equal(failed.connected, false);
 assert.equal(JSON.parse(live.context.localStorage.getItem('vitaflow_todos'))[0].completed, true);
 assert.match(live.network.at(-1).url, /^http:\/\/127\.0\.0\.1:8787\/api\/data\?/);
 assert.equal(live.network.at(-1).options.headers['x-vitaflow-token'], 'synthetic-token');
-live.context.reply = async () => ({ ok: true, status: 200, json: async () => ({ data: { vitaflow_todos: '[]' }, revision: 'synthetic-revision', features: { patch: true } }) });
+live.context.reply = async () => ({ ok: true, status: 200, json: async () => ({ data: { vitaflow_todos: '[{"id":"remote-id","text":"different task","date":"2026-11-07","completed":false}]' }, revision: 'synthetic-revision', features: { patch: true } }) });
 const connected = await live.api.connect('http://127.0.0.1:8787/', 'synthetic-token');
 assert.equal(connected.connected, true);
 assert.equal(connected.conflict, true, 'connecting must preserve pending browser edits and ask to resolve conflict');

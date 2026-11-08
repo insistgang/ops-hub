@@ -32,6 +32,64 @@ const STATIC_FILE_ALIASES = {
   '日程系统2.0.html': DEFAULT_HTML_FILE,
 };
 const PUBLIC_STATIC_FILES = new Set([DEFAULT_HTML_FILE]);
+const CLOUD_METHODS = new Set(['GET', 'POST', 'PUT']);
+const CLOUD_HEADERS = new Set(['content-type', 'x-vitaflow-token', 'authorization']);
+const responseCorsHeaders = new WeakMap();
+
+function normalizeCloudOrigins(value) {
+  const origins = Array.isArray(value) ? value : typeof value === 'string' ? value.split(',').map(item => item.trim()) : [];
+  if (!origins.length) throw new Error('cloud mode requires explicit HTTPS allowed origins');
+  for (const origin of origins) {
+    let parsed;
+    try { parsed = new URL(origin); } catch { throw new Error('cloud allowed origin must be an HTTPS origin'); }
+    if (parsed.protocol !== 'https:' || parsed.origin !== origin || parsed.username || parsed.password) {
+      throw new Error('cloud allowed origin must be an HTTPS origin without a path or credentials');
+    }
+  }
+  return new Set(origins);
+}
+
+function readCloudTokenFile(filePath) {
+  if (!path.isAbsolute(filePath)) throw new Error('cloud token file must be an absolute path');
+  let stat, token;
+  try {
+    stat = fs.statSync(filePath);
+    token = fs.readFileSync(filePath, 'utf8').trim();
+  } catch { throw new Error('cloud token file cannot be read'); }
+  if (!stat.isFile() || (process.platform !== 'win32' && (stat.mode & 0o037) !== 0)) {
+    throw new Error('cloud token file must be private (owner access and optional group read only)');
+  }
+  return token;
+}
+
+function enforceCloudListen(server) {
+  const listen = server.listen;
+  server.listen = function (...args) {
+    const isLoopback = host => host === '127.0.0.1' || host === '::1';
+    if (args[0] && typeof args[0] === 'object') {
+      const options = { ...args[0] };
+      if (!('port' in options) || 'path' in options || 'fd' in options || (options.host !== undefined && !isLoopback(options.host))) {
+        throw new Error('cloud mode must bind a loopback address');
+      }
+      options.host ||= '127.0.0.1';
+      args[0] = options;
+    } else if (typeof args[0] === 'number') {
+      if (typeof args[1] === 'string') {
+        if (!isLoopback(args[1])) throw new Error('cloud mode must bind a loopback address');
+      } else args.splice(1, 0, '127.0.0.1');
+    } else throw new Error('cloud mode must bind a loopback TCP address');
+    return listen.apply(this, args);
+  };
+  return server;
+}
+
+function corsHeaders(res) {
+  return responseCorsHeaders.get(res) || {
+    'access-control-allow-origin': '*',
+    'access-control-allow-methods': 'GET,POST,PUT,OPTIONS',
+    'access-control-allow-headers': 'content-type,x-vitaflow-token',
+  };
+}
 
 export function loadOrCreateToken(rootDir) {
   const envToken = (process.env.VITAFLOW_TOKEN || '').trim();
@@ -73,7 +131,12 @@ function isTokenMatch(candidate, token) {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
-function getRequestToken(req, url) {
+function getRequestToken(req, url, cloudMode = false) {
+  if (cloudMode) {
+    const headerKey = req.headers['x-vitaflow-token'];
+    if (headerKey) return String(headerKey);
+    return /^Bearer ([^\s]+)$/i.exec(req.headers.authorization || '')?.[1] || '';
+  }
   const queryKey = url.searchParams.get('key');
   if (queryKey) return queryKey;
   const headerKey = req.headers['x-vitaflow-token'];
@@ -247,9 +310,7 @@ function sendJson(res, status, payload, extraHeaders) {
   res.writeHead(status, {
     'content-type': 'application/json; charset=utf-8',
     'cache-control': 'no-store',
-    'access-control-allow-origin': '*',
-    'access-control-allow-methods': 'GET,POST,PUT,OPTIONS',
-    'access-control-allow-headers': 'content-type,x-vitaflow-token',
+    ...corsHeaders(res),
     ...(extraHeaders || {}),
   });
   res.end(body);
@@ -258,7 +319,7 @@ function sendJson(res, status, payload, extraHeaders) {
 function sendNotModified(res, extraHeaders) {
   res.writeHead(304, {
     'cache-control': 'no-store',
-    'access-control-allow-origin': '*',
+    ...corsHeaders(res),
     ...(extraHeaders || {}),
   });
   res.end();
@@ -309,15 +370,23 @@ function serveStaticFile(req, res, rootDir, extraHeaders) {
 }
 
 export function createLocalSyncServer(options = {}) {
+  if (options.cloudMode !== undefined && typeof options.cloudMode !== 'boolean') throw new Error('cloudMode must be an explicit boolean');
+  const cloudMode = options.cloudMode === true;
+  const allowedOrigins = cloudMode ? normalizeCloudOrigins(options.allowedOrigins) : null;
   const rootDir = options.rootDir || __dirname;
-  const dataPath = options.dataPath || path.join(rootDir, DEFAULT_DATA_FILE);
+  if (cloudMode && !options.dataPath && !options.dataDir) throw new Error('cloud mode requires an explicit data directory or path');
+  const dataPath = options.dataPath || path.join(options.dataDir || rootDir, DEFAULT_DATA_FILE);
+  if (cloudMode && !path.isAbsolute(dataPath)) throw new Error('cloud data path must be absolute');
   enforcePrivateDataFiles(dataPath);
   const quiet = !!options.quiet;
   const maxRequestBytes = options.maxRequestBytes ?? DEFAULT_MAX_REQUEST_BYTES;
   if (!Number.isSafeInteger(maxRequestBytes) || maxRequestBytes <= 0) {
     throw new Error('maxRequestBytes 必须是正整数');
   }
-  const token = (options.token || '').trim() || loadOrCreateToken(rootDir);
+  const token = cloudMode
+    ? (options.tokenFile ? readCloudTokenFile(options.tokenFile) : String(options.token || '').trim())
+    : (options.token || '').trim() || loadOrCreateToken(rootDir);
+  if (cloudMode && token.length < 32) throw new Error('cloud mode requires a token with at least 32 characters');
   const recentEvents = [];
 
   function recordEvent(event) {
@@ -325,6 +394,10 @@ export function createLocalSyncServer(options = {}) {
       time: new Date().toISOString(),
       ...event,
     };
+    if (cloudMode && next.keys) {
+      next.keysCount = next.keys.length;
+      delete next.keys;
+    }
     recentEvents.push(next);
     while (recentEvents.length > 80) recentEvents.shift();
     if (!quiet) {
@@ -344,16 +417,50 @@ export function createLocalSyncServer(options = {}) {
     };
   }
 
-  return http.createServer(async (req, res) => {
+  const server = http.createServer(async (req, res) => {
+    if (cloudMode) {
+      responseCorsHeaders.set(res, { vary: 'Origin' });
+      res.setHeader('referrer-policy', 'no-referrer');
+      res.setHeader('x-content-type-options', 'nosniff');
+    }
     try {
       const url = new URL(req.url, 'http://local');
+      if (cloudMode) {
+        const origin = req.headers.origin;
+        if (origin !== undefined && !allowedOrigins.has(origin)) {
+          sendJson(res, 403, { ok: false, error: 'Origin is not allowed' });
+          return;
+        }
+        if (origin) {
+          responseCorsHeaders.set(res, {
+            vary: 'Origin',
+            'access-control-allow-origin': origin,
+            'access-control-allow-credentials': 'true',
+            'access-control-allow-methods': 'GET,POST,PUT,OPTIONS',
+            'access-control-allow-headers': 'content-type,x-vitaflow-token,authorization',
+          });
+        }
+        if (['key', 'token', 'access_token', 'password', 'authorization'].some(name => url.searchParams.has(name)) || url.username || url.password) {
+          sendJson(res, 400, { ok: false, error: 'URL credentials are not accepted' });
+          return;
+        }
+      }
       if (req.method === 'OPTIONS') {
+        if (cloudMode) {
+          const method = req.headers['access-control-request-method'];
+          const requestedHeaders = String(req.headers['access-control-request-headers'] || '')
+            .split(',').map(header => header.trim().toLowerCase()).filter(Boolean);
+          if (!req.headers.origin || !CLOUD_METHODS.has(method) || requestedHeaders.some(header => !CLOUD_HEADERS.has(header))) {
+            sendJson(res, 403, { ok: false, error: 'Preflight is not allowed' });
+            return;
+          }
+        }
         sendJson(res, 204, {});
         return;
       }
-      const authed = isTokenMatch(getRequestToken(req, url), token);
+      const authed = isTokenMatch(getRequestToken(req, url, cloudMode), token);
       // 用 ?key= 打开时顺便种 cookie，之后不带 key 的书签也能访问
-      const cookieHeaders = authed && url.searchParams.get('key')
+      const cookieHeaders = !cloudMode && authed && url.searchParams.get('key')
         ? { 'set-cookie': buildTokenCookie(token) }
         : null;
       if (url.pathname === '/api/health' && req.method === 'GET') {
@@ -398,6 +505,10 @@ export function createLocalSyncServer(options = {}) {
         return;
       }
       if (url.pathname === '/api/data' && (req.method === 'POST' || req.method === 'PUT')) {
+        if (cloudMode && String(req.headers['content-type'] || '').split(';')[0].trim().toLowerCase() !== 'application/json') {
+          sendJson(res, 415, { ok: false, error: 'Cloud writes require application/json' });
+          return;
+        }
         const payload = await readRequestJson(req, maxRequestBytes);
         const currentInfo = getFileInfo();
         if (typeof payload.baseRevision !== 'string') {
@@ -475,6 +586,10 @@ export function createLocalSyncServer(options = {}) {
         }, cookieHeaders);
         return;
       }
+      if (cloudMode) {
+        sendJson(res, 404, { ok: false, error: 'Not found' });
+        return;
+      }
       if (!authed) {
         sendAuthRequiredPage(res);
         return;
@@ -482,10 +597,12 @@ export function createLocalSyncServer(options = {}) {
       serveStaticFile(req, res, rootDir, cookieHeaders);
     } catch (error) {
       if (!res.destroyed && !res.writableEnded) {
-        sendJson(res, error.status || 500, { ok: false, error: error.message });
+        const status = Number.isInteger(error.status) && error.status >= 400 && error.status <= 599 ? error.status : 500;
+        sendJson(res, status, { ok: false, error: cloudMode && status >= 500 ? 'Sync service is temporarily unavailable' : error.message });
       }
     }
   });
+  return cloudMode ? enforceCloudListen(server) : server;
 }
 
 function getLanAddresses() {
@@ -507,24 +624,53 @@ function isLikelyReachableLanAddress(address) {
 }
 
 if (process.argv[1] === __filename) {
+  if (process.env.VITAFLOW_CLOUD_MODE && !['0', '1'].includes(process.env.VITAFLOW_CLOUD_MODE)) {
+    console.error('VITAFLOW_CLOUD_MODE must be 1 (cloud) or 0 (local)');
+    process.exit(1);
+  }
+  const cloudMode = process.env.VITAFLOW_CLOUD_MODE === '1';
   if (process.argv.includes('--print-token')) {
+    if (cloudMode) {
+      console.error('Token printing is disabled in cloud mode');
+      process.exit(1);
+    }
     console.log(loadOrCreateToken(__dirname));
     process.exit(0);
   }
   const port = Number(process.env.PORT || process.argv[2] || 8787);
-  const host = process.env.HOST || '0.0.0.0';
-  const token = loadOrCreateToken(__dirname);
+  const host = process.env.HOST || (cloudMode ? '127.0.0.1' : '0.0.0.0');
   const maxRequestBytes = process.env.VITAFLOW_MAX_REQUEST_BYTES === undefined
     ? DEFAULT_MAX_REQUEST_BYTES
     : Number(process.env.VITAFLOW_MAX_REQUEST_BYTES);
-  const server = createLocalSyncServer({ token, maxRequestBytes });
-  server.listen(port, host, () => {
-    console.log(`VitaFlow local sync server running:`);
-    console.log(`  Local: http://127.0.0.1:${port}/${DEFAULT_HTML_FILE}?key=${token}`);
-    for (const address of getLanAddresses()) {
-      console.log(`  LAN:   http://${address}:${port}/${DEFAULT_HTML_FILE}?key=${token}`);
+  try {
+    if (cloudMode && (!process.env.VITAFLOW_DATA_DIR || !path.isAbsolute(process.env.VITAFLOW_DATA_DIR))) {
+      throw new Error('VITAFLOW_DATA_DIR must be an absolute writable data directory in cloud mode');
     }
-    console.log(`  Data:  ${path.join(__dirname, DEFAULT_DATA_FILE)}`);
-    console.log(`  Token: ${path.join(__dirname, TOKEN_FILE)} (访问口令，请勿分享给不信任的人)`);
-  });
+    if (cloudMode && !process.env.VITAFLOW_TOKEN_FILE) throw new Error('VITAFLOW_TOKEN_FILE is required in cloud mode');
+    const token = cloudMode ? undefined : loadOrCreateToken(__dirname);
+    const server = createLocalSyncServer({
+      cloudMode, token, maxRequestBytes,
+      ...(cloudMode ? {
+        allowedOrigins: process.env.VITAFLOW_ALLOWED_ORIGINS,
+        dataDir: process.env.VITAFLOW_DATA_DIR,
+        tokenFile: process.env.VITAFLOW_TOKEN_FILE,
+      } : {}),
+    });
+    server.listen(port, host, () => {
+      if (cloudMode) {
+        console.log(`VitaFlow cloud sync API running on loopback port ${server.address().port}; header authentication required`);
+        return;
+      }
+      console.log(`VitaFlow local sync server running:`);
+      console.log(`  Local: http://127.0.0.1:${port}/${DEFAULT_HTML_FILE}?key=${token}`);
+      for (const address of getLanAddresses()) {
+        console.log(`  LAN:   http://${address}:${port}/${DEFAULT_HTML_FILE}?key=${token}`);
+      }
+      console.log(`  Data:  ${path.join(__dirname, DEFAULT_DATA_FILE)}`);
+      console.log(`  Token: ${path.join(__dirname, TOKEN_FILE)} (访问口令，请勿分享给不信任的人)`);
+    });
+  } catch (error) {
+    console.error(cloudMode ? `VitaFlow cloud configuration error: ${error.message}` : error.message);
+    process.exitCode = 1;
+  }
 }

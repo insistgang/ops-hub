@@ -38,7 +38,7 @@ function setup(saved = {}, { failWrites = false, ready = true, connected = true,
     click() { return this.listeners.click?.(); }
   }
   const ids = Object.fromEntries(['url','key','connect','status','builtin','open','source','native'].map(id => [`vitaflow-${id}`, new Element()]));
-  ids['vitaflow-url'].value = 'http://127.0.0.1:8787/schedule-system-2.0.html';
+  ids['vitaflow-url'].value = 'https://finance.insistgang.top/';
   const navigation = new Element(); navigation.attrs['data-vf-view'] = 'dailyPlan';
   const tab = new Element(); tab.classes.add('active');
   const calls = [];
@@ -68,6 +68,9 @@ function setup(saved = {}, { failWrites = false, ready = true, connected = true,
 
 test('the host uses the native workspace and keeps browser mode explicit', () => {
   const app = setup();
+  assert.equal(app.ids['vitaflow-url'].value, 'https://finance.insistgang.top/');
+  assert.equal(app.calls.filter(([type]) => type === 'connect').length, 0, '新的云端默认地址不能触发自动连接');
+  assert.equal(app.storage.size, 0, '首次打开不能自动保存或上传连接设置');
   assert.match(app.ids['vitaflow-source'].textContent, /浏览器/);
   assert.match(app.ids['vitaflow-status'].textContent, /就绪/);
   assert.equal(app.navigation.disabled, false);
@@ -87,10 +90,47 @@ test('saved private settings connect through the native API and remain available
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(app.ids['vitaflow-key'].value, 'synthetic');
   assert.ok(app.calls.some(([type]) => type === 'connect'));
+  assert.deepEqual(app.calls.find(([type]) => type === 'connect'), ['connect', 'http://127.0.0.1:8787/schedule-system-2.0.html', 'synthetic']);
+  assert.equal(app.ids['vitaflow-url'].value, 'http://127.0.0.1:8787/schedule-system-2.0.html');
+  assert.equal(app.storage.get('ops_vitaflow_url'), 'http://127.0.0.1:8787/schedule-system-2.0.html?key=synthetic', '旧设置不得被静默迁移');
   assert.match(app.ids['vitaflow-source'].textContent, /服务/);
   await app.ids['vitaflow-builtin'].click();
   assert.ok(app.calls.some(([type]) => type === 'browser'));
   assert.ok(app.storage.has('ops_vitaflow_url'));
+});
+
+test('new cloud connections store the URL and key atomically without passing URL credentials to native', async () => {
+  const app = setup();
+  app.ids['vitaflow-url'].value = 'https://finance.insistgang.top/?key=ignored-query-secret&embed=1#private-fragment';
+  app.ids['vitaflow-key'].value = 'synthetic-cloud-token';
+  await app.ids['vitaflow-connect'].click();
+  assert.deepEqual(app.calls.find(([type]) => type === 'connect'), ['connect', 'https://finance.insistgang.top/', 'synthetic-cloud-token']);
+  const settings = JSON.parse(app.storage.get('ops_vitaflow_connection'));
+  assert.deepEqual(settings, { url: 'https://finance.insistgang.top/', key: 'synthetic-cloud-token' });
+  assert.equal(app.storage.has('ops_vitaflow_url'), false);
+  assert.equal(app.ids['vitaflow-url'].value, 'https://finance.insistgang.top/');
+  assert.doesNotMatch(app.ids['vitaflow-source'].textContent + app.ids['vitaflow-status'].textContent, /synthetic-cloud-token|ignored-query-secret/);
+
+  const restored = setup({ ops_vitaflow_connection: JSON.stringify(settings), ops_vitaflow_mode: 'private' });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(restored.calls.find(([type]) => type === 'connect'), ['connect', 'https://finance.insistgang.top/', 'synthetic-cloud-token']);
+  assert.equal(restored.ids['vitaflow-key'].value, 'synthetic-cloud-token');
+});
+
+test('a blank cloud key never reuses saved credentials or calls the connector', async () => {
+  const app = setup({ ops_vitaflow_connection: JSON.stringify({ url: 'https://finance.insistgang.top/', key: 'synthetic-saved' }), ops_vitaflow_mode: 'builtin' });
+  app.ids['vitaflow-key'].value = '';
+  await app.ids['vitaflow-connect'].click();
+  assert.equal(app.calls.filter(([type]) => type === 'connect').length, 0);
+  assert.match(app.ids['vitaflow-status'].textContent, /填写.*口令/);
+});
+
+test('an invalid new connection setting does not fall back to an older credential', async () => {
+  const app = setup({ ops_vitaflow_connection: '{broken', ops_vitaflow_url: 'http://127.0.0.1:8787/?key=old-secret' });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(app.calls.filter(([type]) => type === 'connect').length, 0);
+  assert.equal(app.ids['vitaflow-key'].value, '');
+  assert.equal(app.storage.get('ops_vitaflow_connection'), '{broken');
 });
 
 test('invalid saved and entered protocols never reach the native connector', async () => {
@@ -103,6 +143,7 @@ test('invalid saved and entered protocols never reach the native connector', asy
 
 test('storage failures remain visible after the native workspace announces readiness', async () => {
   const app = setup({}, { failWrites: true });
+  app.ids['vitaflow-key'].value = 'synthetic';
   await app.ids['vitaflow-connect'].click();
   app.emit('ops:vitaflow-ready');
   assert.match(app.ids['vitaflow-status'].textContent, /未保存|保存失败/);
@@ -110,6 +151,7 @@ test('storage failures remain visible after the native workspace announces readi
 
 test('failed private connection preserves an honest local data source', async () => {
   const app = setup({}, { connected: false });
+  app.ids['vitaflow-key'].value = 'synthetic';
   await app.ids['vitaflow-connect'].click();
   assert.match(app.ids['vitaflow-status'].textContent, /未连接|连接失败/);
   assert.match(app.ids['vitaflow-source'].textContent, /浏览器/);
@@ -117,6 +159,7 @@ test('failed private connection preserves an honest local data source', async ()
 
 test('an unresolved private conflict is not presented as adopted server data and clears after resolution', async () => {
   const app = setup({}, { conflict: true });
+  app.ids['vitaflow-key'].value = 'synthetic';
   await app.ids['vitaflow-connect'].click();
   assert.match(app.ids['vitaflow-source'].textContent, /待核对/);
   app.resolveConflict();
@@ -133,6 +176,7 @@ test('reinitializing the host does not bind or connect the native workspace twic
 
 test('an older private response cannot replace the newest connection status', async () => {
   const app = setup();
+  app.ids['vitaflow-key'].value = 'synthetic';
   const pending = [];
   app.native.connect = () => new Promise(resolve => pending.push(resolve));
   app.native.getSummary = () => ({ storage: 'server', conflict: false });
@@ -148,6 +192,7 @@ test('an older private response cannot replace the newest connection status', as
 
 test('switching to browser mode ignores a pending private response', async () => {
   const app = setup();
+  app.ids['vitaflow-key'].value = 'synthetic';
   let resolve;
   app.native.connect = () => new Promise(done => { resolve = done; });
   const waiting = app.ids['vitaflow-connect'].click();
