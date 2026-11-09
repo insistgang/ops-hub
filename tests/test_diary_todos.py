@@ -149,9 +149,10 @@ class DiaryTodoProjectionTests(unittest.TestCase):
             public_dir.mkdir(parents=True)
             aliases_path = data / 'private_aliases.json'
             aliases_path.write_text(json.dumps(aliases), encoding='utf-8')
-            (data / 'status.json').write_text(json.dumps({'knowledge': {
+            (data / 'status.json').write_text(json.dumps({}), encoding='utf-8')
+            (data / 'knowledge.json').write_text(json.dumps({
                 'today': '2026-11-08', 'diary_todos': {'date': '2026-11-08', 'items': []}},
-            }), encoding='utf-8')
+            ), encoding='utf-8')
             (public_dir / 'diary-todos.json').write_text('stale', encoding='utf-8')
             (public_dir / 'diary-todos.js').write_text('stale', encoding='utf-8')
             with patch.object(sanitize_public, 'DATA_DIR', data), \

@@ -159,6 +159,7 @@ def build_public_status(status, aliases):
 
     # 1. 移除整块敏感模块
     public.pop("weight_challenge", None)
+    public.pop("weight", None)
     # knowledge 投影含真名、账号、本地绝对路径与金额，一律不进入公开产物。
     public.pop("knowledge", None)
 

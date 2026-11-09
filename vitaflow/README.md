@@ -115,11 +115,11 @@ npm run build:html
 在旧电脑运行 `make-migration-package.command`，会先把 JSON 数据同步嵌入 HTML，
 再生成 Windows 精简迁移包。详见 `README-migration.md` 与 `README-windows.md`。
 
-## 本机保留版本
+## 本机版本与旧数据退役
 
-本机统一使用 `/Users/insistgang/Desktop/个人工具/ops-hub/vitaflow` 主工程。2026-10-03 核对确认，主工程包含原 `Projects/vitaflow` 旧版全部已保存的数据：旧版 42 项数据、400 条待办、51 天幸福感记录均完整保留，主版另有想法库、连续打卡记录、1 条待办和 3 天幸福感记录。旧版页面与 JSON 已按用户要求永久删除。
+本机统一使用 `/Users/insistgang/Desktop/个人工具/ops-hub/vitaflow` 主工程，VitaFlow 已原生挂载到 Ops-Hub。原独立 `Projects/vitaflow` 旧版已删除。
 
-主工程 `my-schedule.json` 保留原有数据，默认生成页面不再携带它的 44 项快照。通过本机服务继续使用原真源；应急携带请使用应用的私人 HTML 导出功能。
+2026-11-08 按本人要求，主工程中遗留的 `my-schedule.json` 旧副本也已删除，不再作为本机真源或恢复来源。当前通过 Ops-Hub 与阿里云同步服务使用私人数据；手动启动独立本地服务时会重新初始化本地数据，不得用旧副本或迁移包覆盖云端。应急携带请使用应用的私人 HTML 导出功能。
 
 ## 隐私说明
 

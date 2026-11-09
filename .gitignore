@@ -15,6 +15,7 @@ data/career_records.json
 data/projects.json
 data/device_allocation.json
 data/private_challenge.json
+data/weight_records.json
 data/private_aliases.json
 data/private_devices.json
 

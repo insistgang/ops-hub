@@ -10,4 +10,4 @@
 
 服务由阿里云上的 `ops-vita-sync.service` 运行：非 root 账户、回环地址监听，经 Nginx 提供 HTTPS 接口；数据和轮转备份在 `/var/lib/ops-vita-sync/`，服务器口令在 `/etc/ops-vita-sync/`。本机桥接口令文件位于 `~/.config/ops-hub/`，必须为当前用户所有且权限为 0600。本机桥接允许 `https://insistgang.top`、`https://finance.insistgang.top` 和 `https://ops.insistgang.top` 三个确切来源调用；浏览器按域名而非路径界定来源，这些域名下的脚本都必须可信。
 
-应保留现有本机数据和独立备份。排查时先查看 `systemctl status ops-vita-sync` 与 `journalctl -u ops-vita-sync`，不要输出口令或个人数据；停用服务不会删除数据文件。设备丢失或口令泄露时需要轮换口令。
+旧版本地 `my-schedule.json` 已于 2026-11-08 按本人要求删除并退役，不得从旧副本或迁移包反向覆盖云端；应为云端当前数据保留独立备份。排查时先查看 `systemctl status ops-vita-sync` 与 `journalctl -u ops-vita-sync`，不要输出口令或个人数据；停用服务不会删除数据文件。设备丢失或口令泄露时需要轮换口令。

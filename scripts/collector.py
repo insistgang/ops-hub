@@ -398,7 +398,8 @@ def collect_all():
         "weight_challenge": weight_challenge,
         "daily_checks": daily_checks,
         "device_allocation": device_allocation,
-        "knowledge": knowledge
+        "knowledge": knowledge,
+        "weight": load_json(DATA_DIR / "weight_records.json", None)
     }
 
     # Write status.json (atomic: temp file + os.replace, no half-written files)
@@ -416,6 +417,9 @@ def collect_all():
     private_dir = DATA_DIR / "private"
     private_dir.mkdir(parents=True, exist_ok=True)
     atomic_write_text(private_dir / "knowledge.js", "window.__OPS_KNOWLEDGE__ = " + json.dumps(knowledge, ensure_ascii=False) + ";\n")
+    weight_records = load_json(DATA_DIR / "weight_records.json", None)
+    if weight_records:
+        atomic_write_text(private_dir / "weight.js", "window.__OPS_WEIGHT__ = " + json.dumps(weight_records, ensure_ascii=False) + ";\n")
 
     # 9. Generate sanitized public artifacts (data/public/) for the public repository.
     # Local truth source stays in data/ and is git-ignored; only the sanitized copy is tracked.

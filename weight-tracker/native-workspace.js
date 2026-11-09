@@ -122,6 +122,21 @@
   };
   window.__WeightNativeBootstrap = function () {
     nativeRoot.querySelectorAll('form button, #weight-profile-add, #weight-profile-edit, #weight-group-create').forEach(button => { button.disabled = false; });
+    try {
+      if (window.__OPS_WEIGHT__ && window.localStorage) {
+        const stored = window.localStorage.getItem('weight-tracker:universal:v1');
+        let needsSeed = !stored || stored === 'null';
+        if (!needsSeed) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (!parsed.users || parsed.users.length === 0) needsSeed = true;
+          } catch (_) { needsSeed = true; }
+        }
+        if (needsSeed) {
+          window.localStorage.setItem('weight-tracker:universal:v1', JSON.stringify(window.__OPS_WEIGHT__));
+        }
+      }
+    } catch (_) {}
     (function (root, factory) {
   'use strict';
   var api = factory();

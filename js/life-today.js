@@ -9,6 +9,21 @@
   function renderWeight() {
     let summary;
     try { summary = window.OpsWeightNative?.isReady() ? window.OpsWeightNative.getSummary() : null; } catch (_) { summary = {error:true}; }
+    if ((!summary || !summary.latest || summary.error) && window.__OPS_WEIGHT__?.records?.length) {
+      const w = window.__OPS_WEIGHT__;
+      const u = w.users?.[0] || w.user;
+      const recs = w.records || [];
+      const latest = recs[recs.length - 1];
+      const first = recs[0];
+      summary = {
+        latest: latest ? { date: latest.date, weight: latest.weight } : null,
+        goal: u?.goal ?? null,
+        change: first && latest ? Math.round((latest.weight - first.weight) * 10) / 10 : null,
+        count: recs.length,
+        user: u ? { name: u.name, id: u.id } : null,
+        error: null
+      };
+    }
     put('weight-value', summary?.error ? '—' : kg(summary?.latest?.weight));
     put('weight-goal', summary?.error ? '目标未读取' : '目标 ' + kg(summary?.goal));
     if (summary?.error) {

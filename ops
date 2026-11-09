@@ -137,10 +137,33 @@ def cmd_status(args):
     elif knowledge.get("error"):
         print(f"\n{Colors.DIM}📚 知识库同步不可用: {knowledge['error']}{Colors.ENDC}")
 
-    # 4. Weight Challenge
-    print(f"\n{Colors.BOLD}⚖️  秋季三人减重决战 (38天):{Colors.ENDC}")
-    print(f"   进度: 第 {Colors.CYAN}{weight.get('current_day')}{Colors.ENDC}/{weight.get('total_days')} 天 ｜ 剩余: {weight.get('days_left')} 天 ｜ 成员: {', '.join(weight.get('members', []))}")
-    print(f"   公网直通: {Colors.BLUE}{weight.get('live_url')}{Colors.ENDC}")
+    # 4. Weight Tracking
+    weight_data = data.get("weight")
+    if not weight_data and (DATA_DIR / "weight_records.json").exists():
+        try:
+            with open(DATA_DIR / "weight_records.json", "r", encoding="utf-8") as f:
+                weight_data = json.load(f)
+        except Exception:
+            weight_data = None
+
+    if weight_data and isinstance(weight_data, dict):
+        users = weight_data.get("users", [])
+        recs = weight_data.get("records", [])
+        user = users[0] if users else {"name": "Leo", "goal": 85.0}
+        latest = recs[-1] if recs else None
+        if latest:
+            goal = user.get("goal")
+            diff_str = ""
+            if goal:
+                diff = round(latest["weight"] - goal, 1)
+                diff_str = f" ｜ 目标: {goal:.1f} kg (差 {diff:+.1f} kg)"
+            print(f"\n{Colors.BOLD}⚖️  Leo 的身体健康与体重追踪:{Colors.ENDC}")
+            print(f"   最新体重: {Colors.GREEN}{latest['weight']:.1f} kg{Colors.ENDC} ({latest['date']}{' · ' + latest.get('note') if latest.get('note') else ''}){diff_str}")
+            print(f"{Colors.DIM}   (快速更新: ops weight <数值> / 网页端实时同步){Colors.ENDC}")
+    elif weight and weight.get("title"):
+        print(f"\n{Colors.BOLD}⚖️  {weight.get('title')}:{Colors.ENDC}")
+        print(f"   进度: 第 {Colors.CYAN}{weight.get('current_day')}{Colors.ENDC}/{weight.get('total_days')} 天 ｜ 剩余: {weight.get('days_left')} 天 ｜ 成员: {', '.join(weight.get('members', []))}")
+        print(f"   公网直通: {Colors.BLUE}{weight.get('live_url')}{Colors.ENDC}")
 
     # 5. Today's Four Checks
     c_sun = "✅" if checks.get("起了") else "⬜"
@@ -329,6 +352,85 @@ def cmd_memory(args):
         print(f"     - {sch.get('period')}: {sch.get('items')}")
     print()
 
+def cmd_weight(args):
+    weight_file = DATA_DIR / "weight_records.json"
+    now_iso = datetime.now().isoformat()
+    if not weight_file.exists():
+        data = {
+            "version": 1,
+            "activeUserId": "usr-leo",
+            "users": [{"id": "usr-leo", "name": "Leo (insistgang)", "goal": 85.0, "createdAt": now_iso, "updatedAt": now_iso}],
+            "records": [],
+            "groups": []
+        }
+    else:
+        with open(weight_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+    if args.value is None:
+        recs = data.get("records", [])
+        if not recs:
+            print("目前还没有体重记录。可以使用 ops weight <数值> 来记录今天体重。")
+            return
+        users = data.get("users", [])
+        user = users[0] if users else {"goal": 85.0}
+        goal = user.get("goal", 85.0)
+        latest = recs[-1]
+        diff = round(latest["weight"] - goal, 1)
+        print(f"\n{Colors.BOLD}⚖️  Leo 的体重管理档案 (真源: data/weight_records.json){Colors.ENDC}")
+        print(f"   当前目标: {goal:.1f} kg")
+        print(f"   最新记录: {Colors.GREEN}{latest['weight']:.1f} kg{Colors.ENDC} ({latest['date']}) ｜ 较目标: {diff:+.1f} kg")
+        print(f"\n   最近历史记录:")
+        for r in recs[-5:]:
+            note_str = f" ({r.get('note')})" if r.get("note") else ""
+            print(f"   • {r['date']}: {r['weight']:.1f} kg{note_str}")
+        print()
+        return
+
+    try:
+        val = float(args.value)
+        if val < 30 or val > 300:
+            print(f"{Colors.FAIL}❌ 体重数值超出合理范围 (30-300 kg)。{Colors.ENDC}")
+            return
+    except ValueError:
+        print(f"{Colors.FAIL}❌ 请输入合法的数字。{Colors.ENDC}")
+        return
+
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    note = args.note or "日常称重"
+
+    found = False
+    for r in data["records"]:
+        if r["date"] == today_str:
+            r["weight"] = val
+            r["note"] = note
+            r["updatedAt"] = now_iso
+            found = True
+            break
+    if not found:
+        rec_id = f"rec-{today_str}-{len(data['records'])+1:02d}"
+        data["records"].append({
+            "id": rec_id,
+            "userId": data.get("activeUserId", "usr-leo"),
+            "date": today_str,
+            "weight": val,
+            "note": note,
+            "createdAt": now_iso,
+            "updatedAt": now_iso
+        })
+
+    collector.atomic_write_text(weight_file, json.dumps(data, ensure_ascii=False, indent=2) + "\n")
+    private_dir = DATA_DIR / "private"
+    private_dir.mkdir(parents=True, exist_ok=True)
+    collector.atomic_write_text(private_dir / "weight.js", "window.__OPS_WEIGHT__ = " + json.dumps(data, ensure_ascii=False) + ";\n")
+
+    user = data.get("users", [{}])[0]
+    goal = user.get("goal", 85.0)
+    diff = round(val - goal, 1)
+    print(f"{Colors.GREEN}✅ 已更新今日 ({today_str}) 体重记录: {val:.1f} kg ({note}){Colors.ENDC}")
+    print(f"   当前目标: {goal:.1f} kg ｜ 距目标还需: {diff:+.1f} kg")
+    print(f"   数据真源已原子写入 data/weight_records.json，并同步至 private/weight.js 镜像。")
+
 def cmd_serve(args):
     port = args.port or 3000
     print(f"🌐 正在启动 Ops-Hub Web 总台本地预览（仅监听本机回环 127.0.0.1）...")
@@ -477,6 +579,10 @@ def main():
     p_check.add_argument("--toggle", action="store_true", help="反转状态")
     p_check.add_argument("--push", action="store_true", help="打卡后自动推送")
 
+    p_weight = subparsers.add_parser("weight", help="查看或记录个人体重健康数据")
+    p_weight.add_argument("value", nargs="?", help="体重数值 (kg，如 99.5)，留空为查看历史")
+    p_weight.add_argument("--note", help="称重备注 (如 '晨起空腹')")
+
     p_memory = subparsers.add_parser("memory", help="查看个人记忆与秩序原则")
 
     p_serve = subparsers.add_parser("serve", help="本地静态 Web 预览服务")
@@ -497,6 +603,8 @@ def main():
         cmd_career(args)
     elif args.command == "check":
         cmd_check(args)
+    elif args.command == "weight":
+        cmd_weight(args)
     elif args.command == "memory":
         cmd_memory(args)
     elif args.command == "serve":
