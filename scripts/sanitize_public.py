@@ -160,7 +160,7 @@ def build_public_status(status, aliases):
     # 1. 移除整块敏感模块
     public.pop("weight_challenge", None)
     public.pop("weight", None)
-    # knowledge 投影含真名、账号、本地绝对路径与金额，一律不进入公开产物。
+    # knowledge 投影改由 build_public_knowledge 单独脱敏后发布，不在此整块丢弃。
     public.pop("knowledge", None)
 
     # 2. 求职台账只公开阶段，不公开备注、薪资和简历文件名
@@ -414,6 +414,50 @@ def build_public_weight(weight, aliases):
     }
 
 
+def build_public_knowledge(knowledge, aliases):
+    """裁剪可公开的知识库投影。
+
+    本人 2026-11-10 明确选择公开自己的全部信息（仅本人，不含他人）。
+    这里发布今日计划、WIP、硬节点台账、项目台账与财务月度复盘摘要；
+    丢弃本地来源根路径，文本过 scrub_text——同事与外部导师一律代号化。
+    精力与日记待办另有专属公开产物，此处不重复。
+    """
+    if not isinstance(knowledge, dict) or knowledge.get("available") is not True:
+        return None
+
+    public = {
+        "available": True,
+        "generated_at": knowledge.get("generated_at"),
+        "today": knowledge.get("today"),
+        "warnings": knowledge.get("warnings") or [],
+        "today_plan": knowledge.get("today_plan"),
+        "wip": knowledge.get("wip"),
+        "hard_nodes": knowledge.get("hard_nodes"),
+        "projects": knowledge.get("projects"),
+        "finance": knowledge.get("finance"),
+    }
+
+    def strip_local_refs(node):
+        """去掉任何指向本机的路径：source_root 与各分块的 file 字段只保留相对名。"""
+        if isinstance(node, dict):
+            out = {}
+            for key, value in node.items():
+                if key in ("source_root", "root"):
+                    continue
+                if key == "file" and isinstance(value, str) and value.startswith("/"):
+                    out[key] = value.rsplit("/", 1)[-1]
+                    continue
+                out[key] = strip_local_refs(value)
+            return out
+        if isinstance(node, list):
+            return [strip_local_refs(item) for item in node]
+        return node
+
+    public = strip_local_refs(public)
+    public = scrub_deep(public, aliases)
+    return public
+
+
 def build_public_memory(memory, aliases):
     """脱敏记忆规则：仅保留通用秩序条款。"""
     if not isinstance(memory, dict):
@@ -449,6 +493,7 @@ def write_public_files():
         public_energy = build_public_energy(knowledge, aliases)
         public_diary_todos = build_public_diary_todos(knowledge, aliases)
         public_weight = build_public_weight(status.get("weight"), aliases)
+        public_knowledge = build_public_knowledge(knowledge, aliases)
         artifacts = {
             "status.json": json.dumps(public_status, ensure_ascii=False, indent=2) + "\n",
             "status.js": "window.__OPS_STATUS__ = " + json.dumps(public_status, ensure_ascii=False) + ";\n",
@@ -462,6 +507,10 @@ def write_public_files():
         if public_weight:
             artifacts["weight.json"] = json.dumps(public_weight, ensure_ascii=False, indent=2) + "\n"
             artifacts["weight.js"] = "window.__OPS_WEIGHT__ = " + json.dumps(public_weight, ensure_ascii=False) + ";\n"
+        if public_knowledge:
+            # 知识库有专属公开产物，不重复塞进状态快照——渲染器只读 __OPS_KNOWLEDGE__。
+            artifacts["knowledge.json"] = json.dumps(public_knowledge, ensure_ascii=False, indent=2) + "\n"
+            artifacts["knowledge.js"] = "window.__OPS_KNOWLEDGE__ = " + json.dumps(public_knowledge, ensure_ascii=False) + ";\n"
     except (OSError, ValueError, TypeError):
         print("❌ 脱敏配置或真源无效，保留上次公开产物，本次发布已中止。")
         return False

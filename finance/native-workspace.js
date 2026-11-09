@@ -1183,4 +1183,7 @@ let financialData = null;
   realWindow.OpsFinanceNative = { isReady: () => true, activate, refresh: financeRefresh, getSummary: summary, setTheme, selectPeriod, movePeriod, retryCharts };
   clearVisibleData(); periodControls(); switchTab('overview'); updateHeaderBadge();
   notify('ops:finance-ready');
+  // 本人 2026-11-10 要求：账本自动读取，不再要求手动点击「读取 / 刷新财务记录」。
+  // 读取失败仍如实提示，不索取口令，账本只在页面内存中保留，不写任何本地存储。
+  void financeRefresh();
 })(window, document);

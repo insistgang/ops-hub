@@ -135,7 +135,8 @@ Desktop/个人工具/ops-hub/
 - **日记待办公开投影**：本人于 2026-11-08 同意公开指定日记待办标题和勾选状态。只读取当日日记「今日计划与执行状态」及前一天「明日计划」的复选项，限定日期并进行脱敏；只发布日期、稳定 ID、标题、来源日期和状态，不发布完整日记。网页仅在用户逐条点击后导入 VitaFlow，重复条目不覆盖，日程的勾选不回写日记。公开产物 `data/public/diary-todos.{json,js}` 会进入 Git 历史及公网。
 - **失败不造假**：解析不到写 `warnings` 或 `available: false` 并给出原因，不构造占位行；知识库不存在不得拖垮硬件探针。
 - **口径以台账为准**：硬节点按「到期日 ≠ 决策日」计算提醒日，决策日仍在未来的节点不算逾期；处置列已写明闭环的不计入逾期。
-- **隐私**：`data/knowledge.json` 与 `data/private/` 已 git-ignore，`sanitize_public.py` 在中整块剔除 `knowledge` 段。公开站拿不到私有快照，页面自动隐藏该区块。
+- **知识库公开投影**：本人 2026-11-10 明确选择公开自己的全部信息（仅本人，不含他人）。`sanitize_public.py` 的 `build_public_knowledge` 发布今日计划、WIP、硬节点台账、项目台账与财务月度复盘摘要，丢弃本地来源根路径，文本过 `scrub_text`——同事与外部导师一律代号化。产物为 `data/public/knowledge.{json,js}` 并进入 Git 与公网；页面按 `data/public/knowledge.js` → `data/private/knowledge.js` 顺序加载，后者覆盖前者，本机读真源、线上读公开版。**公开意味着日记摘要会进入 git 历史与公网，改动前必须确认是本人意愿。**
+- **隐私**：`data/knowledge.json` 与 `data/private/` 已 git-ignore。公开站拿不到私有快照时自动回退到公开投影，该区块照常渲染。
 
 ### 静态资源缓存版本
 
@@ -155,7 +156,8 @@ Desktop/个人工具/ops-hub/
 - 财务挂载 `#finance-native`，节点 ID 加 `finance-` 前缀，事件只通过命名空间暴露，不得覆盖 VitaFlow 的全局 UI 函数。源财务项目保持独立维护，本项目只包含中和私人内容后的界面与计算逻辑。
 - 财务 `src/template.html` 是无账本默认值的四区界面，`src/dashboard.js` 保留原计算和渲染，`src/runtime.js` 负责鉴权读取、校验、内存状态与隔离接口，`src/styles.css` 限定根与风格令牌。`build-native.mjs` 生成可直接托管的 JS/CSS；`tests/fixtures.mjs` 只服务隔离测试，构建不得读取它。
 - 财务数据来自 `https://finance.insistgang.top/data/financial_data.json`。**自 2026-11-07 23:31 起 Basic Auth 已按本人要求关闭，该 JSON 公开可读**；本站仍只在页面内存中保留账本，不嵌入构建、仓库、公开快照或 localStorage，也不保存任何密码。风险、影响范围与恢复方式见 [财务访问说明](docs/finance-access.md)。
-- 默认不探测账本。若接口重新要求认证（401/403），清除可见值并如实提示，不索取密码；普通刷新失败须明确标识上次成功数据；未核实/未记录不能换算成零。今日摘要只读工作区 API，事件不广播账本、记录或凭据。
+- **账本默认自动读取**（本人 2026-11-10 明确要求，不再要求手动点击）。`src/runtime.js` 初始化即调用 `financeRefresh()`，按钮保留为手动重试入口。账本仍只在页面内存中保留，不写 localStorage / IndexedDB / 公开快照。若接口重新要求认证（401/403），清除可见值并如实提示，不索取密码；普通刷新失败须明确标识上次成功数据；未核实/未记录不能换算成零。今日摘要只读工作区 API，事件不广播账本、记录或凭据。
+- **日记同步账本**：`scripts/finance_sync.py` 读 `~/Documents/knowledge/01-Daily/YYYY-MM/YYYY-MM-DD.md` 中写明「当日个人实付支出合计」的行，按日记原值写入 `financial_data.json` 的逐笔条目、逐日数组、分类汇总与期间汇总。只加不改、重复运行不产生重复记录；日记缺失的日期不补零，按 `pending_review` / `missing` 标注。「应急借款 / 借出」不计消费，按日记原文单独标注在 note 里——它是现金转应收，不是消费，也不是本人负债。资产快照另有日期，脚本不凭空改写资产与应收总额。
 - 服务器 CORS 仍只允许 `https://insistgang.top` 跨源读取 `/data/financial_data.json`；预检只返回 204 无数据，禁止放开通配来源。匿名读取当前返回 200，属本人明确选择的公开状态；恢复登录与验证步骤见 [财务访问说明](docs/finance-access.md)。
 
 ---
