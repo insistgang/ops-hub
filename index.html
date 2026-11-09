@@ -29,7 +29,10 @@
   <script src="data/memory_rules.js?v=1.3.0"></script>
   <!-- 知识库私有投影：缺失时整块隐藏 -->
   <script src="data/private/knowledge.js?v=1.0.0"></script>
-  <!-- 体重与健康私有投影：仅本机/私有环境，公开站 404 不影响 -->
+  <!-- 体重公开投影：本人已明确同意公开自己的体重记录（仅本人，不含同组他人）；
+       私有投影在其后加载并覆盖它，本机始终读真源，线上读脱敏公开版。 -->
+  <script src="data/public/weight.js?v=1.0.0"></script>
+  <!-- 体重与健康私有投影：仅本机/私有环境，公开站 404 时自动回退到上一行的公开投影 -->
   <script src="data/private/weight.js?v=1.0.0"></script>
   <script>
     tailwind.config = {
@@ -571,7 +574,7 @@
   <script src="vitaflow/native-workspace.js?v=1.5.0"></script>
   <script src="js/vitaflow.js?v=2.2.2"></script>
   <script src="js/vitaflow-public.js?v=1.0.0"></script>
-  <script src="weight-tracker/native-workspace.js?v=1.0.1"></script>
+  <script src="weight-tracker/native-workspace.js?v=1.0.2"></script>
   <script src="finance/native-workspace.js?v=1.0.1"></script>
   <script src="js/app.js?v=1.9.1"></script>
   <script src="js/today.js?v=1.1.0"></script>

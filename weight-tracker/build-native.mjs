@@ -226,17 +226,48 @@ export function buildNative() {
   window.__WeightNativeBootstrap = function () {
     nativeRoot.querySelectorAll('form button, #weight-profile-add, #weight-profile-edit, #weight-group-create').forEach(button => { button.disabled = false; });
     try {
-      if (window.__OPS_WEIGHT__ && window.localStorage) {
-        const stored = window.localStorage.getItem('weight-tracker:universal:v1');
-        let needsSeed = !stored || stored === 'null';
-        if (!needsSeed) {
+      const projection = window.__OPS_WEIGHT__;
+      if (projection && window.localStorage) {
+        const KEY = 'weight-tracker:universal:v1';
+        const stored = window.localStorage.getItem(KEY);
+        if (stored === null || stored === undefined || stored === 'null') {
+          // 浏览器里还没有任何本机记录：以投影作为初始内容。
+          window.localStorage.setItem(KEY, JSON.stringify(projection));
+        } else {
+          // 已经有内容：只在读得懂的前提下补齐缺失部分，绝不覆盖或清空已有记录。
+          let parsed = null;
+          let readable = false;
           try {
-            const parsed = JSON.parse(stored);
-            if (!parsed.users || parsed.users.length === 0) needsSeed = true;
-          } catch (_) { needsSeed = true; }
-        }
-        if (needsSeed) {
-          window.localStorage.setItem('weight-tracker:universal:v1', JSON.stringify(window.__OPS_WEIGHT__));
+            parsed = JSON.parse(stored);
+            readable = !!parsed && parsed.version === 1
+              && Array.isArray(parsed.users) && Array.isArray(parsed.records) && Array.isArray(parsed.groups);
+          } catch (_) { parsed = null; readable = false; }
+          if (readable) {
+            const users = parsed.users;
+            const records = parsed.records;
+            const projUsers = Array.isArray(projection.users) ? projection.users : [];
+            const projRecords = Array.isArray(projection.records) ? projection.records : [];
+            const projUser = projUsers.find(user => user && typeof user.id === 'string' && user.id) || null;
+            const projUserId = projUser ? projUser.id : null;
+            let changed = false;
+            if (projUser && !users.some(user => user && user.id === projUser.id)) {
+              users.push(projUser);
+              changed = true;
+            }
+            const known = new Set(records.map(record => record && record.id).filter(Boolean));
+            const missing = projRecords.filter(record => record && record.id && record.userId === projUserId && !known.has(record.id));
+            if (missing.length) {
+              parsed.records = records.concat(missing);
+              changed = true;
+            }
+            // 本机一条记录都没有时切到基准使用者，否则今日摘要与体重页会一边有数据一边空白。
+            if (records.length === 0 && projUser && parsed.activeUserId !== projUser.id) {
+              parsed.activeUserId = projUser.id;
+              changed = true;
+            }
+            if (changed) window.localStorage.setItem(KEY, JSON.stringify(parsed));
+          }
+          // 读不懂的旧数据保持原样，让 store 报「已保留原数据」，由人来恢复。
         }
       }
     } catch (_) {}

@@ -334,6 +334,86 @@ def build_public_diary_todos(knowledge, aliases):
     return {"date": target_day, "items": public_items}
 
 
+def build_public_weight(weight, aliases):
+    """裁剪可公开的体重记录：只发布本人，不发布本机小组与其他使用者。
+
+    本人 2026-11-10 明确选择公开自己的体重记录（仅本人，不含同组他人）。
+    只取 activeUserId 指向的使用者及其记录；小组整块丢弃——小组是本机模拟，
+    既不跨设备也不该出现在公网。文本过 scrub_text，路径与凭据类字段不进入公开产物。
+    """
+    if not isinstance(weight, dict):
+        return None
+    users = weight.get("users")
+    records = weight.get("records")
+    if not isinstance(users, list) or not isinstance(records, list):
+        return None
+
+    active_id = weight.get("activeUserId")
+    owner = None
+    for user in users:
+        if isinstance(user, dict) and active_id and user.get("id") == active_id:
+            owner = user
+            break
+    if owner is None:
+        candidates = [user for user in users if isinstance(user, dict)]
+        if len(candidates) != 1:
+            # 有多个使用者却指不出本人时不猜，避免把他人数据公开出去。
+            return None
+        owner = candidates[0]
+
+    owner_id = owner.get("id")
+    if not isinstance(owner_id, str) or not owner_id.strip():
+        return None
+
+    goal = owner.get("goal")
+    if isinstance(goal, bool) or not isinstance(goal, (int, float)):
+        goal = None
+
+    public_records = []
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        if record.get("userId") != owner_id:
+            continue
+        record_id = record.get("id")
+        date = record.get("date")
+        value = record.get("weight")
+        if not isinstance(record_id, str) or not record_id.strip():
+            continue
+        if not _valid_iso_date(date):
+            continue
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            continue
+        public_records.append({
+            "id": record_id,
+            "userId": owner_id,
+            "date": date,
+            "weight": value,
+            "note": scrub_text(str(record.get("note") or ""), aliases),
+            "createdAt": record.get("createdAt"),
+            "updatedAt": record.get("updatedAt"),
+        })
+    if not public_records:
+        return None
+
+    return {
+        "version": 1,
+        "activeUserId": owner_id,
+        "users": [{
+            "id": owner_id,
+            "name": scrub_text(str(owner.get("name") or ""), aliases),
+            "goal": goal,
+            "createdAt": owner.get("createdAt"),
+            "updatedAt": owner.get("updatedAt"),
+        }],
+        "records": public_records,
+        # 本机小组整块丢弃，但键必须保留为空数组：Store 的 validateState 要求
+        # groups 是数组，缺键会让浏览器把整份状态判为格式异常而拒绝加载。
+        # 空数组不携带任何小组内容。
+        "groups": [],
+    }
+
+
 def build_public_memory(memory, aliases):
     """脱敏记忆规则：仅保留通用秩序条款。"""
     if not isinstance(memory, dict):
@@ -368,6 +448,7 @@ def write_public_files():
                 raise ValueError("知识库快照必须是 JSON 对象")
         public_energy = build_public_energy(knowledge, aliases)
         public_diary_todos = build_public_diary_todos(knowledge, aliases)
+        public_weight = build_public_weight(status.get("weight"), aliases)
         artifacts = {
             "status.json": json.dumps(public_status, ensure_ascii=False, indent=2) + "\n",
             "status.js": "window.__OPS_STATUS__ = " + json.dumps(public_status, ensure_ascii=False) + ";\n",
@@ -378,6 +459,9 @@ def write_public_files():
         if public_energy:
             artifacts["energy.json"] = json.dumps(public_energy, ensure_ascii=False, indent=2) + "\n"
             artifacts["energy.js"] = "window.__OPS_PUBLIC_ENERGY__ = " + json.dumps(public_energy, ensure_ascii=False) + ";\n"
+        if public_weight:
+            artifacts["weight.json"] = json.dumps(public_weight, ensure_ascii=False, indent=2) + "\n"
+            artifacts["weight.js"] = "window.__OPS_WEIGHT__ = " + json.dumps(public_weight, ensure_ascii=False) + ";\n"
     except (OSError, ValueError, TypeError):
         print("❌ 脱敏配置或真源无效，保留上次公开产物，本次发布已中止。")
         return False

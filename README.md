@@ -88,7 +88,9 @@ ops schedule status
 
 ## 体重管理本地接入
 
-「体重管理」Tab 在同一页面运行 `weight-tracker/` 通用版，支持多使用者、目标体重、历史趋势、记录编辑和本机小组。共用总台风格和页面滚动，今日入口直接打开记录或历史分区。无需注册或 Supabase，数据继续写入当前浏览器原来的 `weight-tracker:universal:v1` 存储键；公开页面不携带任何个人体重记录。独立页已归档为 `weight-tracker/src/index.html` 源码，公开站只保留总台入口。
+「体重管理」Tab 在同一页面运行 `weight-tracker/` 通用版，支持多使用者、目标体重、历史趋势、记录编辑和本机小组。共用总台风格和页面滚动，今日入口直接打开记录或历史分区。无需注册或 Supabase，数据继续写入当前浏览器原来的 `weight-tracker:universal:v1` 存储键。独立页已归档为 `weight-tracker/src/index.html` 源码，公开站只保留总台入口。
+
+按本人 2026-11-10 的选择，公开站会展示**本人自己的**体重记录（由 `data/public/weight.js` 提供），本机小组与他人记录不进入公开产物；本机打开时仍优先读 `data/private/weight.js` 真源。访客在浏览器里新记的记录只存在该浏览器本地，不回传服务器。
 
 ## 财务管理接入
 

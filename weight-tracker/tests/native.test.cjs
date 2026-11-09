@@ -86,7 +86,7 @@ function parseAttributes(text) {
   return attrs;
 }
 
-function createNativePage(bundle, storage) {
+function createNativePage(bundle, storage, projection) {
   const root = new Element('section', 'weight-native');
   const elements = new Map();
   const placeholder = new Element('p', 'weight-placeholder');
@@ -153,6 +153,7 @@ function createNativePage(bundle, storage) {
   const window = {
     document,
     localStorage: storage,
+    __OPS_WEIGHT__: projection,
     confirm: () => true,
     addEventListener(type, callback) { (windowListeners[type] ||= []).push(callback); },
     dispatchEvent(event) {
@@ -350,4 +351,81 @@ test('refresh does not switch users under an unsaved draft and the native clear 
   const refreshed = stale.window.OpsWeightNative.refresh();
   assert.equal(refreshed.user.name, '另一个标签的使用者');
   assert.equal(refreshed.error, null);
+});
+
+function projectionFixture(overrides = {}) {
+  return {
+    version: 1, activeUserId: 'usr-leo', groups: [],
+    users: [{ id: 'usr-leo', name: '基准使用者', goal: 85, createdAt: '2026-11-09T08:00:00.000Z', updatedAt: '2026-11-09T08:00:00.000Z' }],
+    records: [{ id: 'rec-base', userId: 'usr-leo', date: '2026-11-09', weight: 99.5, note: '基准', createdAt: '2026-11-09T08:00:00.000Z', updatedAt: '2026-11-09T08:00:00.000Z' }],
+    ...overrides,
+  };
+}
+
+test('bootstrap seeds the private projection into an empty browser store', async () => {
+  const output = await buildNative();
+  const storage = new MemoryStorage();
+  const app = createNativePage(output, storage, projectionFixture());
+
+  const summary = app.window.OpsWeightNative.getSummary();
+  assert.equal(summary.count, 1);
+  assert.equal(summary.latest.weight, 99.5);
+  assert.equal(summary.goal, 85);
+  assert.equal(summary.user.id, 'usr-leo');
+});
+
+test('bootstrap keeps an existing profile and only adds the missing baseline record', async () => {
+  const output = await buildNative();
+  const storage = new MemoryStorage({
+    [STORAGE_KEY]: JSON.stringify({
+      version: 1, activeUserId: 'usr-old', groups: [],
+      users: [{ id: 'usr-old', name: '旧使用者', goal: 80, createdAt: '2026-09-01T00:00:00.000Z', updatedAt: '2026-09-01T00:00:00.000Z' }],
+      records: [],
+    }),
+  });
+  const app = createNativePage(output, storage, projectionFixture());
+
+  const stored = JSON.parse(storage.getItem(STORAGE_KEY));
+  assert.ok(stored.users.some(user => user.id === 'usr-old'), 'existing profile must survive');
+  assert.equal(stored.users.find(user => user.id === 'usr-old').name, '旧使用者');
+  assert.equal(stored.records.length, 1);
+  assert.equal(stored.records[0].weight, 99.5);
+  assert.equal(stored.activeUserId, 'usr-leo', 'an empty store must fall back to the baseline user');
+  assert.equal(app.window.OpsWeightNative.getSummary().latest.weight, 99.5);
+});
+
+test('bootstrap never overwrites records the browser already keeps', async () => {
+  const output = await buildNative();
+  const storage = new MemoryStorage({
+    [STORAGE_KEY]: JSON.stringify({
+      version: 1, activeUserId: 'usr-me', groups: [],
+      users: [{ id: 'usr-me', name: '我的使用者', goal: 70, createdAt: '2026-09-01T00:00:00.000Z', updatedAt: '2026-09-01T00:00:00.000Z' }],
+      records: [{ id: 'rec-mine', userId: 'usr-me', date: '2026-11-08', weight: 70.2, note: '我的记录', createdAt: '2026-09-01T00:00:00.000Z', updatedAt: '2026-09-01T00:00:00.000Z' }],
+    }),
+  });
+  const app = createNativePage(output, storage, projectionFixture());
+
+  const stored = JSON.parse(storage.getItem(STORAGE_KEY));
+  assert.equal(stored.activeUserId, 'usr-me', 'the active user must not be switched when records exist');
+  assert.equal(stored.records.find(item => item.id === 'rec-mine').weight, 70.2);
+  assert.equal(stored.records.length, 2, 'the missing baseline record is added, existing ones are kept');
+  assert.equal(app.window.OpsWeightNative.getSummary().latest.weight, 70.2);
+});
+
+test('bootstrap without a projection leaves the browser store untouched', async () => {
+  const output = await buildNative();
+  const storage = new MemoryStorage();
+  const app = createNativePage(output, storage);
+
+  assert.equal(storage.getItem(STORAGE_KEY), null);
+  assert.equal(app.window.OpsWeightNative.getSummary().count, 0);
+});
+
+test('bootstrap never overwrites unreadable local data, so it stays recoverable', async () => {
+  const output = await buildNative();
+  const storage = new MemoryStorage({ [STORAGE_KEY]: '{broken' });
+  const app = createNativePage(output, storage, projectionFixture());
+
+  assert.equal(storage.getItem(STORAGE_KEY), '{broken', 'broken local data must be preserved for recovery');
+  assert.ok(app.elements.get('weight-notice'), 'the workspace must still be able to report the problem');
 });

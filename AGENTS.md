@@ -53,12 +53,14 @@ Desktop/个人工具/ops-hub/
 │   ├── memory_rules.js        # memory_rules.json 的 JS 镜像
 │   ├── device_allocation.json # 三端设备任务分工与项目流转矩阵
 │   ├── knowledge.json         # 知识库只读投影快照（私有真源，不入库）
+│   ├── public/weight.{json,js} # 体重公开投影（仅本人，不含本机小组与他人）
 │   └── private/knowledge.js   # 知识库快照的 JS 镜像（仅本机，公开站无此文件）
 ├── ops                        # 可执行全局 CLI 入口（Python 3 编写，无第三方库依赖）
 ├── build.mjs                  # 统一构建/校验入口（零依赖，汇总三个原生工作区产物）
 │
 ├── 加载顺序：data/public/status.js → data/status.js → data/private/knowledge.js
 │   前两个同名全局变量后者覆盖前者，公开站 404 后自动回退到脱敏快照。
+│   体重同理：data/public/weight.js → data/private/weight.js，后者覆盖前者。
 ├── vitaflow/                  # 本地 VitaFlow 精力管家源码与独立同步服务；my-schedule.json、口令和备份不进入仓库
 ├── weight-tracker/            # 通用体重记录前端；应用源码在 src/index.html，公开站不再发布独立页
 ├── finance/                   # 财务原生界面与只读适配；不包含私人账本或凭据
@@ -148,6 +150,8 @@ Desktop/个人工具/ops-hub/
 ### 体重与财务接入边界
 
 - 体重挂载 `#weight-native`，节点 ID 加 `weight-` 前缀；保留原 Store 与 `weight-tracker:universal:v1` 格式。应用源码已归档到 `weight-tracker/src/index.html`，`build-native.mjs` 从该路径读取，公开站不再提供体重独立页。禁止为整合清空、迁移或覆盖个人记录；同源旧 iframe 的记录直接沿用。
+- **体重公开投影**：本人 2026-11-10 明确选择公开自己的体重记录（仅本人，不含同组他人）。`scripts/sanitize_public.py` 的 `build_public_weight` 只取 `activeUserId` 指向的使用者及其记录，本机小组整块丢弃，文本过 `scrub_text`，产出 `data/public/weight.{json,js}` 并进入 Git 与公网。`weight_challenge`（三人减重决战，含他人真名）仍整块移除。**公开意味着体重数值会进入 git 历史与公网，改动前必须确认是本人意愿。**
+- **投影合并而非覆盖**：`build-native.mjs` 的 bootstrap 只在浏览器**没有**任何本机记录时以投影初始化；已有存储时只补齐缺失的基准记录与缺失的使用者，不覆盖、不清空、不切换已有记录的使用者。本机一条记录都没有时才把基准使用者设为当前使用者，避免「今日摘要有数据、体重页空白」的不一致。存储读不懂时保持原样，让 Store 报「已保留原数据」，由人来恢复。
 - 财务挂载 `#finance-native`，节点 ID 加 `finance-` 前缀，事件只通过命名空间暴露，不得覆盖 VitaFlow 的全局 UI 函数。源财务项目保持独立维护，本项目只包含中和私人内容后的界面与计算逻辑。
 - 财务 `src/template.html` 是无账本默认值的四区界面，`src/dashboard.js` 保留原计算和渲染，`src/runtime.js` 负责鉴权读取、校验、内存状态与隔离接口，`src/styles.css` 限定根与风格令牌。`build-native.mjs` 生成可直接托管的 JS/CSS；`tests/fixtures.mjs` 只服务隔离测试，构建不得读取它。
 - 财务数据来自 `https://finance.insistgang.top/data/financial_data.json`。**自 2026-11-07 23:31 起 Basic Auth 已按本人要求关闭，该 JSON 公开可读**；本站仍只在页面内存中保留账本，不嵌入构建、仓库、公开快照或 localStorage，也不保存任何密码。风险、影响范围与恢复方式见 [财务访问说明](docs/finance-access.md)。
