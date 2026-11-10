@@ -33,6 +33,10 @@ GITOPS_FILES = [
     "data/public/energy.js",
     "data/public/diary-todos.json",
     "data/public/diary-todos.js",
+    "data/public/weight.json",
+    "data/public/weight.js",
+    "data/public/knowledge.json",
+    "data/public/knowledge.js",
 ]
 
 def load_json(path, default):
