@@ -348,6 +348,40 @@ def apply_day(ledger, day, aliases, year, month):
             f"{name}{amount:g}" for name, amount in sub_parts.items())
     ledger["expenseStructure"] = structure
 
+    # 应急借款 / 借出：按账本既有口径记为应收（现金转应收，不是消费或本人负债）。
+    # 资产快照另有日期，这里只加应收，不改现金：账本里 11/04、11/05 的支出同样
+    # 没有从 11/03 的现金快照里扣减，保持同一口径。
+    receivables = ledger.setdefault("receivables", [])
+    loan_total = 0.0
+    for loan in day.get("loans") or []:
+        amount = float(loan["amount"])
+        stamp = f"{month:02d}/{day['day']:02d} 微信转出应急借款"
+        if any(isinstance(row, dict) and str(row.get("status", "")).startswith(stamp) for row in receivables):
+            continue
+        titles = {row.get("title") for row in receivables if isinstance(row, dict)}
+        letter = "C"
+        while f"个人借款{letter}" in titles:
+            letter = chr(ord(letter) + 1)
+        who = scrub(loan["who"], aliases) or "同事"
+        detail = (f"{month:02d}/{day['day']:02d} 微信转出应急借款；{who} 因薪资与报销未发"
+                  f"导致信用卡催款；回款日未定，匿名展示；现金转应收，不是消费或本人负债")
+        receivables.append({
+            "title": f"个人借款{letter}",
+            "amount": amount,
+            "type": "个人借款",
+            "status": detail,
+            "desc": detail,
+        })
+        loan_total = round(loan_total + amount, 2)
+
+    if loan_total:
+        summary = ledger.setdefault("summary", {})
+        if "receivablesTotal" in summary:
+            summary["receivablesTotal"] = round(float(summary["receivablesTotal"]) + loan_total, 2)
+        for key in ("totalAssets", "totalNetAssets"):
+            if key in summary:
+                summary[key] = round(float(summary[key]) + loan_total, 2)
+
     # 逐笔说明：只追加新的一天，保留原有口径文字
     note = transactions.get("note") or ""
     addition = f"11/{day['day']:02d}支出{day['count']}笔{day['total']:.2f}元"
@@ -377,6 +411,8 @@ def apply_day(ledger, day, aliases, year, month):
     income = float(summary.get("incomeTotal") or 0.0)
     summary["netSavings"] = round(income - total, 2)
     summary["netSavingsExcludeFamily"] = summary["netSavings"]
+    if "receivablesTotal" in summary:
+        summary["receivablesTotal"] = round(float(summary["receivablesTotal"]), 2)
     summary["savingsRate"] = round(income / total * 100, 1) if (total and income) else 0.0
     summary["savingsRateApplicable"] = bool(total and income)
 

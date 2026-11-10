@@ -84,6 +84,15 @@ ops serve --port 3000
 # 8. 管理 macOS 原生 launchd 早晚自动同步服务 (09:00 与 21:00)
 ops schedule install
 ops schedule status
+
+# 9. 发布公开产物到阿里云 ops-hub 站点（GitOps 只推 GitHub，阿里云需另行发布）
+ops publish
+
+# 10. 把日记里的个人消费同步进财务账本并发布
+ops finance
+
+# 11. 查看 AI 额度快照与早停判定
+ops quota
 ```
 
 ## 体重管理本地接入

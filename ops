@@ -9,6 +9,9 @@ Usage:
   ops career update <comp> ...  Update company application status
   ops check <item>              Check off daily discipline items (起了/动了/写了/关了)
   ops memory                    Print order principles and scene contracts
+  ops publish                   Publish public artifacts to the Aliyun ops-hub site
+  ops finance                   Sync diary spending into the financial ledger
+  ops quota                     Show AI quota snapshot and early-stop verdict
   ops serve [--port 3000]       Preview the Web Dashboard locally
   ops schedule <cmd>            Manage macOS launchd auto-sync service
 """
@@ -431,6 +434,72 @@ def cmd_weight(args):
     print(f"   当前目标: {goal:.1f} kg ｜ 距目标还需: {diff:+.1f} kg")
     print(f"   数据真源已原子写入 data/weight_records.json，并同步至 private/weight.js 镜像。")
 
+def cmd_publish(args):
+    print("🚀 正在发布公开产物到阿里云 ops-hub 站点...")
+    result = subprocess.run([sys.executable, str(BASE_DIR / "scripts" / "publish_aliyun.py")])
+    if result.returncode != 0:
+        print(f"{Colors.FAIL}❌ 阿里云发布失败，请检查上方日志。{Colors.ENDC}")
+        sys.exit(1)
+    print(f"{Colors.GREEN}✅ 阿里云发布完成。{Colors.ENDC}")
+
+def cmd_finance(args):
+    print("💰 正在把日记里的个人消费同步进财务账本...")
+    result = subprocess.run([sys.executable, str(BASE_DIR / "scripts" / "finance_publish.py")])
+    if result.returncode != 0:
+        print(f"{Colors.FAIL}❌ 账本同步失败，请检查上方日志。{Colors.ENDC}")
+        sys.exit(1)
+
+def _remaining(used_pct):
+    """快照存的是已用百分比，换算成剩余；缺失返回 None（不换算成 0）。"""
+    if used_pct is None:
+        return None
+    try:
+        return round(max(0.0, min(100.0, 100.0 - float(used_pct))), 1)
+    except (TypeError, ValueError):
+        return None
+
+def cmd_quota(args):
+    """额度早停检查：读 ai-quota-monitor 的最新快照，判断是否该收敛。"""
+    cache = Path.home() / ".cache" / "ai-quota-monitor" / "last-good.json"
+    if not cache.exists():
+        print(f"{Colors.WARNING}⚠️  未找到额度快照：{cache}{Colors.ENDC}")
+        print("   请先在本机运行 ai-quota-monitor 的 quota_report.py 生成快照。")
+        sys.exit(1)
+    try:
+        data = json.loads(cache.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as error:
+        print(f"{Colors.FAIL}❌ 额度快照读取失败：{error}{Colors.ENDC}")
+        sys.exit(1)
+    rows = data.get("rows") or {}
+    items = rows.items() if isinstance(rows, dict) else enumerate(rows)
+    print(f"🕐 快照时间：{data.get('captured_at')}")
+    print()
+    exhausted = []
+    for key, row in items:
+        if not isinstance(row, dict):
+            continue
+        name = str(row.get("name") or key)
+        # 快照里存的是「已用百分比」，剩余要自己换算（与采集器 _remain_pct 同口径）
+        weekly = _remaining(row.get("used_pct"))
+        fiveh = _remaining(row.get("fiveh_pct"))
+        reset = row.get("reset") or "未知"
+        fiveh_reset = row.get("fiveh_reset") or "未知"
+        flag = ""
+        if weekly is not None and weekly <= 3:
+            flag = f" {Colors.FAIL}[周额度已用尽]{Colors.ENDC}"
+            exhausted.append(name)
+        elif weekly is not None and weekly <= 20:
+            flag = f" {Colors.WARNING}[偏低]{Colors.ENDC}"
+        print(f"  {name:<30} 周剩余 {str(weekly):>6}%  5h剩余 {str(fiveh):>6}%  "
+              f"周重置 {reset}  5h重置 {fiveh_reset}{flag}")
+    print()
+    if exhausted:
+        print(f"{Colors.FAIL}🔴 已用尽的账号：{'、'.join(exhausted)}{Colors.ENDC}")
+        print("   早停建议：剩余额度不足时，用 update_goal 设 token_budget 与 request_limit，")
+        print("   到线自动停；停之前把进度写进可恢复点，再请求重新激活继续。")
+    else:
+        print(f"{Colors.GREEN}🟢 没有账号触及用尽阈值，可继续推进。{Colors.ENDC}")
+
 def cmd_serve(args):
     port = args.port or 3000
     print(f"🌐 正在启动 Ops-Hub Web 总台本地预览（仅监听本机回环 127.0.0.1）...")
@@ -468,8 +537,7 @@ def cmd_schedule(args):
     <key>ProgramArguments</key>
     <array>
         <string>{python_bin}</string>
-        <string>{BASE_DIR}/scripts/collector.py</string>
-        <string>--push</string>
+        <string>{BASE_DIR}/scripts/sync_all.py</string>
     </array>
     <key>StartCalendarInterval</key>
     <array>
@@ -588,6 +656,12 @@ def main():
     p_serve = subparsers.add_parser("serve", help="本地静态 Web 预览服务")
     p_serve.add_argument("--port", type=int, default=3000, help="预览端口 (默认 3000)")
 
+    p_publish = subparsers.add_parser("publish", help="发布公开产物到阿里云 ops-hub 站点")
+
+    p_finance = subparsers.add_parser("finance", help="把日记里的个人消费同步进财务账本并发布")
+
+    p_quota = subparsers.add_parser("quota", help="查看 AI 额度快照并判断是否该早停")
+
     p_schedule = subparsers.add_parser("schedule", help="管理 macOS 原生 launchd 定时同步")
     p_schedule.add_argument("sched_action", choices=["install", "status", "uninstall"], help="操作")
 
@@ -609,6 +683,12 @@ def main():
         cmd_memory(args)
     elif args.command == "serve":
         cmd_serve(args)
+    elif args.command == "publish":
+        cmd_publish(args)
+    elif args.command == "finance":
+        cmd_finance(args)
+    elif args.command == "quota":
+        cmd_quota(args)
     elif args.command == "schedule":
         cmd_schedule(args)
 

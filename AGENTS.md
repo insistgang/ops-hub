@@ -67,6 +67,9 @@ Desktop/个人工具/ops-hub/
 ├── scripts/
 │   ├── probe.py               # 三端网络与硬件服务 Level 2 探针脚本 (Mac+Win+Jetson)
 │   ├── collector.py           # 全量数据汇总、原子写入、跨天归档与 GitOps 自动提交推送核心
+│   ├── sync_all.py             # 统一同步入口：采集 → GitOps → 阿里云发布 → 账本同步
+│   ├── publish_aliyun.py       # 发布公开产物到阿里云独立 release 目录并切换 nginx
+│   ├── finance_publish.py      # 日记消费同步进财务账本并发布到服务器 release
 │   ├── knowledge_source.py    # knowledge 知识库只读解析器（今日计划 + 硬节点台账 + 项目台账）
 │   └── com.insistgang.opshub.plist # macOS 原生 launchd 定时同步服务描述文件
 ├── tests/                     # 回归测试
@@ -172,7 +175,10 @@ CLI 必须用标准 Python 3 实现，使用内置库，严禁强依赖任何第
 * `ops check <起了|动了|写了|关了>`：快速打卡今日四勾（跨天自动归档旧记录并重置）。
 * `ops memory`：终端展示个人记忆与秩序基线。
 * `ops serve`：本地启动极速静态 Web 预览（仅监听 `127.0.0.1`，不暴露局域网）。
-* `ops schedule <install|status|uninstall>`：管理 macOS 原生 `launchd` 早晚自动调度服务（`status` 如实展示上次退出码与错误日志）。
+* `ops publish`：把公开产物发布到阿里云 `ops-hub-releases/<commit>` 并切换 nginx root。GitOps 只推 GitHub Pages，阿里云走独立发布目录，**不发布就会两站分叉**；发布目录只保留最近 10 个。
+* `ops finance`：把日记里的个人实付消费同步进财务账本并发布到服务器 release（每日账本 + 姓名代号化）。
+* `ops quota`：读 `~/.cache/ai-quota-monitor/last-good.json` 快照，换算各账号周/5h 剩余并给出早停判定。注意快照存的是**已用**百分比，剩余要自己换算，缺失显示未知而不是 0。
+* `ops schedule <install|status|uninstall>`：管理 macOS 原生 `launchd` 早晚自动调度服务（`status` 如实展示上次退出码与错误日志）。定时任务入口是 `scripts/sync_all.py`，依次执行采集+GitOps、阿里云发布、账本同步；每步独立，后一步失败只记 Warning，不回滚前一步结果。
 
 ---
 

@@ -25,7 +25,13 @@ def ledger_fixture():
             "incomeTotal": 0.0, "expenseTotal": 46.5, "routineTotal": 46.5,
             "oneTimeTotal": 0.0, "dailyAverageRoutine": 15.5, "dailyAverageTotal": 15.5,
             "netSavings": -46.5, "netSavingsExcludeFamily": -46.5,
+            "receivablesTotal": 16000.0, "totalAssets": 61014.0, "totalNetAssets": 61014.0,
         },
+        "receivables": [
+            {"title": "个人借款B", "amount": 3000.0, "type": "个人借款",
+             "status": "10/28 晚从中信转出；姓名与回款日未知，匿名展示；现金转应收，不是消费或本人负债",
+             "desc": "10/28 晚从中信转出；匿名展示"},
+        ],
         "expenseStructure": [
             {"category": "日常餐饮及其他", "amount": 46.5, "type": "routine",
              "desc": "餐饮43、日用品3、交通0.5", "color": "#EC4899"},
@@ -137,14 +143,34 @@ class FinanceSyncTests(unittest.TestCase):
         self.assertIn("不计消费", transactions["note"])
         self.assertNotIn("钱凯旋", json.dumps(ledger, ensure_ascii=False))
 
-    def test_assets_and_receivables_are_not_invented(self):
+    def test_loan_becomes_a_receivable_not_an_expense(self):
         ledger = ledger_fixture()
         parsed = finance_sync.parse_day(DAY_TEXT, 9)
-        finance_sync.apply_day(ledger, parsed, {}, 2026, 11)
-        # 资产快照另有日期，脚本不得凭空改写应收与总资产
-        self.assertNotIn("receivablesTotal", ledger["summary"])
-        self.assertNotIn("totalAssets", ledger["summary"])
-        self.assertNotIn("receivables", ledger)
+        finance_sync.apply_day(ledger, parsed, {"钱凯旋": "同事 C"}, 2026, 11)
+        # 借出按账本既有口径记应收：资产快照另有日期，现金不动
+        self.assertEqual(len(ledger["receivables"]), 2)
+        added = ledger["receivables"][-1]
+        self.assertEqual(added["amount"], 200.0)
+        self.assertEqual(added["type"], "个人借款")
+        titles = [row["title"] for row in ledger["receivables"]]
+        self.assertIn("个人借款B", titles, "原有应收条目必须保留")
+        self.assertEqual(added["title"], "个人借款C", "新条目取不冲突的编号")
+        self.assertEqual(len(set(titles)), len(titles), "应收标题不得重复")
+        self.assertEqual(ledger["summary"]["receivablesTotal"], 16200.0)
+        self.assertEqual(ledger["summary"]["totalAssets"], 61214.0)
+        self.assertEqual(ledger["summary"]["totalNetAssets"], 61214.0)
+        # 现金是 11-03 的自报快照，支出与借出都不从中扣减
+        self.assertNotIn("availableCash", ledger["summary"])
+        # 消费合计里不含这笔借出
+        self.assertEqual(ledger["transactions"]["total"], 83.5)
+
+    def test_loan_receivable_is_not_duplicated_on_rerun(self):
+        ledger = ledger_fixture()
+        parsed = finance_sync.parse_day(DAY_TEXT, 9)
+        finance_sync.apply_day(ledger, parsed, {"钱凯旋": "同事 C"}, 2026, 11)
+        finance_sync.apply_day(ledger, parsed, {"钱凯旋": "同事 C"}, 2026, 11)
+        self.assertEqual(len(ledger["receivables"]), 2)
+        self.assertEqual(ledger["summary"]["receivablesTotal"], 16200.0)
 
     def test_summary_daily_baseline_and_runway_stay_untouched(self):
         ledger = ledger_fixture()
