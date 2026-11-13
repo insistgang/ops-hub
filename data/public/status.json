@@ -3,22 +3,22 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "1.2.1",
-    "last_synced": "2026-11-13 21:00:08",
+    "last_synced": "2026-11-13 23:00:21",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub",
     "sanitized": true,
-    "sanitized_at": "2026-11-13 21:00:08",
+    "sanitized_at": "2026-11-13 23:00:21",
     "sanitize_note": "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址、本地路径与私人挑战数据。"
   },
   "topology": {
-    "timestamp": "2026-11-13 21:00:08",
+    "timestamp": "2026-11-13 23:00:21",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.x.x",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "60%",
-      "power_state": "Discharging (Battery)",
-      "load_avg": "2.02 2.05 2.38",
+      "battery": "85%",
+      "power_state": "Charging",
+      "load_avg": "3.61 3.96 5.24",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -31,10 +31,10 @@
       "ip": "100.98.x.x",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
       "status": "Online",
-      "latency_ms": 11.3,
-      "via": "",
-      "control_online": false,
-      "last_seen": "",
+      "latency_ms": 515.0,
+      "via": "DERP · lax",
+      "control_online": true,
+      "last_seen": "0001-01-01T00:00:00Z",
       "ssh_port": 22,
       "ssh_active": true,
       "smb_port": 445,
@@ -53,20 +53,20 @@
       "role": "边缘感知节点 // 端侧视觉与机器人感知部署",
       "network_type": "局域网 (LAN Only)",
       "status": "Online",
-      "latency_ms": 12.0,
+      "latency_ms": 0.8,
       "via": "",
       "control_online": false,
       "ssh_port": 22,
-      "ssh_active": false,
+      "ssh_active": true,
       "services": [
-        "SSH 访问 (Standby)",
+        "SSH 访问 (Active :22)",
         "NVIDIA JetPack 6 / Tegra R36",
         "CUDA Edge Runtime",
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": 11.3,
-    "tailscale_checked": false
+    "mesh_latency_ms": 515.0,
+    "tailscale_checked": true
   },
   "career_summary": {
     "stats": {
