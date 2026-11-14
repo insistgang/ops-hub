@@ -2,6 +2,7 @@
 
 ## 当前状态
 
+- 2026-11-15 05:42：双语 README 增加 3 张真实产品截图。用独立 headless Chrome（CDP，端口 9333，未触碰用户浏览器）对线上公开站 https://insistgang.top/ops-hub/ 截取今日工作台、三端算力总台、多线项目雷达三个 Tab，缩放到 1440px 宽存入 `docs/screenshots/`（today/compute/projects.png）；中文版插在首屏演示后与「这是什么」末尾，英文版同位同图，图注注明截图日期与证明对象。求职明细 Tab 已截图但未采用，避免在仓库首页扩散投递明细。
 - 2026-11-15 05:36：README 重写为双语项目入口。中文 `README.md` 与新增 `README_EN.md` 顶部互链并带同一 README_SYNC 标记；首屏改为一句话价值 + Star 主行动 + 6 枚真实徽章（Stars/License/Last Commit/Issues/Python 3 stdlib/零构建）+ 两个已实测在线演示地址，正文收敛为核心差异、快速开始、CLI 总览、目录与文档指针、数据隐私边界和验证命令，详细模块说明仍以 AGENTS.md 与 docs/ 为准，不再在 README 重复。许可证维持 MIT 不变。
 - 2026-11-08 10:44：VitaFlow 旧数据正式退役，保留原生 Ops-Hub 工作区、源码和阿里云同步链路，删除不再使用的本地 `vitaflow/my-schedule.json` 旧副本；根说明、VitaFlow 说明、云同步边界与协作契约同步改为阿里云当前记录为准，禁止旧副本或迁移包反向覆盖云端。本轮已验证，未提交、未部署。
 - 2026-11-07 23:42：日记精力改为公开投影（C 档，本人明确选择）。`sanitize_public` 新增 `build_public_energy`，只放日期/分数/依据/睡眠运动，丢弃本地路径并过脱敏对白，写出 `data/public/energy.json` 与 `energy.js`；页面在私有快照缺失时回退公开文件。本轮待提交。
@@ -32,6 +33,7 @@
 
 ## 验证
 
+- 2026-11-15 05:42：3 张截图逐张人工查看确认真实渲染、暗色主题、公开快照数据无新增隐私暴露；`validate_readme_pair.py` 插图后复验 PASS，图片相对路径在仓库中实际存在。
 - 2026-11-15 05:36：`validate_readme_pair.py` 对双 README 校验 PASS（互链、同步标记、可执行代码块、链接目标一致且本地相对路径存在）；`./ops serve --help` 实测可用；两个演示地址与 6 枚徽章全部 HTTP 200。本次仅文档改动，未改动代码与数据，未重复跑全量测试。
 - 2026-11-08 10:46：旧 `my-schedule.json` 删除后未再生成；73 项 Python、162 项 Node、VitaFlow 全套测试及 `node build.mjs --check` 全部通过。Mac 本机桥接真实读取阿里云返回 200，revision、更新时间和 18 组数据与删除前基线完全一致，云端现行数据未受影响。
 - 2026-11-07 23:42：63 项 Python（新增 4 项公开精力用例：字段裁剪、姓名/关系/路径脱敏、空数据返回 None）、107 项 Node、`node build.mjs --check` 一致；真实姓名与关系残留 0。移走私有快照后本地仍渲染「日记精力 · 最近 7 天」，回退链路有效。

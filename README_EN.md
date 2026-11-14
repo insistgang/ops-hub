@@ -19,6 +19,10 @@ If this project is useful to you, consider giving it a [Star](https://github.com
 
 **Live demo**: https://insistgang.top/ops-hub/ (Aliyun) · https://insistgang.github.io/ops-hub/ (GitHub Pages mirror)
 
+![Ops-Hub Today workspace](docs/screenshots/today.png)
+
+*Real screenshot of the public site (2026-11-15): the Today workspace — exam countdown, career overview, three-machine compute cards, and daily priorities.*
+
 ## What it is
 
 Ops-Hub is a personal operations system in real daily use, not a demo. It pulls scattered day-to-day signals into one page:
@@ -29,6 +33,14 @@ Ops-Hub is a personal operations system in real daily use, not a demo. It pulls 
 - **📅 Schedule & energy (VitaFlow)**: calendar todos, four-account energy tracking, Pomodoro, and reviews, mounted natively in the same page with optional private cloud sync.
 - **⚖️ Weight & 💰 Finance**: weight trends with multi-user records; finance overview, assets, income/expenses, and reviews — the ledger is read-only and kept in page memory only.
 - **🧠 Today & order**: at most 3 daily priorities, carry-over of yesterday's unfinished items, and four daily check-ins, all day-bound by Beijing time.
+
+![Compute console and task routing](docs/screenshots/compute.png)
+
+*The compute console: a task-routing decision helper and the dedicated Mac / Windows / Jetson allocation matrix.*
+
+![Multi-project radar](docs/screenshots/projects.png)
+
+*The project radar: latest local Git commits, next actions, and exam countdowns, collected automatically.*
 
 ## Why it stands out
 
