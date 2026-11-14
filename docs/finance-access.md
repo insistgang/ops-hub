@@ -2,32 +2,27 @@
 
 财务工作区沿用原财务站 `https://finance.insistgang.top` 的数据；Ops-Hub 只移植展示界面，不生成或托管账本。
 
-## 当前状态（2026-11-07 23:31 起）
+## 当前状态（2026-11-14 实测）
 
-**Basic Auth 已关闭，账本公开可读。** 这是本人明确决定，不是配置事故。
+**财务站需要登录。** 2026-11-14 匿名访问首页与数据路径均返回 HTTP 401；Ops-Hub 代码仓库保持公开，不代表私人财务账本公开。以前 11/07--11/10 的匿名 200 是历史状态，不能用来判断现在。
 
-- 公开地址：`https://finance.insistgang.top/data/financial_data.json`
-- 匿名访问返回 200，内容包含周期概况、账户与应收、流水汇总与复盘指标（2026-11-10 实测 80465 字节）
-- 仓库内不保存该 JSON；`data/private/` 与 `data/knowledge.json` 仍 git-ignore
-- 总台仍只在页面内存中保留账本，不写 localStorage、IndexedDB 或公开快照
-- 2026-11-10 复核：服务器上两行确为 `# public access:` 前缀注释；匿名 GET `/data/financial_data.json` 返回 200（2026-11-10 实测 80465 字节，随日记同步持续增长）；`/etc/nginx/.htpasswd_finance` 凭据文件仍在，可随时恢复
-
-### 公开的代价（已确认接受）
-
-任何知道该地址的人都能直接下载账本，包括总资产、可用现金、账户分布、应收对象与每日支出。搜索引擎爬虫也可能收录。**不要**再往该 JSON 里写入银行卡号、身份证号、密码或任何凭据类信息。
+- 数据地址：`https://finance.insistgang.top/data/financial_data.json`
+- 账本不进入 Ops-Hub 仓库、公开产物或浏览器持久化存储；不得写入银行卡号、身份证号、密码等凭据。
+- 总台未经登录读取遇到 401/403 时应如实显示需要授权，不索取或保存密码。
+- 不擅自关闭认证、开放数据，或修改网站及服务器配置；任何对外发布另设确认点。
 
 ## 账本写入与自动读取
 
 - **默认自动读取**：按本人 2026-11-10 的要求，总台打开即读取账本，不再需要手动点击「读取 / 刷新财务记录」。按钮保留为手动重试入口。读取失败如实提示，账本仍只在页面内存中保留。
-- **日记同步**：`scripts/finance_sync.py` 从知识库日记读「当日个人实付支出合计」写入账本。只加不改，重复运行不会产生重复记录；日记缺失的日期不补零。更新后的账本通过服务器 release 目录发布（`/var/www/.finance-releases/`，`/var/www/finance/data/financial_data.json` 是指向当前 release 的符号链接）。
+- **日记同步**：`scripts/finance_sync.py` 从知识库日记读取已明确的个人实付合计；不自动把未核实转账当成应收，不猜付款账户。当日未结束时保留待核状态。发布必须另经主人确认，并保留服务器备份。
 
 ## 服务器边界
 
-有效配置是 Nginx 的 `sites-available/finance.insistgang.top`（由同名 `sites-enabled` 链接启用）。`auth_basic` 两行以 `# public access:` 前缀注释保留（2026-11-07 23:31 关闭鉴权时改写），便于恢复。下方恢复命令按这个实际前缀编写；若日后改写注释前缀，必须同步改命令，否则 `sed` 会静默匹配不到、恢复步骤看似执行实则无效。
+匿名 401 表示当前保护生效，但不能据此推断登录后 CORS 或各端凭据状态。Nginx 与 CORS 应以服务器实际配置和经过授权的验证为准；不要为了让总台读取而关闭认证或开放通配来源。
 
-仅精确路径 `/data/financial_data.json` 开启 CORS：来源为 `https://insistgang.top` 时返回相同的 Allow-Origin、Allow-Credentials: true 和 Vary: Origin；不接受通配来源。GET/HEAD 当前无需认证即可读取；OPTIONS 仅返回 204 无数据预检，允许 GET、HEAD 与 Authorization 请求头。响应使用 `Cache-Control: private, no-store, max-age=0`。
+## 历史恢复方法（归档，不要直接执行）
 
-## 恢复登录保护
+当前登录保护已开启。以下仅保留 2026-11-07 的历史命令，当前配置前缀未核实，未经主人确认不得重跑或改动服务器。
 
 ```bash
 ssh aliyun
@@ -42,9 +37,9 @@ sudo nginx -t && sudo systemctl reload nginx
 curl -s -o /dev/null -w '%{http_code}\n' https://finance.insistgang.top/data/financial_data.json   # 期望 401
 ```
 
-恢复后需同步把本文档、`AGENTS.md` 与财务工作区文案改回「需要登录」。
+当前文档与项目规则均已标注「需要登录」；未来如需更改权限，须先经主人独立确认并核对实际配置。
 
-另注意：总台财务工作区当前默认自动读取该接口，恢复鉴权后自动读取会失败，页面会如实提示「读取失败，尚无可展示的财务记录」（见 `finance/src/runtime.js`）。届时需另行决定是改回手动读取，还是为总台配置凭据；不要在公开仓库里存凭据。
+总台财务工作区默认尝试读取该接口；未经授权时会收到 401/403，页面应如实提示。不要在公开仓库或浏览器持久化存储中放置凭据。
 
 ## 维护与回滚
 

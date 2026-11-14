@@ -15,8 +15,8 @@
 ----
 - 只加不改：已记录的日期与已有条目原样保留，重复运行不会产生重复记录。
 - 日记缺失的日期不补零，按仪表盘既有口径记 pending_review / missing。
-- 「应急借款 / 借出」不计消费：按日记原文单独标注在 note 里。它是现金转应收，
-  不是消费，也不是本人负债；资产快照另有日期，不在此凭空改写。
+- 日记中的转账或借款叙述只作待核线索，不计消费，也不自动增加应收；
+  对方是否领取须以本人确认的台账为准，不能从旧日记中的「借出」推断。
 - 金额按日记原值写入，不重算、不四舍五入；汇总字段由逐日数组机械推导。
 - 汇总里 dailyBaseline 与 runwayMonths 按「历史已记录月支出」折算，
   不随本月增量变动，因此保持原值。
@@ -43,8 +43,9 @@ ROUTINE_SUBCATEGORIES = (
     ("餐饮", ("餐饮", "外卖", "饭", "餐", "粥", "火锅", "烧烤", "奶茶", "咖啡", "食堂", "点心", "早")),
     ("医疗健康", ("医疗", "药", "医院", "体检", "门诊", "看病")),
     ("食品采购", ("食品采购", "买菜", "生鲜", "食材")),
-    ("日用品", ("日用", "纸巾", "洗衣", "沐浴")),
-    ("交通", ("交通", "地铁", "公交", "打车", "高铁", "火车", "油费", "停车", "单车")),
+    ("日用品", ("日用", "纸巾", "洗衣", "沐浴", "理发")),
+    ("交通", ("交通", "地铁", "公交", "打车", "高铁", "火车", "油费", "停车", "单车", "电动车", "充电")),
+    ("学习学业", ("打印",)),
 )
 CAPITAL_MARKERS = ("订阅", "充值", "会员", "土币", "TRY", "API 充值", "开通")
 
@@ -55,9 +56,9 @@ CATEGORY_COLORS = {
     "食品采购": "#34D399",
     "日用品": "#94A3B8",
     "交通": "#0EA5E9",
+    "学习学业": "#6366F1",
     "订阅AI": "#4F46E5",
 }
-ROUTINE_ACCOUNT = "中信"
 
 
 def classify(label):
@@ -67,7 +68,7 @@ def classify(label):
     for name, keys in ROUTINE_SUBCATEGORIES:
         if any(key in label for key in keys):
             return name, "routine"
-    return "餐饮", "routine"
+    return None
 
 
 def parse_day(text, day_value):
@@ -87,7 +88,10 @@ def parse_day(text, day_value):
                 return {"error": f"无法解析条目：{chunk}", "day": day_value}
             label = item.group("label").strip()
             amount = float(item.group("amount"))
-            category, kind = classify(label)
+            classification = classify(label)
+            if classification is None:
+                return {"error": f"无法确定支出分类：{label}，请手工核对", "day": day_value}
+            category, kind = classification
             items.append({"label": label, "amount": amount, "category": category, "type": kind})
         summed = round(sum(i["amount"] for i in items), 2)
         if abs(summed - total) > 0.005:
@@ -100,15 +104,18 @@ def parse_day(text, day_value):
             loans.append({"who": loan.group("who").strip(), "amount": float(loan.group("amount"))})
         routine = round(sum(i["amount"] for i in items if i["type"] == "routine"), 2)
         capital = float(round(sum(i["amount"] for i in items if i["type"] == "capital"), 2))
+        account = re.search(r"日常支出走(中信|微信|中国银行|建设银行|招商银行|网商银行)(?=[；，。)）]|$)", line)
+        incomplete = "当天尚未结束" in line or "全天未结束" in line or "当日未结束" in line
         return {
             "day": day_value,
+            "routineAccount": account.group(1) if account else "",
             "items": items,
             "loans": loans,
             "total": total,
             "routine": routine,
             "capital": capital,
             "count": len(items),
-            "recordStatus": "recorded",
+            "recordStatus": "pending_review" if incomplete else "recorded",
         }
     return None
 
@@ -239,14 +246,13 @@ def parse_expense_desc(desc):
 
 def apply_day(ledger, day, aliases, year, month):
     """把一天的消费写进账本。只加不改。"""
-    # 应急借款 / 借出：按账本既有口径记为应收（现金转应收，不是消费或本人负债）。
-    # 资产快照另有日期，这里只加应收，不改现金：账本里 11/04、11/05 的支出同样
-    # 没有从 11-03 的现金快照里扣减，保持同一口径。
-    # 这一段必须在「日期已在账本」的提前返回之前：即使那天的消费早已录入，
-    # 应急借款仍需单独登记。它靠日期戳做幂等，重复运行不会重复登记。
+    # 旧日记里的「借出」不能证明对方实际收款；只允许经过显式确认的结构化
+    # 事件增加应收。parse_day 只读自然语言，不会自行设置 confirmed。
     receivables = ledger.setdefault("receivables", [])
     loan_total = 0.0
     for loan in day.get("loans") or []:
+        if loan.get("confirmed") is not True:
+            continue
         amount = float(loan["amount"])
         stamp = f"{month:02d}/{day['day']:02d} 微信转出应急借款"
         if any(isinstance(row, dict) and str(row.get("status", "")).startswith(stamp) for row in receivables):
@@ -296,7 +302,7 @@ def apply_day(ledger, day, aliases, year, month):
     # 汇总金额由逐日数组机械推导
     total = round(sum(float(e.get("total") or 0.0) for e in daily), 2)
     count = sum(int(e.get("count") or 0) for e in daily)
-    recorded_days = sum(1 for e in daily if e.get("recordStatus") == "recorded")
+    recorded_days = sum(1 for e in daily if int(e.get("count") or 0) > 0)
     max_day = max(int(e["day"]) for e in daily)
     transactions["daily"] = daily
     transactions["byDay"] = [dict(e) for e in daily]
@@ -304,7 +310,7 @@ def apply_day(ledger, day, aliases, year, month):
     transactions["count"] = count
     transactions["recordedDays"] = recorded_days
     transactions["maxDay"] = max_day
-    transactions["coverageRatio"] = round(len(daily) / max_day * 100, 1)
+    transactions["coverageRatio"] = 100.0 if total else 0.0
     transactions["avgPerRecordedDay"] = round(total / recorded_days, 2) if recorded_days else 0.0
     transactions["avgPerItem"] = round(total / count, 2) if count else 0.0
 
@@ -332,7 +338,7 @@ def apply_day(ledger, day, aliases, year, month):
             "amount": item["amount"],
             "category": item["category"],
             "note": item["label"],
-            "account": ROUTINE_ACCOUNT if item["type"] == "routine" else "",
+            "account": day.get("routineAccount", "") if item["type"] == "routine" else "",
             "kind": item["type"],
             "weekday": weekday,
             "color": CATEGORY_COLORS.get(item["category"], "#94A3B8"),
@@ -388,9 +394,11 @@ def apply_day(ledger, day, aliases, year, month):
 
     # 逐笔说明：只追加新的一天，保留原有口径文字
     note = transactions.get("note") or ""
-    addition = f"11/{day['day']:02d}支出{day['count']}笔{day['total']:.2f}元"
+    addition = f"{month:02d}/{day['day']:02d}支出{day['count']}笔{day['total']:.2f}元"
+    if day["recordStatus"] == "pending_review":
+        addition += "（当日未结束，待继续核对）"
     for loan in day.get("loans") or []:
-        addition += f"（另转账{scrub(loan['who'], aliases)} {loan['amount']:.2f} 元往来应急借款，属暂付周转资本项单独标注，不计消费）"
+        addition += f"（另有转账{scrub(loan['who'], aliases)} {loan['amount']:.2f} 元的日记记载，是否形成借款待核，不计消费）"
     base = (note or "").rstrip("。； ")
     transactions["note"] = f"{base}；{addition}" if base else addition
 
@@ -407,18 +415,24 @@ def apply_day(ledger, day, aliases, year, month):
     summary["expenseTotalWithPro"] = total
     summary["routineTotal"] = routine_total
     summary["oneTimeTotal"] = capital_total
-    summary["subscriptionTotal"] = capital_total
+    subscription_total = round(sum(float(row.get("amount") or 0) for row in structure
+                                   if "订阅" in row.get("category", "") or "AI" in row.get("category", "")), 2)
+    summary["subscriptionTotal"] = subscription_total
     summary["oneTimeRatio"] = round(capital_total / total * 100, 1) if total else 0.0
-    summary["subscriptionRatio"] = summary["oneTimeRatio"]
+    summary["subscriptionRatio"] = round(subscription_total / total * 100, 1) if total else 0.0
     summary["dailyAverageRoutine"] = round(routine_total / as_of, 2) if as_of else 0.0
     summary["dailyAverageTotal"] = round(total / as_of, 2) if as_of else 0.0
     income = float(summary.get("incomeTotal") or 0.0)
     summary["netSavings"] = round(income - total, 2)
-    summary["netSavingsExcludeFamily"] = summary["netSavings"]
+    family = sum(float(row.get("amount") or 0) for row in ledger.get("incomeBreakdown") or []
+                 if row.get("source") in ("家庭支持", "家庭一次性补助"))
+    summary["netSavingsExcludeFamily"] = round(summary["netSavings"] - family, 2)
     if "receivablesTotal" in summary:
         summary["receivablesTotal"] = round(float(summary["receivablesTotal"]), 2)
-    summary["savingsRate"] = round(income / total * 100, 1) if (total and income) else 0.0
-    summary["savingsRateApplicable"] = bool(total and income)
+    applicable = bool(income) and ledger.get("incomeRecordStatus", "recorded") != "unrecorded"
+    summary["savingsRate"] = (round(summary["netSavings"] / income * 100, 1) if applicable else
+                              None if ledger.get("incomeCoverage") == "partial" else 0.0)
+    summary["savingsRateApplicable"] = applicable
 
     ledger["spendingRhythm"] = rebuild_spending_rhythm(ledger.get("spendingRhythm"), daily, as_of, year, month)
 

@@ -69,7 +69,7 @@ def ledger_fixture():
 DAY_TEXT = (
     "- 支出：午餐黄焖鸡米饭 18.00 元 + 晚餐一食堂猪脚饭 19.00 元，"
     "当日个人实付支出合计 **37.00 元**（日常支出走中信；"
-    "另转账钱凯旋 200.00 元往来应急借款，属暂付周转资本项单独标注）\n"
+    "另转账测试对象甲 200.00 元往来应急借款，属暂付周转资本项单独标注）\n"
 )
 
 
@@ -83,6 +83,23 @@ class FinanceSyncTests(unittest.TestCase):
         self.assertEqual(parsed["capital"], 0.0)
         self.assertEqual([i["category"] for i in parsed["items"]], ["餐饮", "餐饮"])
         self.assertEqual(parsed["loans"][0]["amount"], 200.0)
+
+    def test_unknown_account_and_partial_day_are_not_invented(self):
+        text = ("- 支出：午餐 10.00 元 + 电动车充电 1.00 元，当日个人实付支出合计 **11.00 元**"
+                "（截至 18:00，当天尚未结束）")
+        parsed = finance_sync.parse_day(text, 9)
+        self.assertEqual("pending_review", parsed["recordStatus"])
+        self.assertEqual("", parsed["routineAccount"])
+        self.assertEqual(["餐饮", "交通"], [i["category"] for i in parsed["items"]])
+        ledger = ledger_fixture()
+        finance_sync.apply_day(ledger, parsed, {}, 2026, 11)
+        items = [i for i in ledger["transactions"]["items"] if i["day"] == 9]
+        self.assertEqual(["", ""], [i["account"] for i in items])
+        self.assertIn(9, ledger["transactions"]["reviewDays"])
+
+    def test_unknown_category_fails_closed(self):
+        text = "- 支出：未知商品 8.00 元，当日个人实付支出合计 **8.00 元**"
+        self.assertIn("无法确定支出分类", finance_sync.parse_day(text, 9)["error"])
 
     def test_parse_day_without_total_line_returns_none(self):
         self.assertIsNone(finance_sync.parse_day("今天没有写消费。\n", 9))
@@ -132,21 +149,49 @@ class FinanceSyncTests(unittest.TestCase):
         self.assertEqual(ledger["transactions"]["total"], total_after_first)
         self.assertEqual(len(ledger["transactions"]["items"]), items_after_first)
 
+    def test_unconfirmed_old_diary_never_creates_a_receivable(self):
+        for existing_correction in (False, True):
+            with self.subTest(existing_correction=existing_correction):
+                ledger = ledger_fixture()
+                if existing_correction:
+                    ledger["receivables"].append({"title": "个人借款A", "amount": 7300.0,
+                        "status": "测试转账对方未收，未形成借款"})
+                original = json.dumps(ledger["receivables"], sort_keys=True)
+                parsed = finance_sync.parse_day(DAY_TEXT, 9)
+                finance_sync.apply_day(ledger, parsed, {}, 2026, 11)
+                self.assertEqual(original, json.dumps(ledger["receivables"], sort_keys=True))
+                self.assertEqual(ledger["summary"]["receivablesTotal"], 16000.0)
+                self.assertIn("是否形成借款待核", ledger["transactions"]["note"])
+
+    def test_partial_income_never_becomes_a_savings_rate(self):
+        ledger = ledger_fixture()
+        ledger["incomeRecordStatus"] = "unrecorded"
+        ledger["incomeCoverage"] = "partial"
+        ledger["summary"]["incomeTotal"] = 1370.0
+        ledger["incomeBreakdown"] = [{"source": "家庭支持", "amount": 1100.0},
+                                      {"source": "劳务收入", "amount": 270.0}]
+        finance_sync.apply_day(ledger, finance_sync.parse_day(DAY_TEXT, 9), {}, 2026, 11)
+        self.assertFalse(ledger["summary"]["savingsRateApplicable"])
+        self.assertIsNone(ledger["summary"]["savingsRate"])
+        self.assertEqual(ledger["summary"]["netSavings"], 1286.5)
+        self.assertEqual(ledger["summary"]["netSavingsExcludeFamily"], 186.5)
+
     def test_loan_is_noted_but_never_counted_as_expense(self):
         ledger = ledger_fixture()
         parsed = finance_sync.parse_day(DAY_TEXT, 9)
-        finance_sync.apply_day(ledger, parsed, {"钱凯旋": "同事 C"}, 2026, 11)
+        finance_sync.apply_day(ledger, parsed, {"测试对象甲": "匿名对象"}, 2026, 11)
         transactions = ledger["transactions"]
         self.assertEqual(transactions["total"], 83.5)
         self.assertNotIn(200.0, [i["amount"] for i in transactions["items"]])
-        self.assertIn("同事 C 200.00 元", transactions["note"])
+        self.assertIn("匿名对象 200.00 元", transactions["note"])
         self.assertIn("不计消费", transactions["note"])
-        self.assertNotIn("钱凯旋", json.dumps(ledger, ensure_ascii=False))
+        self.assertNotIn("测试对象甲", json.dumps(ledger, ensure_ascii=False))
 
-    def test_loan_becomes_a_receivable_not_an_expense(self):
+    def test_explicitly_confirmed_loan_becomes_a_receivable_not_an_expense(self):
         ledger = ledger_fixture()
         parsed = finance_sync.parse_day(DAY_TEXT, 9)
-        finance_sync.apply_day(ledger, parsed, {"钱凯旋": "同事 C"}, 2026, 11)
+        parsed["loans"][0]["confirmed"] = True
+        finance_sync.apply_day(ledger, parsed, {"测试对象甲": "匿名对象"}, 2026, 11)
         # 借出按账本既有口径记应收：资产快照另有日期，现金不动
         self.assertEqual(len(ledger["receivables"]), 2)
         added = ledger["receivables"][-1]
@@ -167,16 +212,18 @@ class FinanceSyncTests(unittest.TestCase):
     def test_loan_receivable_is_not_duplicated_on_rerun(self):
         ledger = ledger_fixture()
         parsed = finance_sync.parse_day(DAY_TEXT, 9)
-        finance_sync.apply_day(ledger, parsed, {"钱凯旋": "同事 C"}, 2026, 11)
-        finance_sync.apply_day(ledger, parsed, {"钱凯旋": "同事 C"}, 2026, 11)
+        parsed["loans"][0]["confirmed"] = True
+        finance_sync.apply_day(ledger, parsed, {"测试对象甲": "匿名对象"}, 2026, 11)
+        finance_sync.apply_day(ledger, parsed, {"测试对象甲": "匿名对象"}, 2026, 11)
         self.assertEqual(len(ledger["receivables"]), 2)
         self.assertEqual(ledger["summary"]["receivablesTotal"], 16200.0)
 
     def test_existing_included_loan_is_not_added_again(self):
         ledger = ledger_fixture()
-        ledger["receivables"].append({"title": "个人借款A", "amount": 5200.0, "type": "个人借款",
+        ledger["receivables"].append({"title": "个人借款A", "amount": 7300.0, "type": "个人借款",
                                       "status": "11/09 微信转出应急借款 200 元已并入；原有借款"})
         parsed = finance_sync.parse_day(DAY_TEXT, 9)
+        parsed["loans"][0]["confirmed"] = True
         finance_sync.apply_day(ledger, parsed, {}, 2026, 11)
         self.assertEqual(len(ledger["receivables"]), 2)
         self.assertEqual(ledger["summary"]["receivablesTotal"], 16000.0)
@@ -186,6 +233,7 @@ class FinanceSyncTests(unittest.TestCase):
         ledger["summary"]["totalAssets"] = None
         ledger["summary"]["totalNetAssets"] = None
         parsed = finance_sync.parse_day(DAY_TEXT, 9)
+        parsed["loans"][0]["confirmed"] = True
         finance_sync.apply_day(ledger, parsed, {}, 2026, 11)
         self.assertIsNone(ledger["summary"]["totalAssets"])
         self.assertIsNone(ledger["summary"]["totalNetAssets"])
@@ -194,6 +242,7 @@ class FinanceSyncTests(unittest.TestCase):
     def test_existing_consumption_new_loan_reports_change(self):
         ledger = ledger_fixture()
         parsed = finance_sync.parse_day(DAY_TEXT, 9)
+        parsed["loans"][0]["confirmed"] = True
         no_loan = {**parsed, "loans": []}
         finance_sync.apply_day(ledger, no_loan, {}, 2026, 11)
         changed, _ = finance_sync.apply_day(ledger, parsed, {}, 2026, 11)

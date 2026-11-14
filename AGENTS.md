@@ -158,10 +158,10 @@ Desktop/个人工具/ops-hub/
 - **投影合并而非覆盖**：`build-native.mjs` 的 bootstrap 只在浏览器**没有**任何本机记录时以投影初始化；已有存储时只补齐缺失的基准记录与缺失的使用者，不覆盖、不清空、不切换已有记录的使用者。本机一条记录都没有时才把基准使用者设为当前使用者，避免「今日摘要有数据、体重页空白」的不一致。存储读不懂时保持原样，让 Store 报「已保留原数据」，由人来恢复。
 - 财务挂载 `#finance-native`，节点 ID 加 `finance-` 前缀，事件只通过命名空间暴露，不得覆盖 VitaFlow 的全局 UI 函数。源财务项目保持独立维护，本项目只包含中和私人内容后的界面与计算逻辑。
 - 财务 `src/template.html` 是无账本默认值的四区界面，`src/dashboard.js` 保留原计算和渲染，`src/runtime.js` 负责鉴权读取、校验、内存状态与隔离接口，`src/styles.css` 限定根与风格令牌。`build-native.mjs` 生成可直接托管的 JS/CSS；`tests/fixtures.mjs` 只服务隔离测试，构建不得读取它。
-- 财务数据来自 `https://finance.insistgang.top/data/financial_data.json`。**自 2026-11-07 23:31 起 Basic Auth 已按本人要求关闭，该 JSON 公开可读**；本站仍只在页面内存中保留账本，不嵌入构建、仓库、公开快照或 localStorage，也不保存任何密码。风险、影响范围与恢复方式见 [财务访问说明](docs/finance-access.md)。
+- 财务数据来自 `https://finance.insistgang.top/data/financial_data.json`。2026-11-14 复核首页和数据匿名访问均返回 401，当前需要登录；Ops-Hub 代码仓库保持公开，不等于财务账本公开。本站只在页面内存保留账本，不嵌入公开产物或 localStorage，不保存密码。见 [财务访问说明](docs/finance-access.md)。
 - **账本默认自动读取**（本人 2026-11-10 明确要求，不再要求手动点击）。`src/runtime.js` 初始化即调用 `financeRefresh()`，按钮保留为手动重试入口。账本仍只在页面内存中保留，不写 localStorage / IndexedDB / 公开快照。若接口重新要求认证（401/403），清除可见值并如实提示，不索取密码；普通刷新失败须明确标识上次成功数据；未核实/未记录不能换算成零。今日摘要只读工作区 API，事件不广播账本、记录或凭据。
-- **日记同步账本**：`scripts/finance_sync.py` 读 `~/Documents/knowledge/01-Daily/YYYY-MM/YYYY-MM-DD.md` 中写明「当日个人实付支出合计」的行，按日记原值写入 `financial_data.json` 的逐笔条目、逐日数组、分类汇总与期间汇总。只加不改、重复运行不产生重复记录；日记缺失的日期不补零，按 `pending_review` / `missing` 标注。「应急借款 / 借出」不计消费，按日记原文单独标注在 note 里——它是现金转应收，不是消费，也不是本人负债。资产快照另有日期，脚本不凭空改写资产与应收总额。
-- 服务器 CORS 仍只允许 `https://insistgang.top` 跨源读取 `/data/financial_data.json`；预检只返回 204 无数据，禁止放开通配来源。匿名读取当前返回 200，属本人明确选择的公开状态；恢复登录与验证步骤见 [财务访问说明](docs/finance-access.md)。
+- **日记同步账本**：`scripts/finance_sync.py` 只读已写明个人实付合计的日记行，金额不一致、分类不明时停止；付款账户未知不猜，当日未结束保留 `pending_review`。日记中的转账叙述不证明对方已收，仅作待核线索，不自动新增应收；明确确认的结构化事件才可计应收。资产快照不凭空滚算。
+- 服务器 CORS 以实际配置为准；不得因总台读取需要而关闭认证或放宽为通配来源。未经主人独立确认，不修改财务站鉴权、服务器配置或发布状态；核验边界见 [财务访问说明](docs/finance-access.md)。
 
 ---
 
