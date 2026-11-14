@@ -272,13 +272,15 @@ def apply_day(ledger, day, aliases, year, month):
         if "receivablesTotal" in summary:
             summary["receivablesTotal"] = round(float(summary["receivablesTotal"]) + loan_total, 2)
         for key in ("totalAssets", "totalNetAssets"):
-            if key in summary:
+            if key in summary and summary[key] is not None:
                 summary[key] = round(float(summary[key]) + loan_total, 2)
 
     transactions = ledger["transactions"]
     daily = list(transactions.get("daily") or [])
     if any(int(e["day"]) == day["day"] for e in daily):
-        return False, f"11/{day['day']:02d} 已在账本中，跳过"
+        if loan_total:
+            return True, f"{month:02d}/{day['day']:02d} 消费已存在，新增应收 {loan_total:.2f} 元"
+        return False, f"{month:02d}/{day['day']:02d} 已在账本中，跳过"
 
     routine, capital = day["routine"], day["capital"]
     daily.append({
