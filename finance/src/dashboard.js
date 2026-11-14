@@ -68,7 +68,7 @@ let financialData = null;
         contains(dataset.period + '-' + String(row.day).padStart(2, '0')) && row.recordStatus === 'confirmed_zero')) : months.length > 0;
       const hasIncome = mode === 'week' ? incomeDetails.length > 0 || datasets.some(dataset =>
         dataset.incomeRecordStatus !== 'unrecorded' && (dataset.incomeDetails || []).length > 0 && range.start <= dataset.asOf && range.end >= dataset.period + '-01') : months.length > 0;
-      const periodIncomeUnknown = mode !== 'week' && months.some(m => m.incomeRecordStatus === 'unrecorded' || m.income === null || m.income === undefined);
+      const periodIncomeUnknown = mode !== 'week' && months.some(m => (m.incomeRecordStatus === 'unrecorded' && m.incomeCoverage !== 'partial') || m.income === null || m.income === undefined);
       const periodExpenseUnknown = mode !== 'week' && months.some(m => m.expense === null || m.expense === undefined);
       const incomeTotal = hasIncome && !periodIncomeUnknown ? (mode === 'week' ? detailIncome : roundMoney(months.reduce((n, m) => n + m.income, 0))) : null;
       const expenseTotal = hasExpense && !periodExpenseUnknown ? (mode === 'week' ? detailTotal : roundMoney(months.reduce((n, m) => n + m.expense, 0))) : null;
@@ -101,23 +101,23 @@ let financialData = null;
       const detailOnly = unitemized === 0 && mode !== 'year';
       const knownDays = days.filter(d => d.total !== null).length;
       const gaps = days.filter(d => d.total === null).map(d => d.date);
-      const incomeUnknown = months.some(m => m.incomeRecordStatus === 'unrecorded');
-      const incomeNote = incomeUnknown ? ' 存在未登记收入的月份，收入与结余不作零值推断。' : '';
+      const incomeUnknown = months.some(m => m.incomeRecordStatus === 'unrecorded') || (mode === 'week' && datasets.some(dataset => dataset.incomeRecordStatus === 'unrecorded' && range.start <= dataset.asOf && range.end >= dataset.period + '-01'));
+      const incomeNote = incomeUnknown ? ' 收入尚未完整核验，所示为已登记金额；差额仅供记录对照，不计算完整储蓄率。' : '';
       const notes = incomeNote + (mode === 'week'
         ? `逐笔覆盖 ${detailRange}；${gaps.length ? `缺口 ${gaps.join('、')}，未按 0 处理。` : '本周日期均有记录状态。'}待核记录仍非确认零消费。`
         : `汇总覆盖 ${months.map(m => `${m.period}（截至 ${m.through}）`).join('、') || '无'}；${missingMonths.length ? `无汇总月份 ${missingMonths.join('、')}，未按 0 处理；` : ''}逐笔覆盖 ${detailRange}。`);
       const trend = mode === 'year' ? Array.from({ length: 12 }, (_, i) => {
         const key = range.start.slice(0, 4) + '-' + String(i + 1).padStart(2, '0');
         const m = months.find(r => r.period === key);
-        return { month: key, income: m && m.incomeRecordStatus !== 'unrecorded' ? m.income ?? null : null, expense: m?.expense ?? null,
+        return { month: key, income: m && (m.incomeRecordStatus !== 'unrecorded' || m.incomeCoverage === 'partial') ? m.income ?? null : null, expense: m?.expense ?? null,
           savings: m && m.incomeRecordStatus !== 'unrecorded' ? roundMoney(m.income - m.expense) : null };
       }) : days.map(d => {
         const income = incomeDetails.filter(i => i.date === d.date);
         const inDetailRange = datasets.some(dataset => dataset.incomeRecordStatus !== 'unrecorded'
           && (dataset.incomeDetails || []).length > 0 && d.date >= dataset.period + '-01' && d.date <= dataset.asOf);
-        const value = inDetailRange ? sumMoney(income) : null;
+        const value = income.length || inDetailRange ? sumMoney(income) : null;
         return { month: d.date.slice(5), income: value, expense: d.total,
-          savings: value === null || d.total === null ? null : roundMoney(value - d.total) };
+          savings: incomeUnknown || value === null || d.total === null ? null : roundMoney(value - d.total) };
       });
       const count = items.length;
       const recordedDays = new Set(items.map(i => i.date)).size;
@@ -130,7 +130,7 @@ let financialData = null;
           savingsRate: incomeTotal && !incomeUnknown ? roundMoney(netSavings / incomeTotal * 100) : null,
           routineTotal, oneTimeTotal, oneTimeRatio: detailTotal ? roundMoney(oneTimeTotal / detailTotal * 100) : null,
           dailyAverageRoutine: detailOnly && knownDays ? roundMoney(routineTotal / knownDays) : null,
-          netSavingsExcludeFamily: detailOnly && incomeRemainder === 0 && netSavings !== null ? roundMoney(netSavings - family) : null },
+          netSavingsExcludeFamily: detailOnly && incomeRemainder === 0 && netSavings !== null && !incomeUnknown ? roundMoney(netSavings - family) : null },
         incomeDetails, incomeBreakdown, incomeKinds, expenseStructure, trend,
         transactions: { items, count, total: detailTotal, byCategory, byDay: days, maxDay: days.length,
           recordedDays, coverage: 'partial', coverageRatio: expenseTotal ? roundMoney(detailTotal / expenseTotal * 100) : 0,
@@ -209,13 +209,46 @@ let financialData = null;
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[ch]));
 
-    const safeColor = value => /^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(String(value)) ? value : '#94a3b8';
+    const FINANCE_THEME = {
+      income: '#365ad8', incomeSub: '#7b95c7', incomeService: '#365ad8', family: '#b5c2db',
+      expense: '#8d7a91', routine: '#7b95c7', capital: '#a5accb', savings: '#647aa5'
+    };
+    const FINANCE_COLOR_MAP = {
+      '#10b981': '#365ad8', '#059669': '#365ad8', '#22c55e': '#7b95c7',
+      '#34d399': '#a5accb', '#0d9488': '#7b95c7', '#14b8a6': '#a5accb'
+    };
+    const safeColor = value => {
+      const raw = String(value);
+      return /^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(raw)
+        ? FINANCE_COLOR_MAP[raw.toLowerCase()] || raw : '#94a3b8';
+    };
     const percent = value => Math.max(0, Math.min(100, Number(value) || 0));
     const knownAmount = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
     const yuan = v => knownAmount(v) ? '¥ ' + Number(v).toLocaleString('zh-CN', { minimumFractionDigits: 2 }) : '未核实';
     const nearYuan = v => knownAmount(v) ? '¥' + Number(v).toLocaleString('zh-CN', { maximumFractionDigits: 0 }) : '未核实';
     const wan = v => knownAmount(v) ? (Number(v) / 10000).toFixed(2) : '未核实';
     const signed = v => knownAmount(v) ? (v >= 0 ? '+¥' : '-¥') + Math.abs(Number(v)).toLocaleString('zh-CN', { minimumFractionDigits: 2 }) : '未登记';
+
+    function incomeSourceColor(source = '', index = 0) {
+      if (String(source).includes('家庭')) return FINANCE_THEME.family;
+      if (/工资|劳动|劳务/.test(String(source))) return FINANCE_THEME.income;
+      return [FINANCE_THEME.income, FINANCE_THEME.incomeSub, FINANCE_THEME.capital, '#d2daea'][index % 4];
+    }
+    function overviewExpenseRows(period = derived) {
+      const items = period.transactions.items || [];
+      const routine = items.filter(item => item.kind === 'routine');
+      const rows = routine.length ? [{ category: '日常生活', amount: sumMoney(routine), color: FINANCE_THEME.income, desc: '日常逐笔合并展示，分类仍保留在明细' }] : [];
+      rows.push(...groupAmounts(items.filter(item => item.kind === 'capital'), 'category'));
+      if (period.unitemized > 0) rows.push({ category: '仅汇总·未逐笔拆分', amount: period.unitemized, color: '#d2daea', desc: '不推测逐笔分类' });
+      return rows.sort((a, b) => b.amount - a.amount);
+    }
+    function expenseColor(item) {
+      const colors = { '日常生活': '#365ad8', '订阅AI': '#7b95c7', '数码': '#a5accb', '学习学业': '#d2daea', '仅汇总·未逐笔拆分': '#d2daea' };
+      return colors[item.category] || safeColor(item.color);
+    }
+    function periodNonIncomeFlows() {
+      return (financialData?.nonIncomeFlows || []).filter(flow => flow.dateISO >= derived.range.start && flow.dateISO <= derived.range.end);
+    }
 
     function renderDashboard() {
       if (!financialData) return;
@@ -225,7 +258,12 @@ let financialData = null;
       if (txnFilter !== '全部' && !derived.transactions.byCategory.some(c => c.category === txnFilter)) txnFilter = '全部';
       const s = financialData.summary;
       const p = derived.summary;
-
+      const flows = periodNonIncomeFlows();
+      document.getElementById('finance-kpi-recoveries').textContent = flows.length ? yuan(sumMoney(flows)) : '暂无登记';
+      const accountTotal = financialData.accounts.length && financialData.accounts.every(account => knownAmount(account.amount)) ? sumMoney(financialData.accounts) : null;
+      document.getElementById('finance-overview-account-total').textContent = yuan(accountTotal);
+      document.getElementById('finance-overview-receivables-total').textContent = yuan(s.receivablesTotal);
+      document.getElementById('finance-overview-recovery-note').textContent = flows.length ? `本期已列 ${flows.length} 笔回款，不计入收入；明细按实际到账日展示。` : '所选期间暂无已列回款，不代表确认没有到账。';
 
       document.getElementById("finance-kpi-total-assets").innerText = yuan(s.totalAssets);
       document.getElementById("finance-kpi-cash").innerText = yuan(s.availableCash);
@@ -242,12 +280,12 @@ let financialData = null;
       document.getElementById("finance-trend-title").textContent = `${derived.label} · ${derived.mode === 'year' ? '月度已记录收支' : '逐日已记录收支'}`;
       document.getElementById("finance-trend-note").textContent = derived.mode === 'year' ? '仅汇总已有月份；缺失月份留空，来源与截至日期见覆盖说明。' : '展示已登记日期；缺失日期与未登记收支保留为空。';
 
-      document.getElementById("finance-kpi-assets-note").innerText = `已登记可用现金 ${wan(s.availableCash)} 万`;
+      document.getElementById("finance-kpi-assets-note").innerText = `现金分类账面 ${wan(s.availableCash)} 万`;
       document.getElementById("finance-kpi-receivables-note").innerText = `应收款 ${wan(s.receivablesTotal)} 万`;
       document.getElementById("finance-kpi-runway").innerText = (knownAmount(s.runwayMonths) ? `${s.runwayMonths} 个月` : '未登记');
 
       document.getElementById("finance-hero-headline").textContent =
-        `即时可用现金 ${yuan(s.availableCash)}；${s.valuationProvisional === true ? '暂估总资产' : '总资产'} ${yuan(s.totalAssets)}`;
+        `现金分类账面 ${yuan(s.availableCash)}；${s.valuationProvisional === true ? '暂估总资产' : '总资产'} ${yuan(s.totalAssets)}`;
       document.getElementById("finance-hero-desc").textContent = s.subhead || '';
       const debtConfirmed = ['confirmed_none', 'confirmed_total'].includes(s.liabilitiesStatus)
         && typeof s.liabilities === 'number' && Number.isFinite(s.liabilities) && s.liabilities >= 0
@@ -338,21 +376,22 @@ let financialData = null;
 
 
       document.getElementById("finance-period-tag").innerText = derived.label;
-      document.getElementById("finance-expense-count-tag").innerText = `${derived.expenseStructure.length} 个分类 · 含未拆分汇总`;
-      document.getElementById("finance-composition-status").textContent = derived.expenseStructure.length ? '分类包含已记录汇总；缺失交易未补零。' : '所选期间无可用支出分类；无图形不代表零消费。';
+      const overviewExpenses = overviewExpenseRows();
+      document.getElementById("finance-expense-count-tag").innerText = `${overviewExpenses.length} 个分组`;
+      document.getElementById("finance-composition-status").textContent = overviewExpenses.length ? '日常与一次性项目分开展示' : '所选期间无可用支出记录';
 
       const expList = document.getElementById("finance-expense-list");
       expList.innerHTML = '';
-      derived.expenseStructure.forEach(item => {
+      overviewExpenses.forEach(item => {
         const div = document.createElement('div');
         div.className = 'flex items-center justify-between gap-3 py-2 border-b border-slate-50 last:border-0';
         div.innerHTML = `
           <div class="flex items-center gap-2 shrink-0">
-            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${safeColor(item.color)}"></span>
+            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${expenseColor(item)}"></span>
             <span class="text-slate-700 font-medium text-xs">${escapeHTML(item.category)}</span>
           </div>
           <span class="text-slate-400 text-[11px] flex-1 truncate hidden sm:block text-right">${escapeHTML(item.desc)}</span>
-          <span class="font-bold text-slate-900 mono text-xs shrink-0">¥${Number(item.amount).toFixed(2)}</span>
+          <span class="font-bold text-slate-900 mono text-xs shrink-0">¥${Number(item.amount).toFixed(2)}<small class="finance-expense-percent">${derived.summary.expenseTotal ? (item.amount / derived.summary.expenseTotal * 100).toFixed(1) : '0.0'}%</small></span>
         `;
         expList.appendChild(div);
       });
@@ -368,14 +407,14 @@ let financialData = null;
       financialData.healthScores.forEach(h => {
         const div = document.createElement('div');
         div.className = 'bg-slate-50 p-3 rounded-xl space-y-1.5';
-        const colorClass = h.score >= 85 ? 'text-emerald-600' : (h.score >= 70 ? 'text-indigo-600' : 'text-amber-600');
+        const colorClass = h.score >= 85 ? 'finance-positive' : (h.score >= 70 ? 'text-indigo-600' : 'text-amber-600');
         div.innerHTML = `
           <div class="flex items-center justify-between text-xs">
             <span class="font-semibold text-slate-800">${escapeHTML(h.dimension)}</span>
             <span class="font-bold mono ${colorClass}">${escapeHTML(h.score)}分 · ${escapeHTML(h.status)}</span>
           </div>
           <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-            <div class="${h.score >= 85 ? 'bg-emerald-500' : (h.score >= 70 ? 'bg-indigo-500' : 'bg-amber-500')} h-full rounded-full" style="width: ${percent(h.score)}%"></div>
+            <div class="${h.score >= 85 ? 'finance-positive-fill' : (h.score >= 70 ? 'bg-indigo-500' : 'bg-amber-500')} h-full rounded-full" style="width: ${percent(h.score)}%"></div>
           </div>
           <p class="text-[11px] text-slate-500">${escapeHTML(h.detail)}</p>
         `;
@@ -449,7 +488,7 @@ let financialData = null;
     function renderIncomeBreakdown() {
       const items = derived.incomeBreakdown;
       const total = items.reduce((a, b) => a + b.amount, 0);
-      const palette = ['#10B981', '#0EA5E9', '#22C55E', '#6366F1', '#F59E0B', '#EC4899'];
+      const palette = items.map((item, index) => incomeSourceColor(item.source, index));
 
       document.getElementById("finance-income-total-badge").innerText = `合计 ${yuan(derived.summary.incomeTotal)}`;
 
@@ -480,10 +519,12 @@ let financialData = null;
       const tag = document.getElementById("finance-income-detail-tag");
       const foot = document.getElementById("finance-income-detail-footnote");
       if (!list) return;
-      foot.innerText = `收入明细覆盖 ${derived.detailRange}；逐笔 ${yuan(derived.detailIncome)}；未拆分 ${yuan(derived.incomeRemainder)}。未登记收入不代表零收入。`;
+      foot.innerText = `收入明细覆盖 ${derived.detailRange}；逐笔 ${yuan(derived.detailIncome)}；未拆分 ${yuan(derived.incomeRemainder)}。回款另列，不计入收入。`;
+      const flows = periodNonIncomeFlows();
+      const flowsHTML = flows.length ? `<div class="finance-flow-list"><h4>非收入回款 · ${yuan(sumMoney(flows))}</h4>${flows.map(flow => `<div><span>${escapeHTML(flow.dateISO)} · ${escapeHTML(flow.name)}<small>${escapeHTML(flow.note || '')}</small></span><strong>${yuan(flow.amount)}</strong></div>`).join('')}</div>` : '';
       if (!items.length) {
         tag.innerText = '暂无逐笔明细';
-        list.innerHTML = '<div class="text-center py-8 text-slate-500 text-sm">所选期间无可展示的逐笔收入；不将历史汇总伪造成流水。</div>';
+        list.innerHTML = '<div class="text-center py-8 text-slate-500 text-sm">所选期间无可展示的逐笔收入；不将历史汇总伪造成流水。</div>' + flowsHTML;
         return;
       }
       const total = items.reduce((a, b) => a + Number(b.amount), 0);
@@ -498,9 +539,9 @@ let financialData = null;
             </div>
             <div class="text-[10px] text-slate-400 mt-0.5 truncate">${escapeHTML(it.account)}${it.desc ? ' · ' + escapeHTML(it.desc) : ''}</div>
           </div>
-          <span class="mono text-sm font-semibold text-emerald-600 shrink-0 whitespace-nowrap">+${yuan(it.amount)}</span>
+          <span class="mono text-sm font-semibold finance-positive shrink-0 whitespace-nowrap">+${yuan(it.amount)}</span>
         </div>
-      `).join('');
+      `).join('') + flowsHTML;
     }
 
 
@@ -508,14 +549,14 @@ let financialData = null;
     const ASSET_LAYERS = [
   {
     "key": "cash",
-    "name": "可用现金",
-    "color": "#10B981",
-    "desc": "已登记为即时可用的现金。"
+    "name": "现金类账面",
+    "color": "#365ad8",
+    "desc": "按现有分类登记；取用条件需要独立核对。"
   },
   {
     "key": "pendingCash",
     "name": "待核现金",
-    "color": "#0EA5E9",
+    "color": "#7b95c7",
     "desc": "可用性尚待核对的现金类记录。"
   },
   {
@@ -527,19 +568,19 @@ let financialData = null;
   {
     "key": "deposit",
     "name": "存款",
-    "color": "#0D9488",
+    "color": "#7b95c7",
     "desc": "已登记的存款类资产。"
   },
   {
     "key": "fund",
     "name": "投资资产",
-    "color": "#7C3AED",
+    "color": "#a5accb",
     "desc": "已登记的投资类资产，估值以记录口径为准。"
   },
   {
     "key": "receivable",
     "name": "应收款",
-    "color": "#F59E0B",
+    "color": "#647aa5",
     "desc": "尚待收回的款项，不等同即时可用现金。"
   }
 ];
@@ -551,7 +592,7 @@ let financialData = null;
 }
 
     function renderAssetLayers() {
-  const rows = assetLayerData(), known = rows.filter(row => row.amount !== null);
+  const rows = assetLayerData().filter(row => row.key !== 'receivable'), known = rows.filter(row => row.amount !== null);
   const total = roundMoney(known.reduce((sum,row) => sum + row.amount, 0));
   document.getElementById('finance-asset-layer-badge').textContent = known.length ? '已知分层合计 ' + yuan(total) + (known.length < rows.length ? ' · 含未登记项' : '') : '资产分层未登记';
   document.getElementById('finance-asset-layer-list').innerHTML = rows.map(row => '<div class="finance-layer"><span>' + escapeHTML(row.name) + '</span><strong>' + yuan(row.amount) + '</strong><p>' + escapeHTML(row.desc) + '</p></div>').join('');
@@ -676,16 +717,16 @@ let financialData = null;
 
 
     chartPainters["finance-asset-donut-chart"] = chart => {
-      const rows = assetLayerData().filter(row => row.amount !== null);
+      const rows = assetLayerData().filter(row => row.key !== 'receivable' && row.amount !== null && row.amount > 0);
       chart.setOption({
         tooltip: { trigger: 'item', formatter: p => `${escapeHTML(p.name)}<br/>${yuan(p.value)} (${escapeHTML(p.percent)}%)` },
         legend: { show: false },
         series: [{
           type: 'pie',
-          radius: ['52%', '78%'],
+          radius: ['68%', '84%'],
           center: ['50%', '50%'],
           avoidLabelOverlap: false,
-          itemStyle: { borderRadius: 4, borderColor: '#fff', borderWidth: 2 },
+          itemStyle: { borderRadius: 0, borderColor: '#fff', borderWidth: 2 },
           label: {
             show: true,
             position: 'center',
@@ -703,28 +744,26 @@ let financialData = null;
 
 
     chartPainters["finance-income-pie-chart"] = chart => {
-      const items = derived.incomeKinds;
+      const items = derived.incomeBreakdown;
       const groups = new Map();
       items.forEach(i => {
         const key = i.source || '未分类';
         groups.set(key, (groups.get(key) || 0) + Number(i.amount));
       });
-      const palette = { '劳动所得': '#10B981', '劳务所得': '#0EA5E9', '学校发放': '#6366F1', '家庭支持': '#F59E0B' };
-      const fallback = ['#10B981', '#0EA5E9', '#6366F1', '#F59E0B', '#EC4899'];
       chart.setOption({
         tooltip: { trigger: 'item', formatter: p => `${escapeHTML(p.name)}: ${yuan(p.value)} (${escapeHTML(p.percent)}%)` },
         series: [{
-          name: '收入性质',
+          name: '收入来源',
           type: 'pie',
-          radius: ['45%', '75%'],
+          radius: ['68%', '84%'],
           avoidLabelOverlap: false,
-          itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2 },
-          label: { show: false },
+          itemStyle: { borderRadius: 0, borderColor: '#fff', borderWidth: 2 },
+          label: { show: knownAmount(derived.summary.incomeTotal) && derived.summary.incomeTotal > 0, position: 'center', formatter: () => yuan(derived.summary.incomeTotal) + '\n当期已记', fontSize: 12, color: '#26334c' },
           emphasis: { label: { show: true, fontSize: 12, fontWeight: 'bold' } },
           data: [...groups.entries()].map(([name, value], i) => ({
             name,
             value,
-            itemStyle: { color: safeColor(palette[name] || fallback[i % fallback.length]) }
+            itemStyle: { color: incomeSourceColor(name, i) }
           }))
         }]
       }, true);
@@ -737,15 +776,15 @@ let financialData = null;
         series: [{
           name: '支出分类',
           type: 'pie',
-          radius: ['45%', '75%'],
+          radius: ['68%', '84%'],
           avoidLabelOverlap: false,
-          itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2 },
-          label: { show: false },
+          itemStyle: { borderRadius: 0, borderColor: '#fff', borderWidth: 2 },
+          label: { show: knownAmount(derived.summary.expenseTotal) && derived.summary.expenseTotal > 0, position: 'center', formatter: () => yuan(derived.summary.expenseTotal) + '\n已记支出', fontSize: 12, color: '#26334c' },
           emphasis: { label: { show: true, fontSize: 12, fontWeight: 'bold' } },
-          data: derived.expenseStructure.map(item => ({
+          data: overviewExpenseRows().map(item => ({
             name: item.category,
             value: item.amount,
-            itemStyle: { color: safeColor(item.color) }
+            itemStyle: { color: expenseColor(item) }
           }))
         }]
       }, true);
@@ -777,9 +816,9 @@ let financialData = null;
           axisLabel: { color: '#94a3b8', fontSize: narrow ? 10 : 12 }
         },
         series: [
-          { name: '确认收入', type: 'bar', data: h.map(m => m.income), itemStyle: { color: '#10B981', borderRadius: [4, 4, 0, 0] }, barMaxWidth: narrow ? 18 : 32 },
-          { name: '已记录支出', type: 'bar', data: h.map(m => m.expense), itemStyle: { color: '#F43F5E', borderRadius: [4, 4, 0, 0] }, barMaxWidth: narrow ? 18 : 32 },
-          { name: '结余', type: 'line', data: h.map(m => m.savings), smooth: false, connectNulls: false, itemStyle: { color: '#6366F1' }, lineStyle: { width: narrow ? 2 : 3 }, symbolSize: narrow ? 5 : 7 }
+          { name: '确认收入', type: 'bar', data: h.map(m => m.income), itemStyle: { color: FINANCE_THEME.income, borderRadius: [4, 4, 0, 0] }, barMaxWidth: narrow ? 18 : 32 },
+          { name: '已记录支出', type: 'bar', data: h.map(m => m.expense), itemStyle: { color: FINANCE_THEME.expense, borderRadius: [4, 4, 0, 0] }, barMaxWidth: narrow ? 18 : 32 },
+          { name: '结余', type: 'line', data: h.map(m => m.savings), smooth: false, connectNulls: false, itemStyle: { color: FINANCE_THEME.savings }, lineStyle: { width: narrow ? 2 : 3 }, symbolSize: narrow ? 5 : 7 }
         ]
       }, true);
     };
@@ -837,8 +876,8 @@ let financialData = null;
           axisLabel: { color: '#94a3b8', fontSize: 10 }
         },
         series: [
-          { name: '日常', type: 'bar', stack: 'day', data: days.map(d => d.routine), itemStyle: { color: '#10B981' }, barMaxWidth: narrow ? 9 : 16 },
-          { name: '一次性/资本', type: 'bar', stack: 'day', data: days.map(d => d.capital), itemStyle: { color: '#6366F1', borderRadius: [3, 3, 0, 0] }, barMaxWidth: narrow ? 9 : 16 }
+          { name: '日常', type: 'bar', stack: 'day', data: days.map(d => d.routine), itemStyle: { color: FINANCE_THEME.routine }, barMaxWidth: narrow ? 9 : 16 },
+          { name: '一次性/资本', type: 'bar', stack: 'day', data: days.map(d => d.capital), itemStyle: { color: FINANCE_THEME.capital, borderRadius: [3, 3, 0, 0] }, barMaxWidth: narrow ? 9 : 16 }
         ]
       }, true);
     };
@@ -870,7 +909,7 @@ let financialData = null;
         badge.className = 'text-xs px-2.5 py-1 rounded-lg font-mono bg-slate-100 text-slate-500 self-start sm:self-auto';
         badge.textContent = '暂无逐笔流水 · 每日状态见图表提示';
       } else if (t.coverage === 'full') {
-        badge.className = 'text-xs px-2.5 py-1 rounded-lg font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 self-start sm:self-auto';
+        badge.className = 'text-xs px-2.5 py-1 rounded-lg font-mono finance-soft-badge border self-start sm:self-auto';
         badge.innerText = `完整录入 · ${t.count} 笔`;
       } else {
         badge.className = 'text-xs px-2.5 py-1 rounded-lg font-mono bg-amber-50 text-amber-700 border border-amber-200 self-start sm:self-auto';

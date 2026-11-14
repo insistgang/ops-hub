@@ -49,7 +49,7 @@ assert.equal(crossWeek.summary.expenseTotal, 20);
 assert.equal(crossWeek.summary.incomeTotal, 80);
 assert.equal(crossWeek.transactions.byDay[0].total, null);
 assert.equal(crossWeek.transactions.byDay.at(-1).total, 0);
-assert.equal(vm.runInContext("ASSET_LAYERS.every(layer => ['可用现金','待核现金','未分类资产','存款','投资资产','应收款'].includes(layer.name))", model), true, 'static asset labels must be generic');
+assert.equal(vm.runInContext("ASSET_LAYERS.every(layer => ['现金类账面','待核现金','未分类资产','存款','投资资产','应收款'].includes(layer.name))", model), true, 'static asset labels must be generic');
 assert.equal(vm.runInContext("ASSET_LAYERS.every(layer => !/(?:授权|银行|垫款|支付宝|微信)/.test(layer.desc))", model), true, 'asset descriptions cannot retain account institutions or personal policy');
 model.fixture = data;
 vm.runInContext('financialData = fixture', model);
@@ -137,10 +137,10 @@ function mount(host = {}) {
 
 const app = mount();
 assert.equal(app.api.isReady(), true);
-assert.equal(app.api.getSummary().status, 'idle');
+assert.equal(app.api.getSummary().status, 'loading');
 assert.equal(app.api.getSummary().availableCash, null);
 app.flush();
-assert.equal(app.requests.length, 0, 'mount and resize must not read raw data');
+assert.equal(app.requests.length, 1, 'mount starts the configured automatic read; resize does not add requests');
 assert.equal(app.scripts.length, 0, 'idle workspaces do not load chart libraries');
 assert.equal('switchTab' in app.context, false);
 assert.equal(app.api.activate('not-a-view'), false);
@@ -249,6 +249,28 @@ valuation.context.reply = async () => { const fixture = syntheticFinanceData(); 
 await valuation.api.refresh();
 assert.match(valuation.fields.get('finance-asset-snapshot-note').textContent, /账户快照/);
 assert.ok(!valuation.fields.get('finance-hero-headline').textContent.includes('暂估总资产'));
+
+const partialData = syntheticFinanceData();
+partialData.incomeRecordStatus = 'unrecorded';
+partialData.incomeCoverage = 'partial';
+Object.assign(partialData.monthlySummaries[1], { incomeRecordStatus: 'unrecorded', incomeCoverage: 'partial' });
+partialData.nonIncomeFlows = [{ dateISO: '2026-03-04', name: 'Synthetic reimbursement', amount: 37, note: 'Not income' }];
+const partialApp = mount();
+partialApp.context.reply = async () => ({ ok: true, status: 200, json: async () => partialData });
+await partialApp.api.refresh();
+assert.equal(partialApp.api.getSummary().status, 'ready');
+assert.match(partialApp.fields.get('finance-kpi-income').textContent, /100/);
+assert.match(partialApp.fields.get('finance-kpi-recoveries').textContent, /37/);
+assert.equal(partialApp.fields.get('finance-kpi-period-rate').textContent, '不适用');
+assert.match(partialApp.fields.get('finance-income-detail-list').innerHTML, /Synthetic reimbursement/);
+partialApp.api.selectPeriod('month', '2026-02-01');
+assert.equal(partialApp.fields.get('finance-kpi-recoveries').textContent, '暂无登记');
+assert.ok(!partialApp.fields.get('finance-income-detail-list').innerHTML.includes('Synthetic reimbursement'));
+for (const field of ['dateISO', 'amount', 'name']) {
+  partialApp.context.reply = async () => { const bad = structuredClone(partialData); bad.nonIncomeFlows[0][field] = field === 'amount' ? NaN : null; return { ok: true, status: 200, json: async () => bad }; };
+  await partialApp.api.refresh();
+  assert.equal(partialApp.api.getSummary().status, 'error', 'invalid non-income flows must not overwrite last good data');
+}
 
 for (const [file, expected] of [['native-workspace.js', built.js], ['native-workspace.css', built.css]]) assert.ok(fs.readFileSync(new URL(file, import.meta.url), 'utf8') === expected, `${file} must match its clean source build`);
 

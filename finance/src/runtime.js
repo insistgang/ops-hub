@@ -91,7 +91,10 @@
     if (!nested && (!raw.summary || typeof raw.summary !== 'object' || Array.isArray(raw.summary))) throw new Error('Invalid summary');
     const next = { ...raw, summary: { ...(raw.summary || {}) } };
     for (const key of ['incomeTotal', 'expenseTotal', 'availableCash', 'totalAssets', 'totalNetAssets', 'liabilities', 'fundTotal', 'depositTotal', 'pendingCashTotal', 'unknownTotal', 'receivablesTotal', 'runwayMonths']) if (!amount(next.summary[key])) throw new Error('Invalid amount');
-    for (const key of ['accounts', 'receivables', 'healthScores', 'actionItems', 'historicalComparison', 'incomeDetails']) next[key] = rows(raw[key]);
+    for (const key of ['accounts', 'receivables', 'healthScores', 'actionItems', 'historicalComparison', 'incomeDetails', 'nonIncomeFlows']) next[key] = rows(raw[key]);
+    for (const flow of next.nonIncomeFlows) {
+      if (!validDay(flow.dateISO) || typeof flow.amount !== 'number' || !Number.isFinite(flow.amount) || flow.amount < 0 || typeof flow.name !== 'string' || !flow.name.trim() || (flow.note !== undefined && typeof flow.note !== 'string')) throw new Error('Invalid non-income flow');
+    }
     for (const row of [...next.accounts, ...next.receivables]) if (!amount(row.amount)) throw new Error('Invalid account amount');
     for (const row of next.healthScores) if (typeof row.score !== 'number' || !Number.isFinite(row.score)) throw new Error('Invalid health score');
     for (const row of next.incomeDetails) {
@@ -131,7 +134,7 @@
         financialData = null; derived = null; dataState.lastSuccess = null;
         periodState.anchor = null;
         status = 'locked';
-        dataState.error = '接口要求认证（登录保护可能已被重新开启）；本页不接收密码。此前的展示已清除。';
+        dataState.error = '接口需要登录授权，请打开财务站。本页不接收密码，已清除此前展示。';
         clearVisibleData(); periodControls();
         return summary();
       }
@@ -162,6 +165,9 @@
     }
     return summary();
   }
+  root.addEventListener('toggle', event => {
+    if (event.target.tagName === 'DETAILS' && event.target.open && financialData) scheduleChartPaint();
+  }, true);
   function activate(view = 'overview') {
     if (!TABS.includes(view)) return false;
     switchTab(view);

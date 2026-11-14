@@ -2,7 +2,7 @@
   if (realWindow.OpsFinanceNative) return;
   const root = realDocument.getElementById('finance-native');
   if (!root) return;
-  const html = "<header class=\"finance-heading\">\n  <div><h2 id=\"finance-app-heading\">财务工作区</h2><p>查看已有记录的收支、资产与复盘。未登记的数据保持未知。</p></div>\n  <div class=\"finance-actions\"><button id=\"finance-refresh\" type=\"button\">读取 / 刷新财务记录</button><a href=\"https://finance.insistgang.top/\" target=\"_blank\" rel=\"noopener noreferrer\">打开财务站 ↗</a></div>\n</header>\n<p id=\"finance-access-note\">账本已开放只读：本页直接读取，无需登录，也不保存任何账本内容。若接口要求认证（保护被重新开启），本页不会索取密码。</p>\n<div id=\"finance-header-badge\" role=\"status\" aria-live=\"polite\"><span id=\"finance-header-badge-text\" data-finance-value>尚未读取财务记录</span></div>\n<nav id=\"finance-tab-bar\" class=\"finance-tabs\" aria-label=\"财务分区\" role=\"tablist\">\n  <button id=\"finance-tab-overview\" type=\"button\" role=\"tab\" data-finance-tab=\"overview\" aria-controls=\"finance-panel-overview\" aria-selected=\"true\">收支概览</button>\n  <button id=\"finance-tab-assets\" type=\"button\" role=\"tab\" data-finance-tab=\"assets\" aria-controls=\"finance-panel-assets\" aria-selected=\"false\">资产与应收</button>\n  <button id=\"finance-tab-spend\" type=\"button\" role=\"tab\" data-finance-tab=\"spend\" aria-controls=\"finance-panel-spend\" aria-selected=\"false\">逐笔收支 <span id=\"finance-tab-badge-spend\" data-finance-value hidden></span></button>\n  <button id=\"finance-tab-review\" type=\"button\" role=\"tab\" data-finance-tab=\"review\" aria-controls=\"finance-panel-review\" aria-selected=\"false\">复盘与行动</button>\n</nav>\n<div class=\"finance-period finance-card\">\n  <h3 id=\"finance-period-title\" data-finance-value>选择已记录的期间</h3>\n  <div class=\"finance-period-controls\">\n    <button id=\"finance-period-week\" type=\"button\" data-finance-period=\"week\" aria-pressed=\"false\">周</button><button id=\"finance-period-month\" type=\"button\" data-finance-period=\"month\" aria-pressed=\"true\">月</button><button id=\"finance-period-year\" type=\"button\" data-finance-period=\"year\" aria-pressed=\"false\">年</button>\n    <button id=\"finance-period-prev\" type=\"button\" aria-label=\"上一期间\">←</button><label class=\"finance-sr-only\" for=\"finance-period-select\">已记录期间</label><select id=\"finance-period-select\"></select><button id=\"finance-period-next\" type=\"button\" aria-label=\"下一期间\">→</button>\n  </div>\n  <p id=\"finance-period-status\" role=\"status\" aria-live=\"polite\" data-finance-value>尚未读取</p><p id=\"finance-period-coverage\" data-finance-value>日期缺口不会自动补零。</p><p id=\"finance-period-availability\" data-finance-value></p><p id=\"finance-period-sources\" data-finance-value></p>\n</div>\n<div id=\"finance-chart-error\" class=\"finance-notice\" hidden><span id=\"finance-chart-error-text\"></span><button id=\"finance-chart-retry\" type=\"button\">重试图表</button></div>\n<section id=\"finance-panel-overview\" data-finance-panel=\"overview\" role=\"tabpanel\" aria-labelledby=\"finance-tab-overview\">\n  <div class=\"finance-grid finance-kpis\">\n    <article class=\"finance-card\"><h3>已记录收入</h3><strong id=\"finance-kpi-income\" data-finance-value>—</strong><p id=\"finance-kpi-income-sub\" data-finance-value></p></article>\n    <article class=\"finance-card\"><h3>已记录开支</h3><strong id=\"finance-kpi-expense\" data-finance-value>—</strong><p id=\"finance-detail-routine\" data-finance-value></p></article>\n    <article class=\"finance-card\"><h3>期间结余</h3><strong id=\"finance-kpi-period-net\" data-finance-value>—</strong><span id=\"finance-kpi-savings\" data-finance-value></span></article>\n    <article class=\"finance-card\"><h3>结余率</h3><strong id=\"finance-kpi-period-rate\" data-finance-value>—</strong><p>收入未登记时不计算比例。</p></article>\n    <article class=\"finance-card\"><h3>日常逐笔日均</h3><strong id=\"finance-kpi-daily\" data-finance-value>—</strong><p id=\"finance-kpi-daily-note\" data-finance-value></p></article>\n  </div>\n  <div class=\"finance-grid\">\n    <article id=\"finance-income-composition\" class=\"finance-card\"><h3>收入组成 <span id=\"finance-income-total-badge\" data-finance-value></span></h3><div id=\"finance-income-pie-chart\" class=\"finance-chart\"></div><div id=\"finance-income-bar\" class=\"finance-bar\" data-finance-dynamic></div><div id=\"finance-income-legend\" data-finance-dynamic></div></article>\n    <article id=\"finance-expense-composition\" class=\"finance-card\"><h3>开支组成 <span id=\"finance-period-tag\" data-finance-value></span></h3><p id=\"finance-composition-status\" data-finance-value></p><span id=\"finance-expense-count-tag\" data-finance-value></span><div id=\"finance-expense-pie-chart\" class=\"finance-chart\"></div><div id=\"finance-expense-list\" data-finance-dynamic></div></article>\n  </div>\n  <article id=\"finance-period-trend-section\" class=\"finance-card\"><h3 id=\"finance-trend-title\" data-finance-value>期间趋势</h3><p id=\"finance-trend-note\" data-finance-value></p><div id=\"finance-trend-bar-chart\" class=\"finance-chart finance-chart-wide\"></div></article>\n  <div class=\"finance-grid\"><article class=\"finance-card\"><h3>结余观察</h3><strong id=\"finance-savings-rate-val\" data-finance-value>—</strong><div class=\"finance-bar\"><div id=\"finance-savings-rate-bar\"></div></div><p id=\"finance-savings-rate-note\" data-finance-value></p></article><article class=\"finance-card\"><h3>一次性支出占比</h3><strong id=\"finance-onetime-val\" data-finance-value>—</strong><div class=\"finance-bar\"><div id=\"finance-onetime-bar\"></div></div><p id=\"finance-onetime-note\" data-finance-value></p></article></div>\n</section>\n<section id=\"finance-panel-assets\" data-finance-panel=\"assets\" role=\"tabpanel\" aria-labelledby=\"finance-tab-assets\" hidden>\n  <article id=\"finance-snapshot-summary\" class=\"finance-card\"><h3 id=\"finance-hero-headline\" data-finance-value>尚未读取资产记录</h3><p id=\"finance-hero-desc\" data-finance-value></p><p id=\"finance-asset-snapshot-note\" data-finance-value></p></article>\n  <div class=\"finance-grid finance-kpis\"><article class=\"finance-card\"><h3>总资产</h3><strong id=\"finance-kpi-total-assets\" data-finance-value>—</strong><p id=\"finance-kpi-assets-note\" data-finance-value></p><p id=\"finance-kpi-receivables-note\" data-finance-value></p></article><article class=\"finance-card\"><h3>即时可用现金</h3><strong id=\"finance-kpi-cash\" data-finance-value>—</strong></article><article class=\"finance-card\"><h3>净资产口径</h3><strong id=\"finance-kpi-net-assets\" data-finance-value>—</strong></article><article class=\"finance-card\"><h3>续航参考</h3><strong id=\"finance-kpi-runway\" data-finance-value>—</strong></article></div>\n  <article class=\"finance-card\"><h3>资产分层 <span id=\"finance-asset-layer-badge\" data-finance-value></span></h3><div class=\"finance-grid\"><div id=\"finance-asset-donut-chart\" class=\"finance-chart\"></div><div id=\"finance-asset-layer-list\" data-finance-dynamic></div></div></article>\n  <article class=\"finance-card\"><h3>账户记录 <span id=\"finance-assets-badge\" data-finance-value></span></h3><p id=\"finance-accounts-title\" data-finance-value></p><div id=\"finance-accounts-grid\" class=\"finance-grid\" data-finance-dynamic></div></article>\n  <article class=\"finance-card\"><h3>应收记录 <span id=\"finance-receivables-count\" data-finance-value></span></h3><strong id=\"finance-receivables-total\" data-finance-value>—</strong><div id=\"finance-receivables-grid\" class=\"finance-grid\" data-finance-dynamic></div></article>\n</section>\n<section id=\"finance-panel-spend\" data-finance-panel=\"spend\" role=\"tabpanel\" aria-labelledby=\"finance-tab-spend\" hidden>\n  <p id=\"finance-detail-range-note\" data-finance-value></p><article id=\"finance-income-details-section\" class=\"finance-card\"><h3>收入明细 <span id=\"finance-income-detail-tag\" data-finance-value></span></h3><div id=\"finance-income-detail-list\" data-finance-dynamic></div><p id=\"finance-income-detail-footnote\" data-finance-value></p></article>\n  <article id=\"finance-txn-section\" class=\"finance-card\"><h3>逐笔开支 <span id=\"finance-txn-coverage-badge\" data-finance-value></span></h3><p id=\"finance-txn-subtitle\" data-finance-value></p><div id=\"finance-txn-daily-chart\" class=\"finance-chart finance-chart-wide\"></div><div id=\"finance-txn-stat-cards\" class=\"finance-grid\" data-finance-dynamic></div><div id=\"finance-txn-filters\" class=\"finance-filters\" data-finance-dynamic></div><div id=\"finance-txn-list\" data-finance-dynamic></div><p id=\"finance-txn-footnote\" data-finance-value></p></article>\n</section>\n<section id=\"finance-panel-review\" data-finance-panel=\"review\" role=\"tabpanel\" aria-labelledby=\"finance-tab-review\" hidden>\n  <p id=\"finance-review-snapshot-note\" data-finance-value></p><article class=\"finance-card\"><h3>历史对照</h3><div id=\"finance-legacy-history\" data-finance-dynamic></div></article><article class=\"finance-card\"><h3>诊断记录 <span id=\"finance-health-avg-badge\" data-finance-value></span></h3><div id=\"finance-health-score-list\" class=\"finance-grid\" data-finance-dynamic></div></article><article class=\"finance-card\"><h3>行动项</h3><div id=\"finance-action-list\" class=\"finance-grid\" data-finance-dynamic></div></article>\n  <article class=\"finance-card\"><h3>口径与边界</h3><dl><dt>续航参考</dt><dd id=\"finance-philosophy-runway\" data-finance-value>—</dd><dt>可用现金</dt><dd id=\"finance-philosophy-cash\" data-finance-value>—</dd><dt>应收款</dt><dd id=\"finance-philosophy-receivables\" data-finance-value>—</dd><dt>资产日期</dt><dd id=\"finance-philosophy-date\" data-finance-value>—</dd></dl><p id=\"finance-liabilities-note\" data-finance-value></p></article>\n</section>\n";
+  const html = "<header class=\"finance-heading\">\n  <div><p class=\"finance-eyebrow\">FINANCIAL JOURNAL</p><h2 id=\"finance-app-heading\">财务工作区</h2></div>\n  <div class=\"finance-actions\"><button id=\"finance-refresh\" type=\"button\">刷新记录</button><a href=\"https://finance.insistgang.top/\" target=\"_blank\" rel=\"noopener noreferrer\">打开财务站 ↗</a></div>\n</header>\n<p id=\"finance-access-note\">按接口权限只读加载；如需授权，请打开财务站完成登录。本页不接收或保存密码，也不持久化账本。</p>\n<div id=\"finance-header-badge\" role=\"status\" aria-live=\"polite\"><span id=\"finance-header-badge-text\" data-finance-value>尚未读取财务记录</span></div>\n<nav id=\"finance-tab-bar\" class=\"finance-tabs\" aria-label=\"财务分区\" role=\"tablist\">\n  <button id=\"finance-tab-overview\" type=\"button\" role=\"tab\" data-finance-tab=\"overview\" aria-controls=\"finance-panel-overview\" aria-selected=\"true\">收支概览</button>\n  <button id=\"finance-tab-assets\" type=\"button\" role=\"tab\" data-finance-tab=\"assets\" aria-controls=\"finance-panel-assets\" aria-selected=\"false\">资产与应收</button>\n  <button id=\"finance-tab-spend\" type=\"button\" role=\"tab\" data-finance-tab=\"spend\" aria-controls=\"finance-panel-spend\" aria-selected=\"false\">流水明细 <span id=\"finance-tab-badge-spend\" data-finance-value hidden></span></button>\n  <button id=\"finance-tab-review\" type=\"button\" role=\"tab\" data-finance-tab=\"review\" aria-controls=\"finance-panel-review\" aria-selected=\"false\">复盘与行动</button>\n</nav>\n<div class=\"finance-period finance-card\">\n  <h3 id=\"finance-period-title\" data-finance-value>选择已记录的期间</h3>\n  <div class=\"finance-period-controls\">\n    <button id=\"finance-period-week\" type=\"button\" data-finance-period=\"week\" aria-pressed=\"false\">周</button><button id=\"finance-period-month\" type=\"button\" data-finance-period=\"month\" aria-pressed=\"true\">月</button><button id=\"finance-period-year\" type=\"button\" data-finance-period=\"year\" aria-pressed=\"false\">年</button>\n    <button id=\"finance-period-prev\" type=\"button\" aria-label=\"上一期间\">←</button><label class=\"finance-sr-only\" for=\"finance-period-select\">已记录期间</label><select id=\"finance-period-select\"></select><button id=\"finance-period-next\" type=\"button\" aria-label=\"下一期间\">→</button>\n  </div>\n  <details class=\"finance-coverage\"><summary><span id=\"finance-period-status\" role=\"status\" aria-live=\"polite\" data-finance-value>尚未读取</span> · 查看记录口径</summary><p id=\"finance-period-coverage\" data-finance-value>日期缺口不会自动补零。</p><p id=\"finance-period-availability\" data-finance-value></p><p id=\"finance-period-sources\" data-finance-value></p></details>\n</div>\n<div id=\"finance-chart-error\" class=\"finance-notice\" hidden><span id=\"finance-chart-error-text\"></span><button id=\"finance-chart-retry\" type=\"button\">重试图表</button></div>\n<section id=\"finance-panel-overview\" data-finance-panel=\"overview\" role=\"tabpanel\" aria-labelledby=\"finance-tab-overview\">\n  <div class=\"finance-balance\"><div><p>已登记账户记录合计</p><strong id=\"finance-overview-account-total\" data-finance-value>—</strong><p>快照不随期间筛选变化，不含待收款；不是完整净资产</p></div><div class=\"finance-balance-side\"><p>另有待收款</p><strong id=\"finance-overview-receivables-total\" data-finance-value>—</strong></div></div>\n  <div class=\"finance-grid finance-kpis finance-overview-kpis\">\n    <article class=\"finance-card\"><h3>已登记收入</h3><strong id=\"finance-kpi-income\" data-finance-value>—</strong><p id=\"finance-kpi-income-sub\" data-finance-value></p></article>\n    <article class=\"finance-card\"><h3>已列报销 / 回款</h3><strong id=\"finance-kpi-recoveries\" data-finance-value>—</strong><p>仅已列项目，不计收入，不叠加余额</p></article>\n    <article class=\"finance-card\"><h3>已记录支出</h3><strong id=\"finance-kpi-expense\" data-finance-value>—</strong><p>含一次性支出；缺失不按零</p></article>\n    <article class=\"finance-card\"><h3>收入与支出差额</h3><strong id=\"finance-kpi-period-net\" data-finance-value>—</strong><p>不含报销回款，非完整结余</p></article>\n  </div>\n  <div class=\"finance-grid finance-analysis\">\n    <article id=\"finance-expense-composition\" class=\"finance-card\"><h3>支出结构 <span id=\"finance-period-tag\" data-finance-value></span></h3><p id=\"finance-composition-status\" data-finance-value></p><span id=\"finance-expense-count-tag\" data-finance-value></span><div class=\"finance-composition-layout\"><div id=\"finance-expense-pie-chart\" class=\"finance-chart\"></div><div id=\"finance-expense-list\" data-finance-dynamic></div></div></article>\n    <article id=\"finance-income-composition\" class=\"finance-card\"><h3>收入来源 <span id=\"finance-income-total-badge\" data-finance-value></span></h3><p>仅已登记收入，不含报销与债权回款</p><div class=\"finance-composition-layout\"><div id=\"finance-income-pie-chart\" class=\"finance-chart\"></div><div><div id=\"finance-income-bar\" class=\"finance-bar\" data-finance-dynamic></div><div id=\"finance-income-legend\" data-finance-dynamic></div></div></div></article>\n  </div>\n  <div class=\"finance-recovery-strip\"><p id=\"finance-overview-recovery-note\" data-finance-value>回款记录尚未加载</p></div>\n  <details class=\"finance-card finance-extra\"><summary>期间趋势与更多指标</summary>\n    <article id=\"finance-period-trend-section\"><h3 id=\"finance-trend-title\" data-finance-value>期间趋势</h3><p id=\"finance-trend-note\" data-finance-value></p><div id=\"finance-trend-bar-chart\" class=\"finance-chart finance-chart-wide\"></div></article>\n    <div class=\"finance-grid\"><article><h3>日常逐笔日均</h3><strong id=\"finance-kpi-daily\" data-finance-value>—</strong><p id=\"finance-kpi-daily-note\" data-finance-value></p></article><article><h3>已记录差额与比例</h3><span id=\"finance-kpi-savings\" data-finance-value></span><strong id=\"finance-kpi-period-rate\" data-finance-value>—</strong><p id=\"finance-detail-routine\" data-finance-value>收入不完整时不计算比例</p></article></div>\n    <div class=\"finance-grid\"><article><h3>结余观察</h3><strong id=\"finance-savings-rate-val\" data-finance-value>—</strong><div class=\"finance-bar\"><div id=\"finance-savings-rate-bar\"></div></div><p id=\"finance-savings-rate-note\" data-finance-value></p></article><article><h3>一次性支出占比</h3><strong id=\"finance-onetime-val\" data-finance-value>—</strong><div class=\"finance-bar\"><div id=\"finance-onetime-bar\"></div></div><p id=\"finance-onetime-note\" data-finance-value></p></article></div>\n  </details>\n</section>\n<section id=\"finance-panel-assets\" data-finance-panel=\"assets\" role=\"tabpanel\" aria-labelledby=\"finance-tab-assets\" hidden>\n  <details id=\"finance-snapshot-summary\" class=\"finance-card\"><summary>完整资产与核对说明</summary><h3 id=\"finance-hero-headline\" data-finance-value>尚未读取资产记录</h3><p id=\"finance-hero-desc\" data-finance-value></p><p id=\"finance-asset-snapshot-note\" data-finance-value></p>\n    <div class=\"finance-grid finance-kpis\"><article><h3>完整总资产</h3><strong id=\"finance-kpi-total-assets\" data-finance-value>—</strong><p id=\"finance-kpi-assets-note\" data-finance-value></p><p id=\"finance-kpi-receivables-note\" data-finance-value></p></article><article><h3>现金类账面</h3><strong id=\"finance-kpi-cash\" data-finance-value>—</strong><p>分类不等于支取条件已核实</p></article><article><h3>净资产口径</h3><strong id=\"finance-kpi-net-assets\" data-finance-value>—</strong></article><article><h3>历史支出折算参考</h3><strong id=\"finance-kpi-runway\" data-finance-value>—</strong><p>不是必要成本安全垫</p></article></div>\n  </details>\n  <article class=\"finance-card\"><h3>账户资金分布 <span id=\"finance-asset-layer-badge\" data-finance-value></span></h3><p>待收款另列，不混入本图</p><div class=\"finance-grid\"><div id=\"finance-asset-donut-chart\" class=\"finance-chart\"></div><div id=\"finance-asset-layer-list\" data-finance-dynamic></div></div></article>\n  <article class=\"finance-card\"><h3>账户记录 <span id=\"finance-assets-badge\" data-finance-value></span></h3><p id=\"finance-accounts-title\" data-finance-value></p><div id=\"finance-accounts-grid\" class=\"finance-grid\" data-finance-dynamic></div></article>\n  <article class=\"finance-card\"><h3>应收记录 <span id=\"finance-receivables-count\" data-finance-value></span></h3><strong id=\"finance-receivables-total\" data-finance-value>—</strong><div id=\"finance-receivables-grid\" class=\"finance-grid\" data-finance-dynamic></div></article>\n</section>\n<section id=\"finance-panel-spend\" data-finance-panel=\"spend\" role=\"tabpanel\" aria-labelledby=\"finance-tab-spend\" hidden>\n  <p id=\"finance-detail-range-note\" data-finance-value></p><article id=\"finance-income-details-section\" class=\"finance-card\"><h3>收入与回款明细 <span id=\"finance-income-detail-tag\" data-finance-value></span></h3><div id=\"finance-income-detail-list\" data-finance-dynamic></div><p id=\"finance-income-detail-footnote\" data-finance-value></p></article>\n  <article id=\"finance-txn-section\" class=\"finance-card\"><h3>逐笔支出 <span id=\"finance-txn-coverage-badge\" data-finance-value></span></h3><p id=\"finance-txn-subtitle\" data-finance-value></p><div id=\"finance-txn-daily-chart\" class=\"finance-chart finance-chart-wide\"></div><div id=\"finance-txn-stat-cards\" class=\"finance-grid\" data-finance-dynamic></div><div id=\"finance-txn-filters\" class=\"finance-filters\" data-finance-dynamic></div><div id=\"finance-txn-list\" data-finance-dynamic></div><p id=\"finance-txn-footnote\" data-finance-value></p></article>\n</section>\n<section id=\"finance-panel-review\" data-finance-panel=\"review\" role=\"tabpanel\" aria-labelledby=\"finance-tab-review\" hidden>\n  <p id=\"finance-review-snapshot-note\" data-finance-value></p><article class=\"finance-card\"><h3>历史对照</h3><div id=\"finance-legacy-history\" data-finance-dynamic></div></article><details class=\"finance-card\"><summary>历史评分记录（非当前状态） <span id=\"finance-health-avg-badge\" data-finance-value></span></summary><div id=\"finance-health-score-list\" class=\"finance-grid\" data-finance-dynamic></div></details><article class=\"finance-card\"><h3>行动项</h3><div id=\"finance-action-list\" class=\"finance-grid\" data-finance-dynamic></div></article>\n  <article class=\"finance-card\"><h3>口径与边界</h3><dl><dt>历史支出折算</dt><dd id=\"finance-philosophy-runway\" data-finance-value>—</dd><dt>现金分类账面</dt><dd id=\"finance-philosophy-cash\" data-finance-value>—</dd><dt>应收款</dt><dd id=\"finance-philosophy-receivables\" data-finance-value>—</dd><dt>资产日期</dt><dd id=\"finance-philosophy-date\" data-finance-value>—</dd></dl><p id=\"finance-liabilities-note\" data-finance-value></p></article>\n</section>\n";
   root.innerHTML = html;
   const document = {
     getElementById(id) { return String(id).startsWith('finance-') ? root.querySelector('#' + id) : null; },
@@ -83,7 +83,7 @@ let financialData = null;
         contains(dataset.period + '-' + String(row.day).padStart(2, '0')) && row.recordStatus === 'confirmed_zero')) : months.length > 0;
       const hasIncome = mode === 'week' ? incomeDetails.length > 0 || datasets.some(dataset =>
         dataset.incomeRecordStatus !== 'unrecorded' && (dataset.incomeDetails || []).length > 0 && range.start <= dataset.asOf && range.end >= dataset.period + '-01') : months.length > 0;
-      const periodIncomeUnknown = mode !== 'week' && months.some(m => m.incomeRecordStatus === 'unrecorded' || m.income === null || m.income === undefined);
+      const periodIncomeUnknown = mode !== 'week' && months.some(m => (m.incomeRecordStatus === 'unrecorded' && m.incomeCoverage !== 'partial') || m.income === null || m.income === undefined);
       const periodExpenseUnknown = mode !== 'week' && months.some(m => m.expense === null || m.expense === undefined);
       const incomeTotal = hasIncome && !periodIncomeUnknown ? (mode === 'week' ? detailIncome : roundMoney(months.reduce((n, m) => n + m.income, 0))) : null;
       const expenseTotal = hasExpense && !periodExpenseUnknown ? (mode === 'week' ? detailTotal : roundMoney(months.reduce((n, m) => n + m.expense, 0))) : null;
@@ -116,23 +116,23 @@ let financialData = null;
       const detailOnly = unitemized === 0 && mode !== 'year';
       const knownDays = days.filter(d => d.total !== null).length;
       const gaps = days.filter(d => d.total === null).map(d => d.date);
-      const incomeUnknown = months.some(m => m.incomeRecordStatus === 'unrecorded');
-      const incomeNote = incomeUnknown ? ' 存在未登记收入的月份，收入与结余不作零值推断。' : '';
+      const incomeUnknown = months.some(m => m.incomeRecordStatus === 'unrecorded') || (mode === 'week' && datasets.some(dataset => dataset.incomeRecordStatus === 'unrecorded' && range.start <= dataset.asOf && range.end >= dataset.period + '-01'));
+      const incomeNote = incomeUnknown ? ' 收入尚未完整核验，所示为已登记金额；差额仅供记录对照，不计算完整储蓄率。' : '';
       const notes = incomeNote + (mode === 'week'
         ? `逐笔覆盖 ${detailRange}；${gaps.length ? `缺口 ${gaps.join('、')}，未按 0 处理。` : '本周日期均有记录状态。'}待核记录仍非确认零消费。`
         : `汇总覆盖 ${months.map(m => `${m.period}（截至 ${m.through}）`).join('、') || '无'}；${missingMonths.length ? `无汇总月份 ${missingMonths.join('、')}，未按 0 处理；` : ''}逐笔覆盖 ${detailRange}。`);
       const trend = mode === 'year' ? Array.from({ length: 12 }, (_, i) => {
         const key = range.start.slice(0, 4) + '-' + String(i + 1).padStart(2, '0');
         const m = months.find(r => r.period === key);
-        return { month: key, income: m && m.incomeRecordStatus !== 'unrecorded' ? m.income ?? null : null, expense: m?.expense ?? null,
+        return { month: key, income: m && (m.incomeRecordStatus !== 'unrecorded' || m.incomeCoverage === 'partial') ? m.income ?? null : null, expense: m?.expense ?? null,
           savings: m && m.incomeRecordStatus !== 'unrecorded' ? roundMoney(m.income - m.expense) : null };
       }) : days.map(d => {
         const income = incomeDetails.filter(i => i.date === d.date);
         const inDetailRange = datasets.some(dataset => dataset.incomeRecordStatus !== 'unrecorded'
           && (dataset.incomeDetails || []).length > 0 && d.date >= dataset.period + '-01' && d.date <= dataset.asOf);
-        const value = inDetailRange ? sumMoney(income) : null;
+        const value = income.length || inDetailRange ? sumMoney(income) : null;
         return { month: d.date.slice(5), income: value, expense: d.total,
-          savings: value === null || d.total === null ? null : roundMoney(value - d.total) };
+          savings: incomeUnknown || value === null || d.total === null ? null : roundMoney(value - d.total) };
       });
       const count = items.length;
       const recordedDays = new Set(items.map(i => i.date)).size;
@@ -145,7 +145,7 @@ let financialData = null;
           savingsRate: incomeTotal && !incomeUnknown ? roundMoney(netSavings / incomeTotal * 100) : null,
           routineTotal, oneTimeTotal, oneTimeRatio: detailTotal ? roundMoney(oneTimeTotal / detailTotal * 100) : null,
           dailyAverageRoutine: detailOnly && knownDays ? roundMoney(routineTotal / knownDays) : null,
-          netSavingsExcludeFamily: detailOnly && incomeRemainder === 0 && netSavings !== null ? roundMoney(netSavings - family) : null },
+          netSavingsExcludeFamily: detailOnly && incomeRemainder === 0 && netSavings !== null && !incomeUnknown ? roundMoney(netSavings - family) : null },
         incomeDetails, incomeBreakdown, incomeKinds, expenseStructure, trend,
         transactions: { items, count, total: detailTotal, byCategory, byDay: days, maxDay: days.length,
           recordedDays, coverage: 'partial', coverageRatio: expenseTotal ? roundMoney(detailTotal / expenseTotal * 100) : 0,
@@ -224,13 +224,46 @@ let financialData = null;
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[ch]));
 
-    const safeColor = value => /^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(String(value)) ? value : '#94a3b8';
+    const FINANCE_THEME = {
+      income: '#365ad8', incomeSub: '#7b95c7', incomeService: '#365ad8', family: '#b5c2db',
+      expense: '#8d7a91', routine: '#7b95c7', capital: '#a5accb', savings: '#647aa5'
+    };
+    const FINANCE_COLOR_MAP = {
+      '#10b981': '#365ad8', '#059669': '#365ad8', '#22c55e': '#7b95c7',
+      '#34d399': '#a5accb', '#0d9488': '#7b95c7', '#14b8a6': '#a5accb'
+    };
+    const safeColor = value => {
+      const raw = String(value);
+      return /^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(raw)
+        ? FINANCE_COLOR_MAP[raw.toLowerCase()] || raw : '#94a3b8';
+    };
     const percent = value => Math.max(0, Math.min(100, Number(value) || 0));
     const knownAmount = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
     const yuan = v => knownAmount(v) ? '¥ ' + Number(v).toLocaleString('zh-CN', { minimumFractionDigits: 2 }) : '未核实';
     const nearYuan = v => knownAmount(v) ? '¥' + Number(v).toLocaleString('zh-CN', { maximumFractionDigits: 0 }) : '未核实';
     const wan = v => knownAmount(v) ? (Number(v) / 10000).toFixed(2) : '未核实';
     const signed = v => knownAmount(v) ? (v >= 0 ? '+¥' : '-¥') + Math.abs(Number(v)).toLocaleString('zh-CN', { minimumFractionDigits: 2 }) : '未登记';
+
+    function incomeSourceColor(source = '', index = 0) {
+      if (String(source).includes('家庭')) return FINANCE_THEME.family;
+      if (/工资|劳动|劳务/.test(String(source))) return FINANCE_THEME.income;
+      return [FINANCE_THEME.income, FINANCE_THEME.incomeSub, FINANCE_THEME.capital, '#d2daea'][index % 4];
+    }
+    function overviewExpenseRows(period = derived) {
+      const items = period.transactions.items || [];
+      const routine = items.filter(item => item.kind === 'routine');
+      const rows = routine.length ? [{ category: '日常生活', amount: sumMoney(routine), color: FINANCE_THEME.income, desc: '日常逐笔合并展示，分类仍保留在明细' }] : [];
+      rows.push(...groupAmounts(items.filter(item => item.kind === 'capital'), 'category'));
+      if (period.unitemized > 0) rows.push({ category: '仅汇总·未逐笔拆分', amount: period.unitemized, color: '#d2daea', desc: '不推测逐笔分类' });
+      return rows.sort((a, b) => b.amount - a.amount);
+    }
+    function expenseColor(item) {
+      const colors = { '日常生活': '#365ad8', '订阅AI': '#7b95c7', '数码': '#a5accb', '学习学业': '#d2daea', '仅汇总·未逐笔拆分': '#d2daea' };
+      return colors[item.category] || safeColor(item.color);
+    }
+    function periodNonIncomeFlows() {
+      return (financialData?.nonIncomeFlows || []).filter(flow => flow.dateISO >= derived.range.start && flow.dateISO <= derived.range.end);
+    }
 
     function renderDashboard() {
       if (!financialData) return;
@@ -240,7 +273,12 @@ let financialData = null;
       if (txnFilter !== '全部' && !derived.transactions.byCategory.some(c => c.category === txnFilter)) txnFilter = '全部';
       const s = financialData.summary;
       const p = derived.summary;
-
+      const flows = periodNonIncomeFlows();
+      document.getElementById('finance-kpi-recoveries').textContent = flows.length ? yuan(sumMoney(flows)) : '暂无登记';
+      const accountTotal = financialData.accounts.length && financialData.accounts.every(account => knownAmount(account.amount)) ? sumMoney(financialData.accounts) : null;
+      document.getElementById('finance-overview-account-total').textContent = yuan(accountTotal);
+      document.getElementById('finance-overview-receivables-total').textContent = yuan(s.receivablesTotal);
+      document.getElementById('finance-overview-recovery-note').textContent = flows.length ? `本期已列 ${flows.length} 笔回款，不计入收入；明细按实际到账日展示。` : '所选期间暂无已列回款，不代表确认没有到账。';
 
       document.getElementById("finance-kpi-total-assets").innerText = yuan(s.totalAssets);
       document.getElementById("finance-kpi-cash").innerText = yuan(s.availableCash);
@@ -257,12 +295,12 @@ let financialData = null;
       document.getElementById("finance-trend-title").textContent = `${derived.label} · ${derived.mode === 'year' ? '月度已记录收支' : '逐日已记录收支'}`;
       document.getElementById("finance-trend-note").textContent = derived.mode === 'year' ? '仅汇总已有月份；缺失月份留空，来源与截至日期见覆盖说明。' : '展示已登记日期；缺失日期与未登记收支保留为空。';
 
-      document.getElementById("finance-kpi-assets-note").innerText = `已登记可用现金 ${wan(s.availableCash)} 万`;
+      document.getElementById("finance-kpi-assets-note").innerText = `现金分类账面 ${wan(s.availableCash)} 万`;
       document.getElementById("finance-kpi-receivables-note").innerText = `应收款 ${wan(s.receivablesTotal)} 万`;
       document.getElementById("finance-kpi-runway").innerText = (knownAmount(s.runwayMonths) ? `${s.runwayMonths} 个月` : '未登记');
 
       document.getElementById("finance-hero-headline").textContent =
-        `即时可用现金 ${yuan(s.availableCash)}；${s.valuationProvisional === true ? '暂估总资产' : '总资产'} ${yuan(s.totalAssets)}`;
+        `现金分类账面 ${yuan(s.availableCash)}；${s.valuationProvisional === true ? '暂估总资产' : '总资产'} ${yuan(s.totalAssets)}`;
       document.getElementById("finance-hero-desc").textContent = s.subhead || '';
       const debtConfirmed = ['confirmed_none', 'confirmed_total'].includes(s.liabilitiesStatus)
         && typeof s.liabilities === 'number' && Number.isFinite(s.liabilities) && s.liabilities >= 0
@@ -353,21 +391,22 @@ let financialData = null;
 
 
       document.getElementById("finance-period-tag").innerText = derived.label;
-      document.getElementById("finance-expense-count-tag").innerText = `${derived.expenseStructure.length} 个分类 · 含未拆分汇总`;
-      document.getElementById("finance-composition-status").textContent = derived.expenseStructure.length ? '分类包含已记录汇总；缺失交易未补零。' : '所选期间无可用支出分类；无图形不代表零消费。';
+      const overviewExpenses = overviewExpenseRows();
+      document.getElementById("finance-expense-count-tag").innerText = `${overviewExpenses.length} 个分组`;
+      document.getElementById("finance-composition-status").textContent = overviewExpenses.length ? '日常与一次性项目分开展示' : '所选期间无可用支出记录';
 
       const expList = document.getElementById("finance-expense-list");
       expList.innerHTML = '';
-      derived.expenseStructure.forEach(item => {
+      overviewExpenses.forEach(item => {
         const div = document.createElement('div');
         div.className = 'flex items-center justify-between gap-3 py-2 border-b border-slate-50 last:border-0';
         div.innerHTML = `
           <div class="flex items-center gap-2 shrink-0">
-            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${safeColor(item.color)}"></span>
+            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${expenseColor(item)}"></span>
             <span class="text-slate-700 font-medium text-xs">${escapeHTML(item.category)}</span>
           </div>
           <span class="text-slate-400 text-[11px] flex-1 truncate hidden sm:block text-right">${escapeHTML(item.desc)}</span>
-          <span class="font-bold text-slate-900 mono text-xs shrink-0">¥${Number(item.amount).toFixed(2)}</span>
+          <span class="font-bold text-slate-900 mono text-xs shrink-0">¥${Number(item.amount).toFixed(2)}<small class="finance-expense-percent">${derived.summary.expenseTotal ? (item.amount / derived.summary.expenseTotal * 100).toFixed(1) : '0.0'}%</small></span>
         `;
         expList.appendChild(div);
       });
@@ -383,14 +422,14 @@ let financialData = null;
       financialData.healthScores.forEach(h => {
         const div = document.createElement('div');
         div.className = 'bg-slate-50 p-3 rounded-xl space-y-1.5';
-        const colorClass = h.score >= 85 ? 'text-emerald-600' : (h.score >= 70 ? 'text-indigo-600' : 'text-amber-600');
+        const colorClass = h.score >= 85 ? 'finance-positive' : (h.score >= 70 ? 'text-indigo-600' : 'text-amber-600');
         div.innerHTML = `
           <div class="flex items-center justify-between text-xs">
             <span class="font-semibold text-slate-800">${escapeHTML(h.dimension)}</span>
             <span class="font-bold mono ${colorClass}">${escapeHTML(h.score)}分 · ${escapeHTML(h.status)}</span>
           </div>
           <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-            <div class="${h.score >= 85 ? 'bg-emerald-500' : (h.score >= 70 ? 'bg-indigo-500' : 'bg-amber-500')} h-full rounded-full" style="width: ${percent(h.score)}%"></div>
+            <div class="${h.score >= 85 ? 'finance-positive-fill' : (h.score >= 70 ? 'bg-indigo-500' : 'bg-amber-500')} h-full rounded-full" style="width: ${percent(h.score)}%"></div>
           </div>
           <p class="text-[11px] text-slate-500">${escapeHTML(h.detail)}</p>
         `;
@@ -464,7 +503,7 @@ let financialData = null;
     function renderIncomeBreakdown() {
       const items = derived.incomeBreakdown;
       const total = items.reduce((a, b) => a + b.amount, 0);
-      const palette = ['#10B981', '#0EA5E9', '#22C55E', '#6366F1', '#F59E0B', '#EC4899'];
+      const palette = items.map((item, index) => incomeSourceColor(item.source, index));
 
       document.getElementById("finance-income-total-badge").innerText = `合计 ${yuan(derived.summary.incomeTotal)}`;
 
@@ -495,10 +534,12 @@ let financialData = null;
       const tag = document.getElementById("finance-income-detail-tag");
       const foot = document.getElementById("finance-income-detail-footnote");
       if (!list) return;
-      foot.innerText = `收入明细覆盖 ${derived.detailRange}；逐笔 ${yuan(derived.detailIncome)}；未拆分 ${yuan(derived.incomeRemainder)}。未登记收入不代表零收入。`;
+      foot.innerText = `收入明细覆盖 ${derived.detailRange}；逐笔 ${yuan(derived.detailIncome)}；未拆分 ${yuan(derived.incomeRemainder)}。回款另列，不计入收入。`;
+      const flows = periodNonIncomeFlows();
+      const flowsHTML = flows.length ? `<div class="finance-flow-list"><h4>非收入回款 · ${yuan(sumMoney(flows))}</h4>${flows.map(flow => `<div><span>${escapeHTML(flow.dateISO)} · ${escapeHTML(flow.name)}<small>${escapeHTML(flow.note || '')}</small></span><strong>${yuan(flow.amount)}</strong></div>`).join('')}</div>` : '';
       if (!items.length) {
         tag.innerText = '暂无逐笔明细';
-        list.innerHTML = '<div class="text-center py-8 text-slate-500 text-sm">所选期间无可展示的逐笔收入；不将历史汇总伪造成流水。</div>';
+        list.innerHTML = '<div class="text-center py-8 text-slate-500 text-sm">所选期间无可展示的逐笔收入；不将历史汇总伪造成流水。</div>' + flowsHTML;
         return;
       }
       const total = items.reduce((a, b) => a + Number(b.amount), 0);
@@ -513,9 +554,9 @@ let financialData = null;
             </div>
             <div class="text-[10px] text-slate-400 mt-0.5 truncate">${escapeHTML(it.account)}${it.desc ? ' · ' + escapeHTML(it.desc) : ''}</div>
           </div>
-          <span class="mono text-sm font-semibold text-emerald-600 shrink-0 whitespace-nowrap">+${yuan(it.amount)}</span>
+          <span class="mono text-sm font-semibold finance-positive shrink-0 whitespace-nowrap">+${yuan(it.amount)}</span>
         </div>
-      `).join('');
+      `).join('') + flowsHTML;
     }
 
 
@@ -523,14 +564,14 @@ let financialData = null;
     const ASSET_LAYERS = [
   {
     "key": "cash",
-    "name": "可用现金",
-    "color": "#10B981",
-    "desc": "已登记为即时可用的现金。"
+    "name": "现金类账面",
+    "color": "#365ad8",
+    "desc": "按现有分类登记；取用条件需要独立核对。"
   },
   {
     "key": "pendingCash",
     "name": "待核现金",
-    "color": "#0EA5E9",
+    "color": "#7b95c7",
     "desc": "可用性尚待核对的现金类记录。"
   },
   {
@@ -542,19 +583,19 @@ let financialData = null;
   {
     "key": "deposit",
     "name": "存款",
-    "color": "#0D9488",
+    "color": "#7b95c7",
     "desc": "已登记的存款类资产。"
   },
   {
     "key": "fund",
     "name": "投资资产",
-    "color": "#7C3AED",
+    "color": "#a5accb",
     "desc": "已登记的投资类资产，估值以记录口径为准。"
   },
   {
     "key": "receivable",
     "name": "应收款",
-    "color": "#F59E0B",
+    "color": "#647aa5",
     "desc": "尚待收回的款项，不等同即时可用现金。"
   }
 ];
@@ -566,7 +607,7 @@ let financialData = null;
 }
 
     function renderAssetLayers() {
-  const rows = assetLayerData(), known = rows.filter(row => row.amount !== null);
+  const rows = assetLayerData().filter(row => row.key !== 'receivable'), known = rows.filter(row => row.amount !== null);
   const total = roundMoney(known.reduce((sum,row) => sum + row.amount, 0));
   document.getElementById('finance-asset-layer-badge').textContent = known.length ? '已知分层合计 ' + yuan(total) + (known.length < rows.length ? ' · 含未登记项' : '') : '资产分层未登记';
   document.getElementById('finance-asset-layer-list').innerHTML = rows.map(row => '<div class="finance-layer"><span>' + escapeHTML(row.name) + '</span><strong>' + yuan(row.amount) + '</strong><p>' + escapeHTML(row.desc) + '</p></div>').join('');
@@ -691,16 +732,16 @@ let financialData = null;
 
 
     chartPainters["finance-asset-donut-chart"] = chart => {
-      const rows = assetLayerData().filter(row => row.amount !== null);
+      const rows = assetLayerData().filter(row => row.key !== 'receivable' && row.amount !== null && row.amount > 0);
       chart.setOption({
         tooltip: { trigger: 'item', formatter: p => `${escapeHTML(p.name)}<br/>${yuan(p.value)} (${escapeHTML(p.percent)}%)` },
         legend: { show: false },
         series: [{
           type: 'pie',
-          radius: ['52%', '78%'],
+          radius: ['68%', '84%'],
           center: ['50%', '50%'],
           avoidLabelOverlap: false,
-          itemStyle: { borderRadius: 4, borderColor: '#fff', borderWidth: 2 },
+          itemStyle: { borderRadius: 0, borderColor: '#fff', borderWidth: 2 },
           label: {
             show: true,
             position: 'center',
@@ -718,28 +759,26 @@ let financialData = null;
 
 
     chartPainters["finance-income-pie-chart"] = chart => {
-      const items = derived.incomeKinds;
+      const items = derived.incomeBreakdown;
       const groups = new Map();
       items.forEach(i => {
         const key = i.source || '未分类';
         groups.set(key, (groups.get(key) || 0) + Number(i.amount));
       });
-      const palette = { '劳动所得': '#10B981', '劳务所得': '#0EA5E9', '学校发放': '#6366F1', '家庭支持': '#F59E0B' };
-      const fallback = ['#10B981', '#0EA5E9', '#6366F1', '#F59E0B', '#EC4899'];
       chart.setOption({
         tooltip: { trigger: 'item', formatter: p => `${escapeHTML(p.name)}: ${yuan(p.value)} (${escapeHTML(p.percent)}%)` },
         series: [{
-          name: '收入性质',
+          name: '收入来源',
           type: 'pie',
-          radius: ['45%', '75%'],
+          radius: ['68%', '84%'],
           avoidLabelOverlap: false,
-          itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2 },
-          label: { show: false },
+          itemStyle: { borderRadius: 0, borderColor: '#fff', borderWidth: 2 },
+          label: { show: knownAmount(derived.summary.incomeTotal) && derived.summary.incomeTotal > 0, position: 'center', formatter: () => yuan(derived.summary.incomeTotal) + '\n当期已记', fontSize: 12, color: '#26334c' },
           emphasis: { label: { show: true, fontSize: 12, fontWeight: 'bold' } },
           data: [...groups.entries()].map(([name, value], i) => ({
             name,
             value,
-            itemStyle: { color: safeColor(palette[name] || fallback[i % fallback.length]) }
+            itemStyle: { color: incomeSourceColor(name, i) }
           }))
         }]
       }, true);
@@ -752,15 +791,15 @@ let financialData = null;
         series: [{
           name: '支出分类',
           type: 'pie',
-          radius: ['45%', '75%'],
+          radius: ['68%', '84%'],
           avoidLabelOverlap: false,
-          itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2 },
-          label: { show: false },
+          itemStyle: { borderRadius: 0, borderColor: '#fff', borderWidth: 2 },
+          label: { show: knownAmount(derived.summary.expenseTotal) && derived.summary.expenseTotal > 0, position: 'center', formatter: () => yuan(derived.summary.expenseTotal) + '\n已记支出', fontSize: 12, color: '#26334c' },
           emphasis: { label: { show: true, fontSize: 12, fontWeight: 'bold' } },
-          data: derived.expenseStructure.map(item => ({
+          data: overviewExpenseRows().map(item => ({
             name: item.category,
             value: item.amount,
-            itemStyle: { color: safeColor(item.color) }
+            itemStyle: { color: expenseColor(item) }
           }))
         }]
       }, true);
@@ -792,9 +831,9 @@ let financialData = null;
           axisLabel: { color: '#94a3b8', fontSize: narrow ? 10 : 12 }
         },
         series: [
-          { name: '确认收入', type: 'bar', data: h.map(m => m.income), itemStyle: { color: '#10B981', borderRadius: [4, 4, 0, 0] }, barMaxWidth: narrow ? 18 : 32 },
-          { name: '已记录支出', type: 'bar', data: h.map(m => m.expense), itemStyle: { color: '#F43F5E', borderRadius: [4, 4, 0, 0] }, barMaxWidth: narrow ? 18 : 32 },
-          { name: '结余', type: 'line', data: h.map(m => m.savings), smooth: false, connectNulls: false, itemStyle: { color: '#6366F1' }, lineStyle: { width: narrow ? 2 : 3 }, symbolSize: narrow ? 5 : 7 }
+          { name: '确认收入', type: 'bar', data: h.map(m => m.income), itemStyle: { color: FINANCE_THEME.income, borderRadius: [4, 4, 0, 0] }, barMaxWidth: narrow ? 18 : 32 },
+          { name: '已记录支出', type: 'bar', data: h.map(m => m.expense), itemStyle: { color: FINANCE_THEME.expense, borderRadius: [4, 4, 0, 0] }, barMaxWidth: narrow ? 18 : 32 },
+          { name: '结余', type: 'line', data: h.map(m => m.savings), smooth: false, connectNulls: false, itemStyle: { color: FINANCE_THEME.savings }, lineStyle: { width: narrow ? 2 : 3 }, symbolSize: narrow ? 5 : 7 }
         ]
       }, true);
     };
@@ -852,8 +891,8 @@ let financialData = null;
           axisLabel: { color: '#94a3b8', fontSize: 10 }
         },
         series: [
-          { name: '日常', type: 'bar', stack: 'day', data: days.map(d => d.routine), itemStyle: { color: '#10B981' }, barMaxWidth: narrow ? 9 : 16 },
-          { name: '一次性/资本', type: 'bar', stack: 'day', data: days.map(d => d.capital), itemStyle: { color: '#6366F1', borderRadius: [3, 3, 0, 0] }, barMaxWidth: narrow ? 9 : 16 }
+          { name: '日常', type: 'bar', stack: 'day', data: days.map(d => d.routine), itemStyle: { color: FINANCE_THEME.routine }, barMaxWidth: narrow ? 9 : 16 },
+          { name: '一次性/资本', type: 'bar', stack: 'day', data: days.map(d => d.capital), itemStyle: { color: FINANCE_THEME.capital, borderRadius: [3, 3, 0, 0] }, barMaxWidth: narrow ? 9 : 16 }
         ]
       }, true);
     };
@@ -885,7 +924,7 @@ let financialData = null;
         badge.className = 'text-xs px-2.5 py-1 rounded-lg font-mono bg-slate-100 text-slate-500 self-start sm:self-auto';
         badge.textContent = '暂无逐笔流水 · 每日状态见图表提示';
       } else if (t.coverage === 'full') {
-        badge.className = 'text-xs px-2.5 py-1 rounded-lg font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 self-start sm:self-auto';
+        badge.className = 'text-xs px-2.5 py-1 rounded-lg font-mono finance-soft-badge border self-start sm:self-auto';
         badge.innerText = `完整录入 · ${t.count} 笔`;
       } else {
         badge.className = 'text-xs px-2.5 py-1 rounded-lg font-mono bg-amber-50 text-amber-700 border border-amber-200 self-start sm:self-auto';
@@ -1085,7 +1124,10 @@ let financialData = null;
     if (!nested && (!raw.summary || typeof raw.summary !== 'object' || Array.isArray(raw.summary))) throw new Error('Invalid summary');
     const next = { ...raw, summary: { ...(raw.summary || {}) } };
     for (const key of ['incomeTotal', 'expenseTotal', 'availableCash', 'totalAssets', 'totalNetAssets', 'liabilities', 'fundTotal', 'depositTotal', 'pendingCashTotal', 'unknownTotal', 'receivablesTotal', 'runwayMonths']) if (!amount(next.summary[key])) throw new Error('Invalid amount');
-    for (const key of ['accounts', 'receivables', 'healthScores', 'actionItems', 'historicalComparison', 'incomeDetails']) next[key] = rows(raw[key]);
+    for (const key of ['accounts', 'receivables', 'healthScores', 'actionItems', 'historicalComparison', 'incomeDetails', 'nonIncomeFlows']) next[key] = rows(raw[key]);
+    for (const flow of next.nonIncomeFlows) {
+      if (!validDay(flow.dateISO) || typeof flow.amount !== 'number' || !Number.isFinite(flow.amount) || flow.amount < 0 || typeof flow.name !== 'string' || !flow.name.trim() || (flow.note !== undefined && typeof flow.note !== 'string')) throw new Error('Invalid non-income flow');
+    }
     for (const row of [...next.accounts, ...next.receivables]) if (!amount(row.amount)) throw new Error('Invalid account amount');
     for (const row of next.healthScores) if (typeof row.score !== 'number' || !Number.isFinite(row.score)) throw new Error('Invalid health score');
     for (const row of next.incomeDetails) {
@@ -1125,7 +1167,7 @@ let financialData = null;
         financialData = null; derived = null; dataState.lastSuccess = null;
         periodState.anchor = null;
         status = 'locked';
-        dataState.error = '接口要求认证（登录保护可能已被重新开启）；本页不接收密码。此前的展示已清除。';
+        dataState.error = '接口需要登录授权，请打开财务站。本页不接收密码，已清除此前展示。';
         clearVisibleData(); periodControls();
         return summary();
       }
@@ -1156,6 +1198,9 @@ let financialData = null;
     }
     return summary();
   }
+  root.addEventListener('toggle', event => {
+    if (event.target.tagName === 'DETAILS' && event.target.open && financialData) scheduleChartPaint();
+  }, true);
   function activate(view = 'overview') {
     if (!TABS.includes(view)) return false;
     switchTab(view);
