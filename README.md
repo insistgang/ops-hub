@@ -1,157 +1,119 @@
+<!-- README_SYNC: source=working-tree; updated=2026-11-15 -->
+
+<p align="center">
+  简体中文 · <a href="./README_EN.md">English</a>
+</p>
+
 # 🚀 Ops-Hub · 个人数字化运营工作总台
 
-> **“让流程和环境帮我做决定，不靠意志力硬撑。一个地方，一种模式。”**  
-> 三端算力分工 · 求职大盘 · 多线项目雷达 · 考期冲刺 · 极简生活秩序
+> 把三端算力、求职投递、项目进度、日程精力和生活秩序收进**一个零构建的单页总台**：打开网页看全局，敲一行 `ops` 管日常。
 
----
+如果它对你有用，欢迎点亮 [Star](https://github.com/insistgang/ops-hub/stargazers)，方便收藏，也帮助有同样需求的人发现它。
 
-## 📖 项目定位
+[![Stars](https://img.shields.io/github/stars/insistgang/ops-hub)](https://github.com/insistgang/ops-hub/stargazers)
+[![License: MIT](https://img.shields.io/github/license/insistgang/ops-hub)](./LICENSE)
+[![Last Commit](https://img.shields.io/github/last-commit/insistgang/ops-hub)](https://github.com/insistgang/ops-hub/commits/main)
+[![Issues](https://img.shields.io/github/issues/insistgang/ops-hub)](https://github.com/insistgang/ops-hub/issues)
+![CLI](https://img.shields.io/badge/CLI-Python%203%20stdlib-blue)
+![Stack](https://img.shields.io/badge/frontend-zero--build%20HTML5-green)
 
-**Ops-Hub** 是个人数字化运维工作总台，展示**三端算力状态**（MacBook Air + Windows 4070S + Jetson 边缘硬件）、**求职投递记录**、**多线项目进度**、**资格备考**及**生活打卡**。求职记录目前由本项目独立维护，尚未自动同步 Career-Copilot 的投递台账。
+**在线演示**：https://insistgang.top/ops-hub/ （阿里云）· https://insistgang.github.io/ops-hub/ （GitHub Pages 镜像）
 
-### 🌟 核心架构三大铁律
-1. 🚫 **零 Mock 假数据原则**：100% 读取真实工程、真实投递记录与网络探针，数据公开可溯源。
-2. ⚡ **零构建单页直出 (Zero-Build Vanilla)**：纯净 HTML5 + Tailwind CSS + Lucide Icons，无构建心智负担，GitHub Pages 秒级生效。
-3. 🏛️ **设备专属分工与场景秩序**：
-   - **MacBook Air (Apple M5, 16G)**：移动生产力中枢，带去**图书馆专注完成**（论文写作/求职/知识库/轻开发）。
-   - **Windows 4070S (i5-12600KF, 32G, 12G独显)**：常驻算力后端（CUDA训练、批量构建、远程执行与冷备仓库），Tailscale Mesh 直连。
-   - **NVIDIA Jetson 边缘端 (Yahboom, Tegra aarch64)**：端侧 AI 感知节点（视觉模型部署/ROS调试，局域网 `已隐藏` 直连）。
+## 这是什么
 
----
+Ops-Hub 是一个真实在用的个人运营系统，不是 Demo。它把散落各处的日常信息汇成一页：
 
-## 每天怎么使用
+- **🖥️ 三端算力拓扑**：MacBook Air（移动生产力）、Windows 4070S（常驻 CUDA 算力）、Jetson（端侧感知）的网络延迟与服务状态，由真实探针采集，离线自动降级。
+- **🎯 求职投递管道**：公司、岗位、投递日期、状态与跟进备注，面试/笔试自动置顶。
+- **🚀 多线项目雷达**：自动读取本地各项目的 Git 最新提交与 Next Action，附考试倒计时。
+- **📅 日程与精力（VitaFlow）**：日历待办、四账户精力、番茄钟、复盘，原生挂载在同一页面，支持私有云同步。
+- **⚖️ 体重与 💰 财务**：体重趋势与多使用者记录；财务总览、资产、收支、复盘，账本只读、仅存页面内存。
+- **🧠 今日与秩序**：每天最多 3 件重点、昨日未完成带入、每日四勾打卡，按北京时间分日。
 
-打开首页先进入「今日」：在当前浏览器写下最多三件重点，可标记完成或移除；这些内容按日期保存在浏览器本地，不会自动同步到其他浏览器或设备。页面上提供日程、四勾、项目和求职的快捷入口。
+## 为什么值得一看
 
-「昨日未完成」显示前一天尚未完成的重点，可逐项点击「安排到今天」，与今天手动添加的事项共用三件上限，不重复带入同文事项，也不改写昨日记录。日期按北京时间划分；页面跨日、重新显示或同源其他标签页更新记录时会重新读取。只有浏览器保存成功后才更新完成状态；保存失败、记录损坏或发现其他页面修改时会显示提示并保留原数据。
+| 差异 | 说明 |
+| --- | --- |
+| 🚫 零 Mock 铁律 | 所有展示数据都有真实来源；探针失败、快照缺失就如实提示，不编造数字。 |
+| ⚡ 零构建单页 | 根目录 `index.html` + Tailwind CDN + Lucide，克隆即用、双击即看，GitHub Pages 秒级上线。 |
+| 🛠️ CLI + 自动化 | `ops` 用纯 Python 3 标准库实现，配合 macOS `launchd` 早晚自动采集、脱敏、提交、发布。 |
+| 🔐 隐私分级公开 | 私有真源不进 Git；公开站只展示本人明确选择公开的脱敏投影，解析失败宁可留白。 |
 
-今日页同时显示当日待办和最近保存的四账户精力状态，与「日程与精力」详细页面读写同一份 VitaFlow 记录；在首页完成待办后，日程页会同步显示完成状态。首页入口会带入当前北京时间日期，避免隔夜后沿用旧的日程或评分日期。
-
-体重记录和财务状态也出现在今日页，并可直接进入对应工作区。体重沿用本机记录；财务打开财务页后主动读取即可，无需登录，金额只在当前页面保留。
-
-页面右上角主题图标旁有四个风格按钮，可在经典极客、纸感阅读、森林秩序、海蓝之间切换，每套都支持原来的明暗模式。风格仅保存在当前浏览器，不改变业务记录；原黑白风格会显示为海蓝。
-
-设备、项目和求职信息展示的是采集快照。页面上的刷新只重新读取快照，不会执行探测；快照时间过旧或读取失败会提示。网页四勾与 `ops check` 各自保存，不会自动同步。求职数据由 Ops-Hub 单独维护，不与 Career-Copilot 自动同步。
-
-公开快照生成依赖本机脱敏对照表 `data/private_aliases.json`。缺失、格式错误或脱敏校验失败时，保留上一次公开快照并阻止本次自动提交和推送；对照表需要持续维护，不能代替人工审查公开内容。
-
-## 🎯 核心功能看板
-
-| 模块板块 | 对应功能与真源 |
-|:---|:---|
-| 🖥️ **设备分工与算力总台** | 包含交互式任务分流决策器、Mac vs Windows 专属任务/红线矩阵、真实项目流转协同表。 |
-| 🎯 **求职投递管道** | 读取本项目的 `data/career_records.json`，跟踪投递阶段与简历指引；[Career-Copilot](../Career-Copilot/README.md) 是独立求职工程。 |
-| 🚀 **多线项目雷达** | 自动提取本地 Git Commit：外部合作电商系统 (`Desktop/合作项目/jiefu`)、端侧硬件伴侣项目 (`Desktop/合作项目/andy`)、毕业小论文 (`Desktop/论文与阅读/lunwen`)。 |
-| ⏳ **六级倒计时** | 按已登记的六级日期和北京时间计算天数；教资归档保留，首页与项目雷达不再展示。 |
-| ⚖️ **体重管理** | 原生挂载多使用者、目标体重、趋势、历史和本机小组，与今日共用原本机记录。 |
-| 💰 **财务管理** | 原生挂载总览、资产、收支与复盘，主动读取原站受保护账本。 |
-| 🧠 **个人记忆与秩序** | 每日四勾（起了/动了/写了/关了）、场景分工与专注原则；同时最多 3 件活跃事项，单时段聚焦一件，旧场景计划仅作历史参考。 |
-| 📅 **日程与精力** | VitaFlow 原生挂载到总台页面；公开展示日程、精力和笔记的只读快照，设备记录可通过后台连接同步。 |
-
----
-
-## 🛠️ CLI 命令行套件 (`ops`)
-
-系统已配置为全局命令，在任意终端目录下均可直接调用：
+## 快速开始
 
 ```bash
-# 1. 查看全局工作总台摘要（双机/三端状态、求职统计、考期倒计时、今日四勾）
-ops status
+git clone https://github.com/insistgang/ops-hub.git
+cd ops-hub
 
-# 2. 任务智能分流查询（不知道眼下事情该丢给哪台机器时敲）
-ops dispatch                        # 打印三端分工完整全景矩阵与项目流转表
-ops dispatch "写毕业小论文"           # 秒级指引：👉 立即留在 Mac 去图书馆专注写！
-ops dispatch "跑 YOLOv11 训练"      # 秒级指引：👉 立即派发给 Windows 4070S！
-
-# 3. 执行全量硬件探测并更新数据快照（支持 --push 自动推送到 GitHub）
-ops sync --push
-
-# 4. 管理求职投递
-ops career list                                      # 查看全部投递企业与状态
-ops career update "<企业名称>" --status "一面"          # 快速推进求职状态
-ops career add "<企业名称>" --pos "大模型工程师"           # 新增投递企业
-
-# 5. 今日四勾秩序打卡
-ops check 动了
-ops check 写了
-
-# 6. 打印底层秩序与契约清单
-ops memory
-
-# 7. 本地启动静态 Web 仪表盘预览
-ops serve --port 3000
-
-# 8. 管理 macOS 原生 launchd 早晚自动同步服务 (09:00 与 21:00)
-ops schedule install
-ops schedule status
-
-# 9. 发布公开产物到阿里云 ops-hub 站点（GitOps 只推 GitHub，阿里云需另行发布）
-ops publish
-
-# 10. 把日记里的个人消费同步进财务账本并发布
-ops finance
-
-# 11. 查看 AI 额度快照与早停判定
-ops quota
+# Option 1: open index.html directly in a browser (zero build, zero dependencies)
+# Option 2: serve a local preview (listens on 127.0.0.1 only)
+./ops serve --port 3000
 ```
 
-## 体重管理本地接入
+页面本体不需要任何安装。只有使用命令行套件或修改原生工作区源码时，才需要 Python 3 / Node.js。
 
-「体重管理」Tab 在同一页面运行 `weight-tracker/` 通用版，支持多使用者、目标体重、历史趋势、记录编辑和本机小组。共用总台风格和页面滚动，今日入口直接打开记录或历史分区。无需注册或 Supabase，数据继续写入当前浏览器原来的 `weight-tracker:universal:v1` 存储键。独立页已归档为 `weight-tracker/src/index.html` 源码，公开站只保留总台入口。
-
-按本人 2026-11-10 的选择，公开站会展示**本人自己的**体重记录（由 `data/public/weight.js` 提供），本机小组与他人记录不进入公开产物；本机打开时仍优先读 `data/private/weight.js` 真源。访客在浏览器里新记的记录只存在该浏览器本地，不回传服务器。
-
-## 财务管理接入
-
-「财务管理」包含总览、资产、收支和复盘四个原生分区。打开总台即自动读取账本，无需登录、无需点击按钮（按钮保留为手动重试入口）。原站的账本、周期覆盖、账户快照和未核实状态保持原含义；总台不保存密码或账本，刷新页面后重新读取。
-
-本地 file / localhost 无法跨源读取真实账本，日常请使用 [线上总台](https://insistgang.top/ops-hub/) 或 [原财务站](https://finance.insistgang.top)。访问保护与维护边界见 [财务访问说明](docs/finance-access.md)。
-
----
-
-## 知识库同步接入
-
-今日页的「知识库 · 今日必做」和「硬节点雷达」来自本机知识库，只读同步，不在总台回写：
-
-| 展示 | 真源 |
-|---|---|
-| 今日必做 | `~/Documents/knowledge/01-Daily/今日计划/YYYY-MM-DD.md` |
-| 硬节点雷达 | `~/Documents/knowledge/00-Inbox/硬节点台账.md` 的「活跃节点」 |
-| 项目台账（项目雷达 Tab） | `~/Documents/knowledge/03-Projects/` 的目录与顶层 `.md` |
-| 财务月度复盘（财务 Tab） | `~/Documents/knowledge/06-Growth/Finance/YYYY-MM-*-review.md` 的最新月份 |
-| 日记精力（日程与精力 Tab） | `~/Documents/knowledge/01-Daily/YYYY-MM/YYYY-MM-DD.md` 的「状态」段，最近 7 天 |
-
-日记精力另有公开投影（`data/public/energy.js`）：分数与推断依据经脱敏后进入公开站，属本人明确选择的公开范围。
-
-「日程与精力」的日记待办来自当日日记的「今日计划与执行状态」和前一天日记的「明日计划」，按目标日期展示；待办标题和状态经脱敏后公开，整篇日记不会发布。点击单条「导入 VitaFlow」可在日程中独立勾选，重复导入会跳过，不回写日记。日记更新随本机 `ops sync` 生成新的公开快照，推送后网站才会更新；日期不匹配的旧快照不会冒充今日待办。
-
-`ops sync` 重新解析并写入 `data/knowledge.json` 与 `data/private/knowledge.js`。后者已 git-ignore，公开站拿不到该文件时自动回退到 `data/public/knowledge.js` 的公开投影，该区块照常渲染。按本人 2026-11-10 的选择，公开投影包含自己的今日计划、WIP、硬节点台账、项目台账与财务月度复盘摘要；同事与外部导师一律代号化，本机小组与他人数据不进入公开产物。知识库目录可用环境变量 `OPS_KNOWLEDGE_DIR` 覆盖；今日计划缺失时回退最近一份并标注「非今日」，解析失败只提示原因不填假数据。
-
-项目台账完整列出知识库里的全部项目，展示相对路径、真实改动时间、文件数与文档首段摘要，不推断进度或完成度；说明与索引文件（`AGENTS.md` 等）不计入，项目目录与同名笔记只保留目录。同一分钟内大批文件同时变更会被判定为同步工具批量刷新，不参与「最近活动」排序；只有批量时间戳的项目排在末尾而不是被顶到最前。
-
-## VitaFlow 日程与精力工作区
-
-「日程与精力」Tab 在总台同一页面挂载 VitaFlow，包含四账户、日历待办、趋势、番茄钟、复盘和创作与学习。四账户旁显示日记中的整体精力、情绪和专注作为带日期的只读参考，不覆盖或计算进手动评分；没有对应日记指标的意志账户不推断评分。备份和恢复入口仍可使用。共用总台导航、风格和页面滚动，今日入口可以直接打开相关分区。首次使用为空，不生成示例分数或待办。
-
-默认使用当前浏览器已有的 `vitaflow_*` 记录，与原同源 VitaFlow 的存储格式兼容。网站另行展示服务器上的公开只读日程、精力和笔记。配置了本机后台连接的设备可以自动同步；浏览器首次可能需要本地网络授权。若设备与服务器数据不同，先核对并选择「保留本机」或「采用服务器」；点击「使用本机记录」可停止同步并保留当前记录。云端服务与数据边界见 [云同步说明](docs/aliyun-vita-sync.md)。
-
-导入数据只刷新日程工作区，保留总台风格和今日重点；导出的带数据 HTML 仍使用独立 VitaFlow 源码，作为私人便携备份。总台导航不再提供独立版入口。
-
-地址和口令仅保存在当前浏览器。公开的应用页面由默认构建剥离私人快照，口令不进入公开仓库；旧版本地 `my-schedule.json` 已于 2026-11-08 按本人要求删除并退役，不再作为本机真源或恢复来源，云同步数据以阿里云当前记录为准。已有 Git 历史和线上版本不会因为本地重建自动替换。详见 [VitaFlow 说明](vitaflow/README.md)。
-
----
-
-## 本地开发与构建
-
-页面本身零构建，克隆后双击 `index.html` 或运行 `ops serve` 即可。只有改动三个原生工作区的源码时，才需要合成产物：
+## CLI 命令行套件（`ops`）
 
 ```bash
-node build.mjs           # 生成 VitaFlow / 体重 / 财务的全部原生产物
-node build.mjs --check   # 校验产物与源码一致，提交前必跑
+ops status                      # Terminal summary: compute, career, projects, daily checks
+ops dispatch "run YOLOv11"      # Task routing: which machine should take this job
+ops sync --push                 # Full collection + sanitized snapshots + GitOps commit & push
+ops career list                 # Career ledger (also: add / update)
+ops check 动了                   # Daily check-in: 起了/动了/写了/关了
+ops weight 99.5                 # Log weight; omit the value to view history
+ops memory                      # Personal memory & order baseline
+ops quota                       # AI quota snapshot and early-stop advice
+ops publish                     # Publish public artifacts to Aliyun (GitOps pushes GitHub only)
+ops finance                     # Sync diary expenses into the finance ledger and publish
+ops schedule install            # Install launchd auto-sync (09:00 / 21:00)
 ```
 
-`build.mjs` 只是开发期把四条构建收成一条管线，线上仍是不需要任何构建步骤的静态文件。改动任何 js/css 后记得同步提升 `index.html` 里的 `?v=` 版本号，`tests/test_asset_versions.cjs` 会在漏改时报错。
+完整参数用 `ops <命令> --help` 查看。
+
+## 目录与文档
+
+```text
+index.html          # 单页总台（Tab 切换，暗色默认 + 四套风格）
+js/  css/           # 前端逻辑与样式（所有 innerHTML 注入过 esc() 转义）
+ops                 # Python 3 标准库 CLI 入口
+scripts/            # 探针、采集、脱敏、发布、launchd 描述文件
+data/               # 本地真源 + public/ 脱敏产物（私有真源已 git-ignore）
+vitaflow/           # 日程与精力工作区源码与同步服务
+weight-tracker/     # 体重模块源码
+finance/            # 财务原生界面与只读适配
+tests/              # Python + Node 回归测试
+docs/               # PRD、财务访问说明、云同步说明等
+```
+
+- 协作契约与模块边界：[AGENTS.md](./AGENTS.md)
+- 需求与审阅：[docs/PRD.md](./docs/PRD.md)、[docs/PRD_REVIEW.md](./docs/PRD_REVIEW.md)
+- 财务访问边界：[docs/finance-access.md](./docs/finance-access.md)
+- VitaFlow 云同步：[docs/aliyun-vita-sync.md](./docs/aliyun-vita-sync.md)
+- 当前进度与验证记录：[ROADMAP.md](./ROADMAP.md)
+
+## 数据与隐私边界
+
+- **公开即本人授权**：公开站展示的求职、项目、体重、日记精力等待办与摘要，均为本人明确选择公开的脱敏投影；同事与外部人物一律代号化，本机小组与他人数据不进入公开产物。
+- **私有真源不出本机**：`data/private/`、私人日程与口令已 git-ignore；公开构建不嵌入私人快照。
+- **知识库单向只读**：`~/Documents/knowledge` 是唯一写入口，本仓库只读投影，可用 `OPS_KNOWLEDGE_DIR` 覆盖路径。
+- **财务不保存凭据**：账本只存页面内存，接口要求认证时如实提示，不索取密码；本地 file/localhost 无法跨源读取，请走线上总台。
+
+## 本地开发与验证
+
+```bash
+node build.mjs           # Rebuild native artifacts after editing VitaFlow/weight/finance sources
+node build.mjs --check   # Verify artifacts match sources; required before committing
+
+python3 -m unittest discover -s tests -p 'test_*.py'
+node --test tests/*.cjs weight-tracker/tests/*.cjs
+```
+
+改动任何 js/css 后需同步提升 `index.html` 里的 `?v=` 版本号，`tests/test_asset_versions.cjs` 会拦截漏改。更多验证入口见 [AGENTS.md](./AGENTS.md)。
+
+---
+
+如果这个项目的思路对你有启发，可以点一个 [Star](https://github.com/insistgang/ops-hub/stargazers) 方便以后回来；问题和改进建议请直接提 [Issue](https://github.com/insistgang/ops-hub/issues)，也欢迎 [Watch](https://github.com/insistgang/ops-hub/watchers) 关注后续更新。
 
 ## 📄 License
 
-MIT © 2026 [Leo (insistgang)](https://github.com/insistgang)
+[MIT](./LICENSE) © 2026 [Leo (insistgang)](https://github.com/insistgang)
