@@ -3,22 +3,22 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "1.2.1",
-    "last_synced": "2026-11-15 05:36:37",
+    "last_synced": "2026-11-15 09:31:28",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub",
     "sanitized": true,
-    "sanitized_at": "2026-11-15 05:36:37",
+    "sanitized_at": "2026-11-15 09:31:28",
     "sanitize_note": "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址、本地路径与私人挑战数据。"
   },
   "topology": {
-    "timestamp": "2026-11-15 05:36:36",
+    "timestamp": "2026-11-15 09:31:28",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.x.x",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "21%",
-      "power_state": "Charging",
-      "load_avg": "6.26 4.69 4.02",
+      "battery": "22%",
+      "power_state": "Discharging (Battery)",
+      "load_avg": "12.02 6.43 4.48",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -30,18 +30,18 @@
       "device": "Windows 性能主机 (i5-12600KF, 32GB, RTX 4070S 12GB)",
       "ip": "100.98.x.x",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
-      "status": "Online",
-      "latency_ms": 417.8,
-      "via": "DERP · lax",
-      "control_online": true,
-      "last_seen": "0001-01-01T00:00:00Z",
+      "status": "Offline",
+      "latency_ms": null,
+      "via": "",
+      "control_online": false,
+      "last_seen": "",
       "ssh_port": 22,
-      "ssh_active": true,
+      "ssh_active": false,
       "smb_port": 445,
-      "smb_active": true,
+      "smb_active": false,
       "services": [
-        "SSH Remote (Active :22)",
-        "SMB Storage (Active :445)",
+        "SSH Remote (Standby)",
+        "SMB Storage (Standby)",
         "CUDA 12 Compute",
         "Tailscale Mesh"
       ]
@@ -53,7 +53,7 @@
       "role": "边缘感知节点 // 端侧视觉与机器人感知部署",
       "network_type": "局域网 (LAN Only)",
       "status": "Online",
-      "latency_ms": 0.9,
+      "latency_ms": 1.3,
       "via": "",
       "control_online": false,
       "ssh_port": 22,
@@ -65,8 +65,8 @@
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": 417.8,
-    "tailscale_checked": true
+    "mesh_latency_ms": null,
+    "tailscale_checked": false
   },
   "career_summary": {
     "stats": {
