@@ -1,6 +1,6 @@
 {
   "available": true,
-  "generated_at": "2026-11-16T09:00:10+08:00",
+  "generated_at": "2026-11-16T21:00:07+08:00",
   "today": "2026-11-16",
   "warnings": [
     "2026-11 财务：无法解析金额「未核实」（负债）",
@@ -197,7 +197,7 @@
       {
         "trigger": "每周日",
         "title": "知识库状态面维护",
-        "note": "AGENTS 规则 9"
+        "note": "AGENTS 规则 9；2026-11-16 已补做第 1 层：订正第 46 周复盘「11/14 零新增／实物层证据不足」过期读数、回流 项目状态.md M4、闭环投票与论坛取舍节点"
       },
       {
         "trigger": "每周日 20:00",
@@ -207,7 +207,7 @@
       {
         "trigger": "每周一 08:00",
         "title": "163 邮箱扫信",
-        "note": "报销、学校通知、签证类硬信息"
+        "note": "报销、学校通知、签证类硬信息；2026-11-16 08:30 已代跑完成，15 封中无本校报销/学校通知新硬节点；财务看板 CI 旧失败已自愈，另有 Vercel 新登录、GitHub OAuth LoopForge、iKuuu 英国异常登录待本人确认是否本人操作"
       }
     ],
     "monthly": [
@@ -238,6 +238,16 @@
     "file": "03-Projects",
     "items": [
       {
+        "name": "卓繁信息",
+        "kind": "dir",
+        "relative": "03-Projects/卓繁信息",
+        "updated": "2026-11-16T16:15+08:00",
+        "updated_source": "file",
+        "date_hint": null,
+        "file_count": 26,
+        "summary": "【本周每日工作量明细】"
+      },
+      {
         "name": "专利_视频检索",
         "kind": "file",
         "relative": "03-Projects/专利_视频检索.md",
@@ -256,16 +266,6 @@
         "date_hint": null,
         "file_count": 1,
         "summary": null
-      },
-      {
-        "name": "卓繁信息",
-        "kind": "dir",
-        "relative": "03-Projects/卓繁信息",
-        "updated": "2026-11-13T19:22+08:00",
-        "updated_source": "file",
-        "date_hint": null,
-        "file_count": 25,
-        "summary": "【本周每日工作量明细】"
       },
       {
         "name": "2026-10-31-项目整合与部署总方案",
