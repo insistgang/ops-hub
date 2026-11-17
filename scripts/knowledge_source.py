@@ -4,8 +4,8 @@
 设计约束（与仓库既有铁律一致）：
 1. 单向只读 -- 本模块绝不写入 knowledge 目录，任何写操作都视为 bug。
 2. 零 Mock 假数据 -- 解析不到就标记 degraded/error 并给出原因，绝不编造行。
-3. 隐私边界 -- 产出只写入本机 data/ 私有文件，由 sanitize_public.py 剔除，
-   不得进入 data/public/ 与公开站。
+3. 隐私边界 -- 原始完整快照仅写入本机 data/knowledge.json 与 data/private/（git-ignore）；
+   公开脱敏产物统一由 scripts/sanitize_public.py 白名单裁剪与代号化后生成。
 
 用法：
     python3 scripts/knowledge_source.py --json      # 打印抽取结果
@@ -748,16 +748,8 @@ def parse_projects(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
 FINANCE_DIR = Path("06-Growth") / "Finance"
 FINANCE_FILE_RE = re.compile(r"^(\d{4})-(\d{2})-(?:financial?-review|finance-review)")
 FINANCE_ROW_RE = re.compile(r"^\|(.+)\|\s*$")
-FINANCE_SEP_RE = re.compile(r"^:?-{2,}:?$")
 FINANCE_SECTIONS = {"本月概况": "summary", "支出结构": "expenses"}
-
-
-def _split_row(line: str) -> list[str]:
-    return [cell.strip() for cell in line.strip().strip("|").split("|")]
-
-
-def _is_separator(cells: list[str]) -> bool:
-    return bool(cells) and all(FINANCE_SEP_RE.match(cell.replace(" ", "")) for cell in cells)
+UNVERIFIED_AMOUNT_TOKENS = {"未核实", "待核实", "未知", "—", "-", "N/A", "n/a"}
 
 
 def _latest_finance_file(finance_dir: Path) -> Path | None:
@@ -819,20 +811,22 @@ def parse_finance(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
         if len(cells) < 2:
             continue
         label = _strip_md(cells[0])
-        amount_raw = cells[1].replace(",", "")
-        try:
-            amount = float(amount_raw)
-        except ValueError:
-            warnings.append(f"{month} 财务：无法解析金额「{cells[1]}」（{label}）")
+        raw_cell = _strip_md(cells[1])
+        amount_raw = raw_cell.replace(",", "")
+        if raw_cell in UNVERIFIED_AMOUNT_TOKENS:
             amount = None
+        else:
+            try:
+                amount = float(amount_raw)
+            except ValueError:
+                warnings.append(f"{month} 财务：无法解析金额「{cells[1]}」（{label}）")
+                amount = None
         row = {
             "label": label,
             "amount": amount,
             "amount_raw": cells[1],
             "note": _clip(_strip_md(cells[2]), 160) if len(cells) > 2 else "",
         }
-        # 概况表用「项目」作表头列名，支出结构用「类别」
-        key = "label"
         tables[current].append(row)
 
     if not tables["summary"]:

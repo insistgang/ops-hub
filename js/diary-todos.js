@@ -18,12 +18,12 @@
     return { date: value.date, items };
   }
 
-  function textElement(tag, className, value) {
+  const textElement = window.OpsCore?.el || ((tag, className, value) => {
     const node = document.createElement(tag);
     if (className) node.className = className;
     node.textContent = value;
     return node;
-  }
+  });
 
   function importedItems(api, day) {
     try {

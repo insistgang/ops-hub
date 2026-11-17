@@ -102,16 +102,24 @@ def sync_from_diary(ledger, knowledge_dir=None):
         return [], False
 
     aliases = finance_sync.load_aliases()
+    existing_days = {
+        int(entry["day"])
+        for entry in (ledger.get("transactions", {}).get("daily") or [])
+        if isinstance(entry, dict) and entry.get("day") is not None
+    }
     applied = []
     changed = False
     for path in sorted(daily_dir.glob("*.md")):
-        parsed = finance_sync.parse_day(path.read_text(encoding="utf-8"), 0)
-        if parsed is None:
-            continue
         match = re.search(r"(\d{4})-(\d{2})-(\d{2})", path.name)
         if not match:
             continue
-        parsed["day"] = int(match.group(3))
+        day_num = int(match.group(3))
+        if day_num in existing_days:
+            print(f"ℹ️  {month:02d}/{day_num:02d} 已在账本中，跳过")
+            continue
+        parsed = finance_sync.parse_day(path.read_text(encoding="utf-8"), day_num)
+        if parsed is None:
+            continue
         if parsed.get("error"):
             print(f"❌ {path.name}: {parsed['error']}")
             continue

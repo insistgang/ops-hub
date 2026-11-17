@@ -40,14 +40,15 @@ LOAN_LINE = re.compile(r"另转账?(?P<who>[^,，()（）\d]{2,6}?)\s*(?P<amount
 
 # 日常餐饮及其他内部的子分类，与账本 desc 的既有写法一致
 ROUTINE_SUBCATEGORIES = (
-    ("餐饮", ("餐饮", "外卖", "饭", "餐", "粥", "火锅", "烧烤", "奶茶", "咖啡", "食堂", "点心", "早")),
+    ("餐饮", ("餐饮", "外卖", "饭", "餐", "粥", "火锅", "烧烤", "串", "面", "粉", "包", "水饺", "卤", "汉堡", "奶茶", "咖啡", "食堂", "点心", "早")),
     ("医疗健康", ("医疗", "药", "医院", "体检", "门诊", "看病")),
-    ("食品采购", ("食品采购", "买菜", "生鲜", "食材")),
+    ("食品采购", ("食品采购", "买菜", "生鲜", "食材", "矿泉水", "饮料", "牛奶", "水果", "零食")),
     ("日用品", ("日用", "纸巾", "洗衣", "沐浴", "理发")),
     ("交通", ("交通", "地铁", "公交", "打车", "高铁", "火车", "油费", "停车", "单车", "电动车", "充电")),
-    ("学习学业", ("打印",)),
+    ("学习学业", ("打印", "教材", "买书", "资料")),
 )
-CAPITAL_MARKERS = ("订阅", "充值", "会员", "土币", "TRY", "API 充值", "开通")
+CAPITAL_MARKERS = ("订阅", "充值", "会员", "土币", "TRY", "API 充值", "开通", "续费", "域名", "服务器")
+CAPITAL_STUDY_MARKERS = ("课程", "网课", "报名费", "学费")
 
 # 账本既有配色，逐笔条目沿用同一张表
 CATEGORY_COLORS = {
@@ -63,6 +64,8 @@ CATEGORY_COLORS = {
 
 def classify(label):
     """返回 (子分类, 类型)。资本性支出单独成类；日常消费按子分类归入餐饮及其他。"""
+    if any(marker in label for marker in CAPITAL_STUDY_MARKERS):
+        return "学习学业", "capital"
     if any(marker in label for marker in CAPITAL_MARKERS):
         return "订阅AI", "capital"
     for name, keys in ROUTINE_SUBCATEGORIES:
@@ -484,12 +487,20 @@ def main(argv=None):
     period = str(ledger.get("period") or args.period)
     year, month = int(period.split("-")[0]), int(period.split("-")[1])
     aliases = load_aliases()
+    existing_days = {
+        int(entry["day"])
+        for entry in (ledger.get("transactions", {}).get("daily") or [])
+        if isinstance(entry, dict) and entry.get("day") is not None
+    }
     applied, skipped = [], []
     for path in sorted(daily_dir.glob("*.md")):
         match = re.search(r"(\d{4})-(\d{2})-(\d{2})", path.name)
         if not match:
             continue
         day_value = int(match.group(3))
+        if day_value in existing_days:
+            skipped.append(f"{month:02d}/{day_value:02d} 已在账本中，跳过")
+            continue
         parsed = parse_day(path.read_text(encoding="utf-8"), day_value)
         if parsed is None:
             skipped.append(f"{path.name}: 日记未写明个人实付合计，不动账本")

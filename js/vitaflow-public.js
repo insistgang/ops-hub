@@ -75,13 +75,14 @@
       updatedAt: typeof payload.updatedAt === 'string' && Number.isFinite(Date.parse(payload.updatedAt)) ? payload.updatedAt : null,
     };
   }
-  function element(tag, className, text) {
+  const element = window.OpsCore?.el || ((tag, className, text) => {
     const node = document.createElement(tag);
     if (className) node.className = className;
     if (text !== undefined) node.textContent = text;
     return node;
-  }
+  });
   function currentDay() {
+    if (window.OpsCore?.calendarDay) return window.OpsCore.calendarDay();
     if (typeof calendarDay === 'function') return calendarDay();
     return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
   }

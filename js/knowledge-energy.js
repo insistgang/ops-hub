@@ -69,12 +69,12 @@
     return;
   }
 
-  const el = (tag, className, text) => {
+  const el = window.OpsCore?.el || ((tag, className, text) => {
     const node = document.createElement(tag);
     if (className) node.className = className;
     if (text !== undefined && text !== null) node.textContent = text;
     return node;
-  };
+  });
 
   const latest = days[0];
   latestDay = latest;
