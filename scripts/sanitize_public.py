@@ -189,9 +189,6 @@ def build_public_status(status, aliases):
         for dev in alloc.get("devices", []) or []:
             if isinstance(dev, dict):
                 dev.pop("network", None)
-                for wf in alloc.get("project_workflows", []) or []:
-                    if isinstance(wf, dict):
-                        wf.pop("collab_mode", None)
 
     # 5. 全量字符串脱敏
     public = scrub_deep(public, aliases)
@@ -201,7 +198,7 @@ def build_public_status(status, aliases):
     meta["sanitized"] = True
     meta["sanitized_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     meta["sanitize_note"] = (
-        "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址、本地路径与私人挑战数据。"
+        "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址与本地路径。"
     )
     return public
 

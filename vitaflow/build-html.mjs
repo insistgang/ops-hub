@@ -33,7 +33,6 @@ function readFile(path) {
 
 function getMimeType(path) {
   if (path.endsWith('.woff2')) return 'font/woff2';
-  if (path.endsWith('.ttf')) return 'font/ttf';
   return 'application/octet-stream';
 }
 
@@ -42,7 +41,12 @@ function toDataUri(path) {
 }
 
 function inlineFontAwesomeFonts(css) {
-  return css.replace(/url\((['"]?)\.\.\/webfonts\/([^)'"]+)\1\)/g, (match, quote, fileName) => {
+  // Strip unused legacy FA4/FA5 compatibility @font-face blocks and .ttf fallbacks:
+  // modern browsers support WOFF2 natively, cutting ~2.8 MB of tripled Base64 font bloat.
+  const modernCss = css
+    .replace(/@font-face\{font-family:"(?:Font Awesome 5[^"]*|FontAwesome)"[^}]*\}/g, '')
+    .replace(/,url\((['"]?)\.\.\/webfonts\/[^)'"]+\.ttf\1\)\s*format\((['"]?)truetype\2\)/g, '');
+  return modernCss.replace(/url\((['"]?)\.\.\/webfonts\/([^)'"]+)\1\)/g, (match, quote, fileName) => {
     const fontPath = `${fontAwesomeWebfontsPath}/${fileName}`;
     if (!fs.existsSync(fontPath)) {
       throw new Error(`Missing Font Awesome webfont: ${fontPath}`);

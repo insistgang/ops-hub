@@ -1,6 +1,9 @@
 /**
- * Ops-Hub Frontend Application Logic
- * Dual-engine data loading: Supports fetch() AND zero-CORS direct file:/// loading!
+ * Ops-Hub Frontend Host Application Logic
+ *
+ * 负责总台状态快照拉取、时效计算、顶栏/Hero 指标、求职看板、项目与考期雷达、
+ * 个人记忆与四勾打卡，以及八大工作区 Tab 的切换调度。
+ * 三端算力拓扑与任务分流已抽离至 js/compute.js；公共原语见 js/core.js。
  */
 
 let globalStatus = window.__OPS_STATUS__ || null;
@@ -14,11 +17,43 @@ const DAILY_CHECK_KEYS = ["起了", "动了", "写了", "关了"];
 let dailyChecksEventsBound = false;
 
 function calendarDay(now = new Date()) {
+  if (window.OpsCore?.calendarDay && now instanceof Date) {
+    return window.OpsCore.calendarDay(now);
+  }
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit"
   }).formatToParts(now);
   const value = type => parts.find(part => part.type === type).value;
   return `${value("year")}-${value("month")}-${value("day")}`;
+}
+
+function dateOrdinal(value) {
+  if (window.OpsCore?.dateOrdinal) return window.OpsCore.dateOrdinal(value);
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ""));
+  if (!match) return null;
+  const [, year, month, day] = match.map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+    ? date.getTime() / 86400000 : null;
+}
+
+function esc(s) {
+  if (window.OpsCore?.esc) return window.OpsCore.esc(s);
+  return String(s ?? "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+function careerStageRank(status) {
+  if (window.OpsCore?.careerStageRank) return window.OpsCore.careerStageRank(status);
+  const label = String(status || "");
+  const low = label.toLowerCase();
+  if (label.includes("面")) return 0;
+  if (label.includes("笔试")) return 1;
+  if (low.includes("offer") || label.includes("录用")) return 2;
+  if (label.includes("初筛")) return 3;
+  if (label.includes("投递")) return 4;
+  return 5;
 }
 
 function normalizeDailyChecks(value) {
@@ -33,35 +68,6 @@ function normalizeDailyChecks(value) {
   return checks;
 }
 
-function readDailyChecks(day) {
-  const storageKey = `ops_checks_${day}`;
-  let raw;
-  try {
-    raw = localStorage.getItem(storageKey);
-  } catch (error) {
-    return {
-      checks: readSnapshotDailyChecks(day), raw: null, valid: false,
-      error: "浏览器本机存储读取失败，四勾暂时不能保存。"
-    };
-  }
-
-  if (raw !== null) {
-    let parsed;
-    try {
-      parsed = JSON.parse(raw);
-    } catch (error) {
-      return { checks: defaultDailyChecks(), raw, valid: false, error: "本机四勾记录损坏，已保留原记录，无法写入。" };
-    }
-    const checks = normalizeDailyChecks(parsed);
-    if (!checks) {
-      return { checks: defaultDailyChecks(), raw, valid: false, error: "本机四勾记录格式无效，已保留原记录，无法写入。" };
-    }
-    return { checks, raw, valid: true, error: "" };
-  }
-
-  return { checks: readSnapshotDailyChecks(day), raw: null, valid: true, error: "" };
-}
-
 function defaultDailyChecks() {
   return Object.fromEntries(DAILY_CHECK_KEYS.map(key => [key, false]));
 }
@@ -73,6 +79,35 @@ function readSnapshotDailyChecks(day) {
   return Object.fromEntries(DAILY_CHECK_KEYS.map(key => [
     key, typeof record.checks[key] === "boolean" ? record.checks[key] : false
   ]));
+}
+
+function readDailyChecks(day) {
+  const storageKey = `ops_checks_${day}`;
+  let raw;
+  try {
+    raw = localStorage.getItem(storageKey);
+  } catch (_) {
+    return {
+      checks: readSnapshotDailyChecks(day), raw: null, valid: false,
+      error: "浏览器本机存储读取失败，四勾暂时不能保存。"
+    };
+  }
+
+  if (raw !== null) {
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (_) {
+      return { checks: defaultDailyChecks(), raw, valid: false, error: "本机四勾记录损坏，已保留原记录，无法写入。" };
+    }
+    const checks = normalizeDailyChecks(parsed);
+    if (!checks) {
+      return { checks: defaultDailyChecks(), raw, valid: false, error: "本机四勾记录格式无效，已保留原记录，无法写入。" };
+    }
+    return { checks, raw, valid: true, error: "" };
+  }
+
+  return { checks: readSnapshotDailyChecks(day), raw: null, valid: true, error: "" };
 }
 
 function setDailyChecksFeedback(message, kind = "") {
@@ -104,15 +139,6 @@ function bindDailyChecksEvents() {
   });
 }
 
-function dateOrdinal(value) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ""));
-  if (!match) return null;
-  const [, year, month, day] = match.map(Number);
-  const date = new Date(Date.UTC(year, month - 1, day));
-  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
-    ? date.getTime() / 86400000 : null;
-}
-
 function getExamState(entry, now = new Date()) {
   if (["awaiting_result", "result_recorded"].includes(entry.phase)) return { ...entry, days_left: null };
   const target = dateOrdinal(entry.target_date);
@@ -130,7 +156,6 @@ function getSnapshotInfo(now = new Date()) {
   const value = globalStatus?.meta?.last_synced;
   if (!value) return { state: "unknown", label: globalStatus ? "快照时间未知" : "暂无数据", ageSeconds: null };
   if (typeof value !== "string" || dateOrdinal(value.slice(0, 10)) === null) return { state: "invalid", label: "快照时间无效", ageSeconds: null };
-  // Collector timestamps without an offset are generated on the owner's Shanghai clock.
   const normalized = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}$/.test(value)
     ? value.replace(" ", "T") + "+08:00" : value;
   const timestamp = new Date(normalized).getTime();
@@ -139,81 +164,31 @@ function getSnapshotInfo(now = new Date()) {
   if (seconds < 0) return { state: "future", label: "快照时间在未来，请核对", ageSeconds: seconds };
   const age = Math.max(0, seconds);
   const relative = age < 60 ? "不足 1 分钟" : age < 3600 ? `${Math.floor(age / 60)} 分钟前` : age < 86400 ? `${Math.floor(age / 3600)} 小时前` : `${Math.floor(age / 86400)} 天前`;
-  // 定时同步 12 小时一轮；超过 13 小时说明至少漏了一轮（跳过/失败/断网），必须明说
   const STALE_AFTER = 13 * 3600;
   return { state: age >= STALE_AFTER ? "stale" : "snapshot", label: `快照 · ${relative}${age >= STALE_AFTER ? "，需同步" : ""}`, ageSeconds: age };
 }
 
-/**
- * Escape external/user-controlled text before injecting into innerHTML (XSS guard).
- * All data rendered via innerHTML MUST pass through esc() first.
- */
-function esc(s) {
-  return String(s ?? "").replace(/[&<>"']/g, c => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-  }[c]));
-}
-
-function boot() {
-  console.log("🚀 Ops-Hub 正在初始化启动...");
-  initTheme();
-  initTabs();
-  initVitaFlow();
-  initWeightTracker();
-  startLiveClock();
-
-  if (window.__OPS_STATUS__) {
-    globalStatus = window.__OPS_STATUS__;
-  }
-  if (window.__OPS_MEMORY__) {
-    memoryRules = window.__OPS_MEMORY__;
-  }
-
-  // 1. If preloaded from status.js, render immediately with 0 delay!
-  if (globalStatus) {
-    renderAll();
-  }
-
-  // 2. Fetch fresh data (works on http/https, gracefully handles file:///)
-  loadData(true);
-
-  // Background auto-fetch every 30 seconds
-  setInterval(() => {
-    loadData(true);
-  }, 30000);
-}
-
-// Immediate execution or on DOMContentLoaded
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", boot);
-} else {
-  boot();
-}
-
 function safeCreateIcons() {
   try {
-    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    if (window.lucide && typeof window.lucide.createIcons === "function") {
       window.lucide.createIcons();
     }
   } catch (e) {
     console.warn("Lucide icons init warning:", e);
   }
 }
+window.safeCreateIcons = safeCreateIcons;
 
 function initWeightTracker() {
-  // The native workspace mounts once and keeps the original browser records.
   document.getElementById("weight-native")?.setAttribute("aria-label", "体重记录工作区");
 }
-
-/* ---------- Day/Night Theme ---------- */
 
 function applyTheme(theme) {
   const isDark = theme === "dark";
   document.documentElement.classList.toggle("dark", isDark);
   const btn = document.getElementById("theme-toggle");
   if (btn) {
-    // Show the icon of the theme you will switch TO
-    btn.innerHTML = `<i data-lucide="${isDark ? 'sun' : 'moon'}" class="w-4 h-4"></i>`;
+    btn.innerHTML = `<i data-lucide="${isDark ? "sun" : "moon"}" class="w-4 h-4"></i>`;
     btn.title = isDark ? "切换到日间模式" : "切换到夜间模式";
   }
   safeCreateIcons();
@@ -223,14 +198,14 @@ function applyTheme(theme) {
 
 function initTheme() {
   let saved = "dark";
-  try { saved = localStorage.getItem("ops_theme") || "dark"; } catch (e) {}
+  try { saved = localStorage.getItem("ops_theme") || "dark"; } catch (_) {}
   applyTheme(saved);
 }
 
 function toggleTheme() {
   const next = document.documentElement.classList.contains("dark") ? "light" : "dark";
   applyTheme(next);
-  try { localStorage.setItem("ops_theme", next); } catch (e) {}
+  try { localStorage.setItem("ops_theme", next); } catch (_) {}
 }
 
 function startLiveClock() {
@@ -238,9 +213,8 @@ function startLiveClock() {
   let displayedDay = calendarDay();
   const update = () => {
     const now = new Date();
-    const pad = n => String(n).padStart(2, '0');
-    const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-    if (clockEl) clockEl.innerText = timeStr;
+    const pad = n => String(n).padStart(2, "0");
+    if (clockEl) clockEl.innerText = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
     updateSyncAge();
     const day = calendarDay(now);
     if (day !== displayedDay) {
@@ -263,7 +237,9 @@ function updateSyncAge() {
   ageEl.title = `采集时间：${globalStatus?.meta?.last_synced || "未知"}。页面刷新只重新读取快照，不执行设备探测。${snapshotLoadError}`;
   const notice = document.getElementById("data-load-notice");
   if (notice) {
-    notice.textContent = snapshotLoadError || (!globalStatus ? "尚未取得状态快照，请检查连接后重新读取。" : snapshotSource === "local" ? "已读取本机快照" : "已读取公开快照；个人日程和浏览器打卡分别保存");
+    notice.textContent = snapshotLoadError || (!globalStatus
+      ? "尚未取得状态快照，请检查连接后重新读取。"
+      : snapshotSource === "local" ? "已读取本机快照" : "已读取公开快照；个人日程和浏览器打卡分别保存");
     notice.dataset.state = snapshotLoadError ? "warning" : info.state;
   }
 }
@@ -271,34 +247,34 @@ function updateSyncAge() {
 async function manualRefresh() {
   const icon = document.getElementById("sync-refresh-icon");
   if (icon) icon.classList.add("animate-spin");
-  await loadData(false);
+  await Promise.all([
+    loadData(false),
+    window.OpsCore?.refreshPublicKnowledge ? window.OpsCore.refreshPublicKnowledge() : Promise.resolve(),
+  ]);
   setTimeout(() => {
     if (icon) icon.classList.remove("animate-spin");
   }, 600);
 }
 
 function initTabs() {
-  const tabButtons = document.querySelectorAll('[data-ops-tab][data-tab]');
+  const tabButtons = document.querySelectorAll("[data-ops-tab][data-tab]");
   tabButtons.forEach(btn => {
     btn.addEventListener("click", () => {
       tabButtons.forEach(b => b.classList.remove("active", "bg-indigo-950/60", "text-indigo-400", "border-indigo-500"));
       btn.classList.add("active", "bg-indigo-950/60", "text-indigo-400", "border-indigo-500");
-      
+
       const target = btn.getAttribute("data-tab");
-      document.querySelectorAll('[data-ops-workspace]').forEach(content => {
-        content.classList.add("hidden");
-      });
-      const targetEl = document.getElementById(target);
-      if (targetEl) targetEl.classList.remove("hidden");
-      if (target === 'tab-vitaflow') window.OpsVitaFlow?.activate();
-      if (target === 'tab-weight') window.OpsWeightNative?.activate();
-      if (target === 'tab-finance') window.OpsFinanceNative?.activate();
+      document.querySelectorAll("[data-ops-workspace]").forEach(content => content.classList.add("hidden"));
+      document.getElementById(target)?.classList.remove("hidden");
+      if (target === "tab-vitaflow") window.OpsVitaFlow?.activate();
+      if (target === "tab-weight") window.OpsWeightNative?.activate();
+      if (target === "tab-finance") window.OpsFinanceNative?.activate();
       safeCreateIcons();
     });
   });
 }
 
-async function loadData(silent = false) {
+async function loadData() {
   if (dataLoadPromise) return dataLoadPromise;
   if (window.location.protocol === "file:") {
     snapshotLoadError = "文件模式显示随页面载入的快照；重新打开页面可重读，本机同步请使用 ops sync。";
@@ -309,8 +285,6 @@ async function loadData(silent = false) {
   const local = ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname);
   const load = async name => {
     const isRules = name === "memory_rules";
-    // Public rules are shipped as memory_rules.js, not a JSON endpoint.
-    // Only a local preview may read the private JSON source.
     const sources = isRules ? (local ? ["data/memory_rules.json"] : [])
       : local ? [`data/${name}.json`, `data/public/${name}.json`] : [`data/public/${name}.json`];
     for (const path of sources) {
@@ -323,8 +297,8 @@ async function loadData(silent = false) {
         if (!data || typeof data !== "object" || Array.isArray(data)) continue;
         if (name === "status" && (!data.meta || !Array.isArray(data.projects_and_exams))) continue;
         return { data, source: path.startsWith("data/public/") ? "public" : "local" };
-      } catch (error) {
-        // Try the public snapshot on a local preview without private source files.
+      } catch (_) {
+        // Fallback to public snapshot on local preview when private files are absent.
       } finally {
         clearTimeout(timeout);
       }
@@ -353,7 +327,9 @@ async function loadData(silent = false) {
       memoryRulesSource = rules.value.source;
     }
     const failed = [status.status === "rejected" ? "状态快照" : "", rules.status === "rejected" ? "秩序规则" : ""].filter(Boolean);
-    snapshotLoadError = failed.length ? `${failed.join("、")}读取失败；${globalStatus ? "保留上次可用数据，请稍后重试" : "暂无可用数据，请检查连接"}。` : rules.value.warning || "";
+    snapshotLoadError = failed.length
+      ? `${failed.join("、")}读取失败；${globalStatus ? "保留上次可用数据，请稍后重试" : "暂无可用数据，请检查连接"}。`
+      : rules.value.warning || "";
     renderAll();
     updateSyncAge();
   })();
@@ -388,8 +364,7 @@ function renderAll() {
     renderCareerPipeline();
     renderProjectsRadar();
     renderMemoryHub();
-    renderComputeTopology();
-    renderDeviceAllocation();
+    window.OpsCompute?.render(globalStatus);
     updateSyncAge();
     safeCreateIcons();
   } catch (err) {
@@ -402,19 +377,13 @@ function renderAll() {
 }
 
 function renderHeader() {
-  const meta = globalStatus.meta || {};
   const topo = globalStatus.topology || {};
   const win = topo.windows || {};
   const jetson = topo.jetson || {};
 
-  const exactTimeEl = document.getElementById("last-synced-exact");
-  if (exactTimeEl) exactTimeEl.innerText = meta.last_synced || "-";
-  
-  // Win status pill
   const winPill = document.getElementById("win-status-pill");
   const winDot = document.getElementById("win-status-dot");
   const winText = document.getElementById("win-status-text");
-
   if (winPill && winDot && winText) {
     if (win.status === "Online") {
       winDot.className = "w-2 h-2 rounded-full bg-emerald-400";
@@ -427,11 +396,9 @@ function renderHeader() {
     }
   }
 
-  // Jetson status pill
   const jetPill = document.getElementById("jetson-status-pill");
   const jetDot = document.getElementById("jetson-status-dot");
   const jetText = document.getElementById("jetson-status-text");
-
   if (jetPill && jetDot && jetText) {
     if (jetson.status === "Online") {
       jetDot.className = "w-2 h-2 rounded-full bg-emerald-400";
@@ -446,8 +413,7 @@ function renderHeader() {
 }
 
 function renderHeroMetrics() {
-  const career = globalStatus.career_summary || {};
-  const stats = career.stats || {};
+  const stats = globalStatus.career_summary?.stats || {};
   const exams = (globalStatus.projects_and_exams || []).filter(p => p.type === "exam").map(p => getExamState(p));
   const topo = globalStatus.topology || {};
   const win = topo.windows || {};
@@ -456,7 +422,10 @@ function renderHeroMetrics() {
   const cTot = document.getElementById("metric-career-total");
   const cSub = document.getElementById("metric-career-sub");
   if (cTot) cTot.innerText = stats.total || 0;
-  if (cSub) cSub.innerText = `初筛 ${stats.screening || 0} · 投递 ${stats.applied || 0} · 面试 ${stats.interviewing || 0}`;
+  if (cSub) {
+    const offerSeg = stats.offer ? `录用 ${stats.offer} · ` : "";
+    cSub.innerText = `${offerSeg}初筛 ${stats.screening || 0} · 投递 ${stats.applied || 0} · 面试 ${stats.interviewing || 0}`;
+  }
 
   const cet6 = exams.find(e => e.id === "e-cet6") || {};
   const eDays = document.getElementById("metric-exam-days");
@@ -479,33 +448,56 @@ function renderHeroMetrics() {
   const compSub = document.getElementById("metric-compute-sub");
   const onlineCount = [topo.mac, win, jetson].filter(device => device?.status === "Online").length;
   if (compLat) compLat.innerText = `${onlineCount} 节点`;
-  if (compSub) compSub.innerText = `采集时在线 · 4070S:${win.latency_ms != null ? win.latency_ms + 'ms' : (win.status === "Online" ? '在线' : '离线')} ｜ Jetson:${jetson.latency_ms != null ? jetson.latency_ms + 'ms' : (jetson.status === "Online" ? '在线' : '待命')}`;
+  if (compSub) {
+    const winState = win.latency_ms != null ? `${win.latency_ms}ms` : (win.status === "Online" ? "在线" : "离线");
+    const jetState = jetson.latency_ms != null ? `${jetson.latency_ms}ms` : (jetson.status === "Online" ? "在线" : "待命");
+    compSub.innerText = `采集时在线 · 4070S:${winState} ｜ Jetson:${jetState}`;
+  }
+}
+
+function matchesCareerFilter(record, filter) {
+  const st = String(record?.status || "");
+  const low = st.toLowerCase();
+  if (filter === "all") return true;
+  if (filter === "interview") return st.includes("面");
+  if (filter === "test") return st.includes("笔试");
+  if (filter === "offer") return low.includes("offer") || st.includes("录用");
+  if (filter === "screening") return st.includes("初筛");
+  if (filter === "applied") return st.includes("投递");
+  return true;
 }
 
 function renderCareerPipeline() {
-  const records = globalStatus.career_summary?.records || [];
+  const rawRecords = globalStatus.career_summary?.records || [];
   const container = document.getElementById("career-records-list");
   if (!container) return;
   container.innerHTML = "";
 
-  const filtered = records.filter(r => {
-    if (currentCareerFilter === "all") return true;
-    if (currentCareerFilter === "interview") return r.status.includes("面");
-    if (currentCareerFilter === "screening") return r.status.includes("初筛");
-    if (currentCareerFilter === "applied") return r.status.includes("投递");
-    return true;
-  });
+  const sorted = rawRecords.slice().sort((a, b) => careerStageRank(a.status) - careerStageRank(b.status));
+  const filtered = sorted.filter(r => matchesCareerFilter(r, currentCareerFilter));
+
+  if (!filtered.length) {
+    const empty = document.createElement("div");
+    empty.className = "glass-panel p-5 rounded-xl text-xs text-zinc-400";
+    empty.textContent = rawRecords.length ? "当前筛选条件下暂无记录。" : "暂无投递记录快照。";
+    container.appendChild(empty);
+  }
 
   filtered.forEach(r => {
+    const st = String(r.status || "");
+    const low = st.toLowerCase();
     let statusClass = "bg-zinc-800 text-zinc-300 border-zinc-700";
-    if (r.status.includes("面")) statusClass = "bg-emerald-950/80 text-emerald-300 border-emerald-600";
-    else if (r.status.includes("初筛")) statusClass = "bg-sky-950/80 text-sky-300 border-sky-600";
-    else if (r.status.includes("笔试")) statusClass = "bg-amber-950/80 text-amber-300 border-amber-600";
-
-    let priorityBadge = "";
-    if (r.priority === "High" || r.priority === "Critical") {
-      priorityBadge = `<span class="px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase bg-rose-950/60 text-rose-300 border border-rose-800/40 rounded">High</span>`;
+    if (st.includes("面") || low.includes("offer") || st.includes("录用")) {
+      statusClass = "bg-emerald-950/80 text-emerald-300 border-emerald-600";
+    } else if (st.includes("初筛")) {
+      statusClass = "bg-sky-950/80 text-sky-300 border-sky-600";
+    } else if (st.includes("笔试")) {
+      statusClass = "bg-amber-950/80 text-amber-300 border-amber-600";
     }
+
+    const priorityBadge = (r.priority === "High" || r.priority === "Critical")
+      ? `<span class="px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase bg-rose-950/60 text-rose-300 border border-rose-800/40 rounded">High</span>`
+      : "";
 
     const card = document.createElement("div");
     card.className = "glass-panel p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4";
@@ -517,15 +509,15 @@ function renderCareerPipeline() {
         <div>
           <div class="flex items-center gap-2 flex-wrap">
             <h4 class="font-bold text-slate-100">${esc(r.company)}</h4>
-            <span class="px-2 py-0.5 rounded text-xs border font-medium ${statusClass}">${esc(r.status)}</span>
+            <span class="px-2 py-0.5 rounded text-xs border font-medium ${statusClass}">${esc(st)}</span>
             ${priorityBadge}
           </div>
           <p class="text-xs text-slate-400 mt-1 flex items-center gap-2">
             <span class="text-indigo-300 font-medium">${esc(r.position)}</span>
             <span>·</span>
-            <span>投递于 ${esc(r.apply_date)}</span>
+            <span>更新于 ${esc(r.apply_date || "-")}</span>
           </p>
-          ${r.notes ? `<p class="text-xs text-slate-400/90 mt-2 bg-zinc-900/60 p-2 rounded-lg border border-zinc-800 font-mono">${esc(r.notes)}</p>` : ''}
+          ${r.notes ? `<p class="text-xs text-slate-400/90 mt-2 bg-zinc-900/60 p-2 rounded-lg border border-zinc-800 font-mono">${esc(r.notes)}</p>` : ""}
         </div>
       </div>
       <div class="flex items-center gap-2 self-end md:self-center shrink-0">
@@ -534,7 +526,7 @@ function renderCareerPipeline() {
             <i data-lucide="file-text" class="w-3.5 h-3.5 text-indigo-400"></i>
             <span>${esc(r.resume_file)}</span>
           </div>
-        ` : ''}
+        ` : ""}
       </div>
     `;
     container.appendChild(card);
@@ -544,7 +536,7 @@ function renderCareerPipeline() {
     btn.onclick = () => {
       document.querySelectorAll(".career-filter-btn").forEach(b => b.classList.remove("bg-indigo-600", "text-white"));
       btn.classList.add("bg-indigo-600", "text-white");
-      currentCareerFilter = btn.getAttribute("data-filter");
+      currentCareerFilter = btn.getAttribute("data-filter") || "all";
       renderCareerPipeline();
       safeCreateIcons();
     };
@@ -559,11 +551,10 @@ function renderProjectsRadar() {
 
   projects.forEach(entry => {
     const p = entry.type === "exam" ? getExamState(entry) : entry;
-    const isExam = p.type === "exam";
     const card = document.createElement("div");
     card.className = "glass-panel p-5 rounded-xl flex flex-col justify-between";
 
-    if (isExam) {
+    if (p.type === "exam") {
       const waiting = p.phase === "awaiting_result";
       const recorded = p.phase === "result_recorded";
       const isUrgent = !waiting && p.days_left !== null && p.days_left >= 0 && p.days_left <= 20;
@@ -573,14 +564,14 @@ function renderProjectsRadar() {
       card.innerHTML = `
         <div>
           <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-mono uppercase px-2 py-0.5 rounded ${isUrgent ? 'bg-rose-950 text-rose-300 border border-rose-800/60 danger-pulse' : 'bg-indigo-950 text-indigo-300 border border-indigo-800/60'}">
+            <span class="text-xs font-mono uppercase px-2 py-0.5 rounded ${isUrgent ? "bg-rose-950 text-rose-300 border border-rose-800/60 danger-pulse" : "bg-indigo-950 text-indigo-300 border border-indigo-800/60"}">
               ${esc(p.category)}
             </span>
             <span class="text-xs text-slate-400 font-mono">${recorded ? "查分已办结" : waiting ? "笔试已结束" : "考期: " + esc(p.target_date)}</span>
           </div>
           <h4 class="text-base font-bold text-slate-100 mt-1">${esc(p.name)}</h4>
           <div class="my-4 flex items-baseline gap-2">
-            <span class="text-3xl font-extrabold font-mono ${isUrgent ? 'text-rose-400' : 'text-amber-400'}">${esc(daysLabel)}</span>
+            <span class="text-3xl font-extrabold font-mono ${isUrgent ? "text-rose-400" : "text-amber-400"}">${esc(daysLabel)}</span>
             <span class="text-xs text-slate-400">${esc(unitLabel)}</span>
           </div>
           <div class="bg-zinc-900/80 p-2.5 rounded-lg border border-zinc-800 text-xs text-slate-300">
@@ -589,10 +580,8 @@ function renderProjectsRadar() {
         </div>
       `;
     } else {
-      // 用显式字段判断，不能依赖 commit_msg 的具体文案（文案一改判断就失效）
       const hasActivity = p.git_available === true
         || (typeof p.commit_hash === "string" && p.commit_hash !== "-" && p.commit_hash !== "");
-      // 状态文案是手写的，会随时间失真；这里用提交时间给出「距今多久」的客观提示
       const staleDays = (() => {
         if (!hasActivity || !p.commit_time || p.commit_time === "-") return null;
         const when = new Date(String(p.commit_time).replace(" ", "T"));
@@ -617,9 +606,9 @@ function renderProjectsRadar() {
           <p class="text-xs text-indigo-300 font-mono mt-1">${esc(p.tech_stack)}</p>
 
           <div class="my-3 py-2 px-3 bg-zinc-950/60 rounded-lg border border-zinc-800/80 text-xs font-mono text-slate-400">
-            <div class="flex items-center justify-between text-[11px] ${stale ? 'text-amber-400' : 'text-zinc-500'} mb-1">
+            <div class="flex items-center justify-between text-[11px] ${stale ? "text-amber-400" : "text-zinc-500"} mb-1">
               <span>${hasActivity ? "快照中的工程活动" : "工程路径或活动待核对"}</span>
-              <span>${esc(p.commit_time || '-')}${esc(staleNote)}</span>
+              <span>${esc(p.commit_time || "-")}${esc(staleNote)}</span>
             </div>
             <div class="text-slate-300 truncate">
               ${hasActivity ? `<span class="text-indigo-400 font-semibold">[${esc(p.commit_hash)}]</span> ${esc(p.commit_msg || "")}` : esc(p.commit_msg || "尚无工程活动记录")}
@@ -637,8 +626,6 @@ function renderProjectsRadar() {
 }
 
 function renderMemoryHub() {
-  // Web check-ins persist in localStorage (static site: browser is the only writable store).
-  // CLI (`ops check`) remains the cross-device source of truth via daily_checks.json.
   bindDailyChecksEvents();
   const todayStr = calendarDay();
   const storageKey = `ops_checks_${todayStr}`;
@@ -655,7 +642,12 @@ function renderMemoryHub() {
   if (checksContainer) {
     const focusedKey = document.activeElement?.getAttribute("data-check-key");
     let focusedButton = null;
-    const labels = {"起了": ["起床", "开始今天的节奏"], "动了": ["活动", "按自己的状态活动身体"], "写了": ["专注", "推进一件重要的事"], "关了": ["收工", "结束工作并休息"]};
+    const labels = {
+      "起了": ["起床", "开始今天的节奏"],
+      "动了": ["活动", "按自己的状态活动身体"],
+      "写了": ["专注", "推进一件重要的事"],
+      "关了": ["收工", "结束工作并休息"]
+    };
     checksContainer.innerHTML = "";
 
     const configured = Array.isArray(memoryRules?.four_checks_definition) ? memoryRules.four_checks_definition : [];
@@ -668,20 +660,20 @@ function renderMemoryHub() {
       item.setAttribute("data-check-key", key);
       if (focusedKey === key) focusedButton = item;
       item.className = `w-full text-left p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
-        isChecked ? 'bg-emerald-950/30 border-emerald-800/60 text-emerald-200' : 'bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+        isChecked ? "bg-emerald-950/30 border-emerald-800/60 text-emerald-200" : "bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:border-zinc-700"
       }`;
       item.innerHTML = `
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg ${isChecked ? 'bg-emerald-900/50 text-emerald-400' : 'bg-zinc-800 text-zinc-400'} flex items-center justify-center">
-            <i data-lucide="${esc(def.icon || 'check')}" class="w-4 h-4"></i>
+          <div class="w-8 h-8 rounded-lg ${isChecked ? "bg-emerald-900/50 text-emerald-400" : "bg-zinc-800 text-zinc-400"} flex items-center justify-center">
+            <i data-lucide="${esc(def.icon || "check")}" class="w-4 h-4"></i>
           </div>
           <div>
             <h5 class="text-sm font-bold text-slate-200">${esc(labels[def.key]?.[0] || def.key)} (${esc(def.key)})</h5>
             <p class="text-[11px] text-slate-400">${esc(labels[def.key]?.[1] || "按当前计划记录")}</p>
           </div>
         </div>
-        <div class="w-6 h-6 rounded-md border flex items-center justify-center ${isChecked ? 'bg-emerald-600 border-emerald-500 text-white' : 'border-zinc-700'}">
-          ${isChecked ? '<i data-lucide="check" class="w-4 h-4"></i>' : ''}
+        <div class="w-6 h-6 rounded-md border flex items-center justify-center ${isChecked ? "bg-emerald-600 border-emerald-500 text-white" : "border-zinc-700"}">
+          ${isChecked ? '<i data-lucide="check" class="w-4 h-4"></i>' : ""}
         </div>
       `;
       item.onclick = () => {
@@ -691,7 +683,6 @@ function renderMemoryHub() {
           safeCreateIcons();
           return;
         }
-
         const currentRecord = readDailyChecks(todayStr);
         if (!currentRecord.valid) {
           setDailyChecksFeedback(currentRecord.error || "本机四勾记录无法读取，暂时不能保存。", "read");
@@ -703,15 +694,13 @@ function renderMemoryHub() {
           safeCreateIcons();
           return;
         }
-
         const nextRecord = { ...currentRecord.checks, [key]: !currentRecord.checks[key] };
         try {
           localStorage.setItem(storageKey, JSON.stringify(nextRecord));
-        } catch (error) {
+        } catch (_) {
           setDailyChecksFeedback("本机四勾保存失败，当前勾选未改变；请检查浏览器存储后重试。");
           return;
         }
-
         setDailyChecksFeedback("");
         renderMemoryHub();
         safeCreateIcons();
@@ -733,7 +722,7 @@ function renderMemoryHub() {
           <span class="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 font-mono">${esc(sc.mode)}</span>
         </div>
         <ul class="text-xs text-slate-400 space-y-1.5 mt-2">
-          ${sc.rules.map(r => `<li class="flex items-start gap-1.5"><span class="text-indigo-400">▹</span><span>${esc(r)}</span></li>`).join('')}
+          ${(sc.rules || []).map(r => `<li class="flex items-start gap-1.5"><span class="text-indigo-400">▹</span><span>${esc(r)}</span></li>`).join("")}
         </ul>
       `;
       scenesContainer.appendChild(card);
@@ -753,181 +742,28 @@ function renderMemoryHub() {
       principlesContainer.appendChild(card);
     });
   }
-
-
 }
 
-function renderComputeTopology() {
-  const topo = globalStatus.topology || {};
-  const mac = topo.mac || {};
-  const win = topo.windows || {};
-  const jetson = topo.jetson || {};
+function boot() {
+  initTheme();
+  initTabs();
+  if (typeof initVitaFlow === "function") initVitaFlow();
+  initWeightTracker();
+  startLiveClock();
 
-  const macIp = document.getElementById("mac-ip-text");
-  const macBatt = document.getElementById("mac-battery-text");
-  const macLoad = document.getElementById("mac-load-text");
-  if (macIp) macIp.innerText = mac.ip || "已隐藏";
-  if (macBatt) macBatt.innerText = `${mac.battery} (${mac.power_state})`;
-  if (macLoad) macLoad.innerText = mac.load_avg || "-";
+  document.getElementById("theme-toggle")?.addEventListener("click", toggleTheme);
+  document.getElementById("sync-refresh-btn")?.addEventListener("click", manualRefresh);
 
-  const winIp = document.getElementById("win-ip-text");
-  const winLat = document.getElementById("win-latency-badge");
-  const winSsh = document.getElementById("win-ssh-badge");
-  const winSmb = document.getElementById("win-smb-badge");
-  if (winIp) winIp.innerText = win.ip || "已隐藏";
-  if (winLat) {
-    const via = win.via ? ` · ${win.via}` : "";
-    winLat.innerText = win.latency_ms != null
-      ? `${win.latency_ms} ms${via}`
-      : (win.status === "Online" ? `在线${via}` : `Offline${via}`);
-  }
-  if (winSsh) winSsh.innerText = win.ssh_active ? "22 (Active)" : "22 (Standby)";
-  if (winSmb) winSmb.innerText = win.smb_active ? "445 (Active)" : "445 (Standby)";
+  if (window.__OPS_STATUS__) globalStatus = window.__OPS_STATUS__;
+  if (window.__OPS_MEMORY__) memoryRules = window.__OPS_MEMORY__;
+  if (globalStatus) renderAll();
 
-  const jetIp = document.getElementById("jetson-ip-text");
-  const jetLat = document.getElementById("jetson-latency-badge");
-  const jetSsh = document.getElementById("jetson-ssh-badge");
-  if (jetIp) jetIp.innerText = jetson.ip || "已隐藏";
-  if (jetLat) {
-    const via = jetson.via ? ` · ${jetson.via}` : "";
-    jetLat.innerText = jetson.latency_ms != null
-      ? `${jetson.latency_ms} ms${via}`
-      : (jetson.status === "Online" ? "在线" : `局域网待命${via}`);
-  }
-  if (jetSsh) jetSsh.innerText = jetson.ssh_active ? "22 (Active)" : "22 (Standby)";
+  loadData(true);
+  setInterval(() => loadData(true), 30000);
 }
 
-function renderDeviceAllocation() {
-  const alloc = globalStatus.device_allocation || {};
-  const devices = alloc.devices || [];
-  const workflows = alloc.project_workflows || [];
-
-  const allocContainer = document.getElementById("device-allocation-cards");
-  if (allocContainer) {
-    allocContainer.innerHTML = "";
-
-    devices.forEach(dev => {
-      const isMac = dev.id === "mac";
-      const isWin = dev.id === "win";
-      const borderClass = isMac ? "border-indigo-800/40" : (isWin ? "border-sky-800/40" : "border-emerald-800/40");
-      const headerColor = isMac ? "text-indigo-400" : (isWin ? "text-sky-400" : "text-emerald-400");
-      const badgeColor = isMac ? "bg-indigo-950 text-indigo-300 border-indigo-800/60" : (isWin ? "bg-sky-950 text-sky-300 border-sky-800/60" : "bg-emerald-950 text-emerald-300 border-emerald-800/60");
-
-      const card = document.createElement("div");
-      card.className = `glass-panel p-5 rounded-2xl border ${borderClass} flex flex-col justify-between`;
-      card.innerHTML = `
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-mono uppercase px-2 py-0.5 rounded border ${badgeColor}">
-              ${esc(dev.badge)}
-            </span>
-            ${dev.network ? `<span class="text-xs font-mono text-zinc-400 truncate max-w-[58%]" title="${esc(dev.network)}">${esc(dev.network)}</span>` : ""}
-          </div>
-          <h4 class="text-lg font-bold text-white mt-1">${esc(dev.name)}</h4>
-          <p class="text-xs text-zinc-400 font-mono mt-0.5">${esc(dev.hardware)}</p>
-          <p class="text-xs ${headerColor} font-medium mt-1 mb-3">${esc(dev.role)}</p>
-
-          <div class="mb-4">
-            <div class="text-xs font-bold text-slate-200 mb-1.5 flex items-center gap-1">
-              <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400"></i>
-              <span>专属主责任务清单</span>
-            </div>
-            <ul class="text-xs text-slate-300 space-y-1.5 bg-zinc-950/50 p-2.5 rounded-xl border border-zinc-800/80">
-              ${dev.primary_tasks.map(t => `<li class="flex items-start gap-1.5"><span class="text-indigo-400 font-bold shrink-0">✓</span><span>${esc(t)}</span></li>`).join('')}
-            </ul>
-          </div>
-
-          <div>
-            <div class="text-xs font-bold text-rose-300 mb-1.5 flex items-center gap-1">
-              <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-rose-400"></i>
-              <span>设备使用绝不越界红线</span>
-            </div>
-            <ul class="text-xs text-rose-200/80 space-y-1 bg-rose-950/20 p-2.5 rounded-xl border border-rose-900/40 font-mono">
-              ${dev.redlines.map(r => `<li class="flex items-start gap-1.5"><span>${esc(r)}</span></li>`).join('')}
-            </ul>
-          </div>
-        </div>
-      `;
-      allocContainer.appendChild(card);
-    });
-  }
-
-  const wfContainer = document.getElementById("workflows-table-body");
-  if (wfContainer) {
-    wfContainer.innerHTML = "";
-    workflows.forEach(wf => {
-      const tr = document.createElement("tr");
-      tr.className = "border-b border-zinc-800/60 hover:bg-zinc-900/30 transition-all text-xs";
-      tr.innerHTML = `
-        <td class="py-3 px-4 font-bold text-slate-200 whitespace-nowrap">${esc(wf.project)}</td>
-        <td class="py-3 px-4 text-indigo-300 bg-indigo-950/10">${esc(wf.mac_role)}</td>
-        <td class="py-3 px-4 text-sky-300 bg-sky-950/10">${esc(wf.win_role)}</td>
-        <td class="py-3 px-4 text-zinc-400 font-mono">${esc(wf.collab_mode)}</td>
-      `;
-      wfContainer.appendChild(tr);
-    });
-  }
-}
-
-function handleTaskRoute(val) {
-  const inputEl = document.getElementById("task-route-input");
-  const query = (val || (inputEl ? inputEl.value : "")).trim().toLowerCase();
-  const resBox = document.getElementById("task-route-result");
-  if (!resBox) return;
-
-  if (!query) {
-    resBox.classList.add("hidden");
-    return;
-  }
-
-  resBox.classList.remove("hidden");
-  if (query.includes("论文") || query.includes("写作") || query.includes("日记") || query.includes("求职") || query.includes("简历") || query.includes("思考") || query.includes("typst") || query.includes("前端")) {
-    resBox.innerHTML = `
-      <div class="flex items-center gap-3 text-emerald-300">
-        <i data-lucide="laptop" class="w-5 h-5 text-indigo-400 shrink-0"></i>
-        <div>
-          <span class="font-bold text-sm text-white">👉 立即留在 MacBook Air (M5) 执行！</span>
-          <p class="text-xs text-zinc-400 mt-0.5">场景指引：抱上 Mac 前往图书馆专注完成，断网/静音深潜，严禁多开与发散。</p>
-        </div>
-      </div>
-    `;
-  } else if (query.includes("cuda") || query.includes("训练") || query.includes("yolo") || query.includes("冷备") || query.includes("备份") || query.includes("下载") || query.includes("游戏") || query.includes("渲染") || query.includes("构建") || query.includes("依赖")) {
-    resBox.innerHTML = `
-      <div class="flex items-center gap-3 text-sky-300">
-        <i data-lucide="server" class="w-5 h-5 text-sky-400 shrink-0"></i>
-        <div>
-          <span class="font-bold text-sm text-white">👉 立即派发给 Windows 4070S 性能主机 执行！</span>
-          <p class="text-xs text-zinc-400 mt-0.5">快捷登录：<code class="text-sky-300 bg-zinc-900 px-1.5 py-0.5 rounded cursor-pointer" onclick="copySSH('地址已隐藏')">地址已隐藏</code> ｜ CUDA 训练 / 批量构建 / 冷备</p>
-        </div>
-      </div>
-    `;
-  } else if (query.includes("jetson") || query.includes("边缘") || query.includes("机器人") || query.includes("ros") || query.includes("视觉") || query.includes("传感器")) {
-    resBox.innerHTML = `
-      <div class="flex items-center gap-3 text-emerald-300">
-        <i data-lucide="bot" class="w-5 h-5 text-emerald-400 shrink-0"></i>
-        <div>
-          <span class="font-bold text-sm text-white">👉 立即派发给 Jetson 边缘计算硬件 执行！</span>
-          <p class="text-xs text-zinc-400 mt-0.5">快捷登录：<code class="text-emerald-300 bg-zinc-900 px-1.5 py-0.5 rounded cursor-pointer" onclick="copySSH('地址已隐藏')">地址已隐藏</code> (局域网)</p>
-        </div>
-      </div>
-    `;
-  } else {
-    resBox.innerHTML = `
-      <div class="text-xs text-zinc-300">
-        💡 <span class="font-bold text-white">通用分流口诀：</span>思考/文字/求职留在 Mac（去图书馆），重跑/构建/冷备丢给 Win 4070S，端侧感知丢给 Jetson。
-      </div>
-    `;
-  }
-  safeCreateIcons();
-}
-
-function copySSH(cmd) {
-  navigator.clipboard.writeText(cmd).then(() => {
-    const toast = document.getElementById("toast");
-    if (toast) {
-      toast.innerText = `已复制 [${cmd}] 到剪贴板！`;
-      toast.classList.remove("opacity-0", "pointer-events-none");
-      setTimeout(() => toast.classList.add("opacity-0", "pointer-events-none"), 2000);
-    }
-  });
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", boot);
+} else {
+  boot();
 }

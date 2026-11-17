@@ -1,30 +1,36 @@
 #!/usr/bin/env python3
 """
-scripts/collector.py: Aggregates real data from probe, git repos, career records, memory checks,
-and device task allocation matrix.
-Saves to data/status.json AND data/status.js (for zero-CORS offline file:/// compatibility).
-Supports --push to trigger GitOps auto-commit & push to GitHub.
+scripts/collector.py: 全量状态采集与 GitOps 自动提交核心。
+
+聚合三端网络硬件探针、Career-Copilot 求职台账投影、本地项目 Git 状态、
+考期倒计时、每日四勾打卡、知识库只读投影与个人体重记录；
+原子写入本机真源快照，并调用 sanitize_public 生成 data/public/ 公开脱敏产物。
 """
 
-import os
-import sys
-import json
-import re
 import fcntl
-import tempfile
+import os
+import re
 import subprocess
+import sys
 from contextlib import contextmanager
-from datetime import datetime, date
+from datetime import date, datetime
 from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = BASE_DIR / "data"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import probe
+from ops_common import (
+    BASE_DIR,
+    DATA_DIR,
+    atomic_write_js_global,
+    atomic_write_json,
+    atomic_write_text,
+    career_stage_rank,
+    default_daily_checks_payload,
+    load_json,
+    rollover_daily_checks,
+)
 
-# Files managed by the GitOps pipeline (used for dirty-worktree protection)
-# 注意：托管的是公开脱敏产物（data/public/），本地真源已 git-ignore。
+# GitOps 托管的公开脱敏产物白名单（脏工作区保护仅放行这些文件）
 GITOPS_FILES = [
     "data/public/status.json",
     "data/public/status.js",
@@ -39,49 +45,13 @@ GITOPS_FILES = [
     "data/public/knowledge.js",
 ]
 
-def load_json(path, default):
-    """Read a JSON file gracefully; fall back to default on corruption/missing."""
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except (OSError, json.JSONDecodeError):
-        return default
+_EXAM_COUNTDOWN_PREFIX = re.compile(r"^(?:考前\s*\d+\s*天|今日考试)[·•\s]*")
+COPILOT_APPLICATIONS = BASE_DIR.parent / "Career-Copilot" / "data" / "applications.json"
 
-def atomic_write_text(path, content):
-    """Write a file atomically: temp file in same directory + os.replace()."""
-    tmp_fd, tmp_path = tempfile.mkstemp(dir=str(path.parent), prefix=path.name + ".", suffix=".tmp")
-    try:
-        with os.fdopen(tmp_fd, "w", encoding="utf-8") as f:
-            f.write(content)
-        os.replace(tmp_path, path)
-    except Exception:
-        try:
-            os.unlink(tmp_path)
-        except OSError:
-            pass
-        raise
-
-def rollover_daily_checks(data):
-    """
-    Cross-day rollover: if the record is not today's, archive it into history
-    and reset the four checks. Returns (data, rolled_over: bool).
-    """
-    today_str = datetime.now().strftime("%Y-%m-%d")
-    if data.get("date") == today_str:
-        return data, False
-    history = data.get("history") or []
-    if data.get("date") and data.get("checks"):
-        history.append({"date": data["date"], "checks": data["checks"]})
-    new_data = {
-        "date": today_str,
-        "checks": {"起了": False, "动了": False, "写了": False, "关了": False},
-        "history": history,
-    }
-    return new_data, True
 
 @contextmanager
 def ops_lock():
-    """Advisory file lock preventing concurrent collect/gitops runs (CLI vs launchd)."""
+    """文件锁防止 CLI 与 launchd 并发采集或推送。"""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     fd = os.open(DATA_DIR / ".opshub.lock", os.O_CREAT | os.O_RDWR)
     try:
@@ -95,6 +65,7 @@ def ops_lock():
         fcntl.flock(fd, fcntl.LOCK_UN)
         os.close(fd)
 
+
 def get_git_info(repo_path):
     p = Path(repo_path).expanduser()
     if not p.exists():
@@ -103,26 +74,21 @@ def get_git_info(repo_path):
             "commit_hash": "-",
             "commit_time": "-",
             "commit_msg": "路径不存在",
-            "branch": "-"
+            "branch": "-",
         }
-    
-    target_repo = None
-    if (p / ".git").exists():
-        target_repo = p
-    else:
-        for sub in p.iterdir():
-            if sub.is_dir() and (sub / ".git").exists():
-                target_repo = sub
-                break
+
+    target_repo = p if (p / ".git").exists() else next(
+        (sub for sub in p.iterdir() if sub.is_dir() and (sub / ".git").exists()),
+        None,
+    )
 
     if not target_repo:
         try:
             latest_mtime = 0
             for root, _, files in os.walk(p):
-                for f in files:
-                    if not f.startswith("."):
-                        fp = os.path.join(root, f)
-                        latest_mtime = max(latest_mtime, os.path.getmtime(fp))
+                for fname in files:
+                    if not fname.startswith("."):
+                        latest_mtime = max(latest_mtime, os.path.getmtime(os.path.join(root, fname)))
             if latest_mtime > 0:
                 t_str = datetime.fromtimestamp(latest_mtime).strftime("%Y-%m-%d %H:%M")
                 return {
@@ -130,41 +96,38 @@ def get_git_info(repo_path):
                     "commit_hash": "LOCAL",
                     "commit_time": t_str,
                     "commit_msg": f"本地文件活跃 (更新于 {t_str})",
-                    "branch": "local"
+                    "branch": "local",
                 }
         except Exception:
             pass
-
         return {
             "git_available": False,
             "commit_hash": "-",
             "commit_time": "-",
             "commit_msg": "本地就绪",
-            "branch": "-"
+            "branch": "-",
         }
 
     try:
-        cmd = ["git", "-C", str(target_repo), "log", "-1", "--format=%h|%an|%ad|%s", "--date=format:%Y-%m-%d %H:%M"]
+        cmd = [
+            "git", "-C", str(target_repo), "log", "-1",
+            "--format=%h|%an|%ad|%s", "--date=format:%Y-%m-%d %H:%M",
+        ]
         res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=2)
         if res.returncode == 0 and res.stdout.strip():
             parts = res.stdout.strip().split("|")
-            h = parts[0] if len(parts) > 0 else "-"
-            author = parts[1] if len(parts) > 1 else "-"
-            t = parts[2] if len(parts) > 2 else "-"
-            msg = parts[3] if len(parts) > 3 else "-"
-            
-            b_res = subprocess.run(["git", "-C", str(target_repo), "branch", "--show-current"], stdout=subprocess.PIPE, text=True, timeout=2)
-            branch = b_res.stdout.strip() or "main"
-            repo_label = target_repo.name if target_repo != p else ""
-            
+            b_res = subprocess.run(
+                ["git", "-C", str(target_repo), "branch", "--show-current"],
+                stdout=subprocess.PIPE, text=True, timeout=2,
+            )
             return {
                 "git_available": True,
-                "sub_repo": repo_label,
-                "commit_hash": h,
-                "author": author,
-                "commit_time": t,
-                "commit_msg": msg,
-                "branch": branch
+                "sub_repo": target_repo.name if target_repo != p else "",
+                "commit_hash": parts[0] if len(parts) > 0 else "-",
+                "author": parts[1] if len(parts) > 1 else "-",
+                "commit_time": parts[2] if len(parts) > 2 else "-",
+                "commit_msg": parts[3] if len(parts) > 3 else "-",
+                "branch": b_res.stdout.strip() or "main",
             }
     except Exception:
         pass
@@ -174,15 +137,12 @@ def get_git_info(repo_path):
         "commit_hash": "-",
         "commit_time": "-",
         "commit_msg": "读取 Git 失败",
-        "branch": "-"
+        "branch": "-",
     }
 
-def resolve_project_path(entry):
-    """按候选顺序取第一个存在的路径。
 
-    目录搬迁是本项目最容易过期的部分（历史上三条项目雷达全指向已删除的 Desktop 路径）。
-    projects.json 支持 paths 列表，命中第一个存在的就停，避免搬一次目录就整条失效。
-    """
+def resolve_project_path(entry):
+    """按候选顺序取第一个存在的路径，防止目录搬迁后整条配置失效。"""
     candidates = entry.get("paths")
     if not isinstance(candidates, list):
         candidates = [entry.get("path")] if entry.get("path") else []
@@ -199,25 +159,21 @@ def calculate_days_left(target_date_str, today=None):
     try:
         target = datetime.strptime(target_date_str, "%Y-%m-%d").date()
         today = today or date.today()
-        diff = (target - today).days
-        return max(diff, 0)
+        return max((target - today).days, 0)
     except Exception:
         return 0
 
 
-# Leading "考前 N 天" / "今日考试" in next_action is a live stamp, not a static slogan.
-_EXAM_COUNTDOWN_PREFIX = re.compile(r"^(?:考前\s*\d+\s*天|今日考试)[·•\s]*")
-
-
-COPILOT_APPLICATIONS = BASE_DIR.parent / "Career-Copilot" / "data" / "applications.json"
-
-
 def career_label(item):
-    """Map Career-Copilot stage text onto the ops-hub board labels."""
+    """将 Career-Copilot 阶段文案映射为总台标准阶段标签。"""
     stage = str(item.get("stage") or "")
     status = str(item.get("status") or "")
     if status == "offer" or "Offer" in stage or "录用" in stage:
         return "已录用"
+    if "面" in stage or status == "interviewing":
+        return "面试中"
+    if "笔试" in stage or status == "test":
+        return "笔试中"
     if "初筛" in stage:
         return "初筛"
     if "暂停" in stage:
@@ -228,33 +184,42 @@ def career_label(item):
 
 
 def load_career_records():
-    """Prefer the Career-Copilot ledger. Personal notes and resume filenames stay out."""
+    """优先单向读取 Career-Copilot 台账（剥离备注、薪资与简历文件名），缺失时回退本地快照。"""
     if COPILOT_APPLICATIONS.exists():
         raw = load_json(COPILOT_APPLICATIONS, [])
         records = []
-        for item in raw:
+        for item in raw or []:
             if not isinstance(item, dict):
                 continue
-            updated = str(item.get("last_updated") or "")[:10]
             records.append({
                 "id": item.get("id"),
                 "company": item.get("company") or "",
                 "position": item.get("position") or "",
                 "status": career_label(item),
                 "priority": item.get("priority") or "",
-                "apply_date": updated,
+                "apply_date": str(item.get("last_updated") or "")[:10],
                 "source": "Career-Copilot",
             })
-        atomic_write_text(
-            DATA_DIR / "career_records.json",
-            json.dumps(records, ensure_ascii=False, indent=2) + "\n",
-        )
+        records.sort(key=lambda r: career_stage_rank(r.get("status")))
+        atomic_write_json(DATA_DIR / "career_records.json", records)
         return records
-    return load_json(DATA_DIR / "career_records.json", [])
+    fallback = load_json(DATA_DIR / "career_records.json", []) or []
+    return sorted(fallback, key=lambda r: career_stage_rank(r.get("status")))
+
+
+def stamp_exam_next_action(action, days):
+    """用实时剩余天数重写考期前导戳，防止手写天数过期。"""
+    try:
+        days = int(days)
+    except (TypeError, ValueError):
+        days = 0
+    stripped = _EXAM_COUNTDOWN_PREFIX.sub("", (action or "").strip()).strip(" ·•")
+    lead = "今日考试" if days <= 0 else f"考前 {days} 天"
+    return f"{lead} · {stripped}" if stripped else lead
 
 
 def apply_exam_state(entry, today=None):
-    """Pending and recorded results have no countdown; future exams count down."""
+    """已办结/等成绩的考期不计倒计时；未来考期动态写入倒计时。"""
     entry = dict(entry)
     if entry.get("phase") in ("awaiting_result", "result_recorded"):
         entry["days_left"] = None
@@ -267,51 +232,35 @@ def apply_exam_state(entry, today=None):
     return entry
 
 
-def stamp_exam_next_action(action, days):
-    """Rewrite exam next_action with a live countdown so hardcoded day counts cannot rot."""
-    try:
-        days = int(days)
-    except (TypeError, ValueError):
-        days = 0
-    stripped = _EXAM_COUNTDOWN_PREFIX.sub("", (action or "").strip()).strip(" ·•")
-    lead = "今日考试" if days <= 0 else f"考前 {days} 天"
-    if not stripped:
-        return lead
-    return f"{lead} · {stripped}"
-
 def collect_all():
-    # 1. Network Probe (Tri-Device)
     network_probe = probe.probe_all()
-
-    # 2. Career Records
     career_list = load_career_records()
-    
+
     career_stats = {
         "total": len(career_list),
-        "interviewing": len([c for c in career_list if "面" in c.get("status", "")]),
-        "tests": len([c for c in career_list if "笔试" in c.get("status", "")]),
-        "screening": len([c for c in career_list if "初筛" in c.get("status", "")]),
-        "applied": len([c for c in career_list if "投递" in c.get("status", "")]),
-        "offer": len([c for c in career_list if "offer" in c.get("status", "").lower() or "录用" in c.get("status", "")])
+        "interviewing": sum(1 for c in career_list if "面" in c.get("status", "")),
+        "tests": sum(1 for c in career_list if "笔试" in c.get("status", "")),
+        "screening": sum(1 for c in career_list if "初筛" in c.get("status", "")),
+        "applied": sum(1 for c in career_list if "投递" in c.get("status", "")),
+        "offer": sum(
+            1 for c in career_list
+            if "offer" in c.get("status", "").lower() or "录用" in c.get("status", "")
+        ),
     }
 
-    # 3. Projects & Exams
-    raw_projects = load_json(DATA_DIR / "projects.json", [])
-    
+    raw_projects = load_json(DATA_DIR / "projects.json", []) or []
     enriched_projects = []
     for item in raw_projects:
         entry = dict(item)
         if entry.get("type") == "exam":
             entry = apply_exam_state(entry)
         else:
-            path = resolve_project_path(entry)
-            # 候选列表只用于本机解析，不进入快照（含绝对路径，公开版不应出现）
+            resolved = resolve_project_path(entry)
             entry.pop("paths", None)
-            if path:
-                entry["path"] = path
-                entry.update(get_git_info(path))
+            if resolved:
+                entry["path"] = resolved
+                entry.update(get_git_info(resolved))
             else:
-                # 失败要显式暴露，但不在字段里回显绝对路径（公开产物会脱敏，宁可不写）
                 entry.pop("path", None)
                 entry.update({
                     "git_available": False,
@@ -322,49 +271,18 @@ def collect_all():
                 })
         enriched_projects.append(entry)
 
-    # 4. Daily Checks (with cross-day rollover & archive)
     checks_file = DATA_DIR / "daily_checks.json"
-    daily_checks = load_json(checks_file, {
-        "date": datetime.now().strftime("%Y-%m-%d"),
-        "checks": {"起了": False, "动了": False, "写了": False, "关了": False},
-        "history": []
-    })
+    daily_checks = load_json(checks_file, default_daily_checks_payload())
     daily_checks, rolled = rollover_daily_checks(daily_checks)
     if rolled:
         archived = daily_checks["history"][-1]["date"] if daily_checks["history"] else "昨日"
         print(f"🗓️  检测到跨天，已归档 {archived} 的打卡记录并重置今日四勾。")
-        atomic_write_text(checks_file, json.dumps(daily_checks, ensure_ascii=False, indent=2) + "\n")
+        atomic_write_json(checks_file, daily_checks)
 
-    # 5. Weight Tracker Challenge
-    # 私密配置（成员真名、挑战链接）存放在本地真源 data/private_challenge.json，
-    # 该文件已 git-ignore，不会进入公开仓库。
-    # 公开展示产物由 scripts/sanitize_public.py 生成时会整块移除此模块。
-    private_challenge = load_json(DATA_DIR / "private_challenge.json", {})
-    start_date = date.fromisoformat(private_challenge.get("period_start", "2026-08-24"))
-    end_date = date.fromisoformat(private_challenge.get("period_end", "2026-09-30"))
-    today = date.today()
-    total_days = (end_date - start_date).days + 1
-    current_day = max(min((today - start_date).days + 1, total_days), 1)
-    weight_challenge = {
-        "title": private_challenge.get("title", "私人挑战"),
-        "live_url": private_challenge.get("live_url", ""),
-        "period": f"{start_date.isoformat()} ~ {end_date.isoformat()}",
-        "total_days": total_days,
-        "current_day": current_day,
-        "days_left": max((end_date - today).days, 0),
-        "members": private_challenge.get("members", []),
-        "target": private_challenge.get("target", "")
-    }
+    device_allocation = load_json(DATA_DIR / "device_allocation.json", {}) or {}
+    memory_rules = load_json(DATA_DIR / "memory_rules.json", {}) or {}
 
-    # 6. Device Allocation Matrix
-    device_allocation = load_json(DATA_DIR / "device_allocation.json", {})
-
-    # 7. Memory Rules
-    memory_rules = load_json(DATA_DIR / "memory_rules.json", {})
-
-    # 7.5 Knowledge Base Projection (read-only)
-    # 真源：/Users/insistgang/Documents/knowledge（可用 OPS_KNOWLEDGE_DIR 覆盖）。
-    # 本段只读投影，绝不回写知识库；公开产物由 sanitize_public.py 整块剔除。
+    # 知识库单向只读投影（真源：~/Documents/knowledge 或 OPS_KNOWLEDGE_DIR）
     try:
         import knowledge_source
         knowledge = knowledge_source.collect()
@@ -372,87 +290,74 @@ def collect_all():
             print("⚠️  知识库投影不可用：" + (knowledge.get("error") or "真源未解析出内容"))
         for warning in knowledge.get("warnings", []):
             print(f"⚠️  知识库投影：{warning}")
-    except Exception as exc:  # 知识库缺失不应拖垮硬件探测
+    except Exception as exc:
+        today_iso = datetime.now().astimezone().date().isoformat()
         knowledge = {
             "available": False,
             "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
-            "today": datetime.now().astimezone().date().isoformat(),
-            "diary_todos": {"date": datetime.now().astimezone().date().isoformat(), "items": []},
+            "today": today_iso,
+            "diary_todos": {"date": today_iso, "items": []},
             "error": f"{type(exc).__name__}: {exc}",
-            "warnings": [], "today_plan": None, "hard_nodes": None,
+            "warnings": [],
+            "today_plan": None,
+            "hard_nodes": None,
         }
         print(f"⚠️  知识库投影失败：{type(exc).__name__}: {exc}")
 
-    # 8. Assemble Snapshot
+    weight_records = load_json(DATA_DIR / "weight_records.json", None)
+
     status_snapshot = {
         "meta": {
             "title": "Ops-Hub // Personal Operations Console",
             "author": "Leo (insistgang)",
-            "version": "1.2.1",
+            "version": "2.0.0",
             "last_synced": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "sync_mode": "Level 2 Real Probe (Zero Mock)",
-            "github_repo": "https://github.com/insistgang/ops-hub"
+            "github_repo": "https://github.com/insistgang/ops-hub",
         },
         "topology": network_probe,
         "career_summary": {
             "stats": career_stats,
-            "records": career_list
+            "records": career_list,
         },
         "projects_and_exams": enriched_projects,
-        "weight_challenge": weight_challenge,
         "daily_checks": daily_checks,
         "device_allocation": device_allocation,
         "knowledge": knowledge,
-        "weight": load_json(DATA_DIR / "weight_records.json", None)
+        "weight": weight_records,
     }
 
-    # Write status.json (atomic: temp file + os.replace, no half-written files)
-    atomic_write_text(DATA_DIR / "status.json", json.dumps(status_snapshot, ensure_ascii=False, indent=2) + "\n")
-
-    # Write status.js (window.__OPS_STATUS__) for instant file:/// zero-CORS loading!
-    atomic_write_text(DATA_DIR / "status.js", "window.__OPS_STATUS__ = " + json.dumps(status_snapshot, ensure_ascii=False) + ";\n")
-
-    # Write memory_rules.js (window.__OPS_MEMORY__)
-    atomic_write_text(DATA_DIR / "memory_rules.js", "window.__OPS_MEMORY__ = " + json.dumps(memory_rules, ensure_ascii=False) + ";\n")
-
-    # Write knowledge 私有投影（window.__OPS_KNOWLEDGE__）。仅本机使用：
-    # data/private/ 已 git-ignore，公开站不会拿到该文件，页面加载不到时自动隐藏对应区块。
-    atomic_write_text(DATA_DIR / "knowledge.json", json.dumps(knowledge, ensure_ascii=False, indent=2) + "\n")
     private_dir = DATA_DIR / "private"
-    private_dir.mkdir(parents=True, exist_ok=True)
-    atomic_write_text(private_dir / "knowledge.js", "window.__OPS_KNOWLEDGE__ = " + json.dumps(knowledge, ensure_ascii=False) + ";\n")
-    weight_records = load_json(DATA_DIR / "weight_records.json", None)
+    atomic_write_json(DATA_DIR / "status.json", status_snapshot)
+    atomic_write_js_global(DATA_DIR / "status.js", "__OPS_STATUS__", status_snapshot)
+    atomic_write_js_global(DATA_DIR / "memory_rules.js", "__OPS_MEMORY__", memory_rules)
+    atomic_write_json(DATA_DIR / "knowledge.json", knowledge)
+    atomic_write_js_global(private_dir / "knowledge.js", "__OPS_KNOWLEDGE__", knowledge)
     if weight_records:
-        atomic_write_text(private_dir / "weight.js", "window.__OPS_WEIGHT__ = " + json.dumps(weight_records, ensure_ascii=False) + ";\n")
+        atomic_write_js_global(private_dir / "weight.js", "__OPS_WEIGHT__", weight_records)
 
-    # 9. Generate sanitized public artifacts (data/public/) for the public repository.
-    # Local truth source stays in data/ and is git-ignored; only the sanitized copy is tracked.
     try:
         import sanitize_public
         if not sanitize_public.write_public_files():
             raise RuntimeError("公开脱敏验证未通过")
-    except Exception as e:
-        # Propagate failure so run_pipeline cannot commit or push stale/unsafe files.
-        # The local snapshot above remains usable even when publication is blocked.
-        raise RuntimeError("公开脱敏产物生成失败；本地快照已保留，已阻止提交与推送。") from e
+    except Exception as exc:
+        raise RuntimeError("公开脱敏产物生成失败；本地快照已保留，已阻止提交与推送。") from exc
 
     return status_snapshot
 
+
 def gitops_push():
-    """
-    Commit managed data files and push to origin.
-    Returns True on success (or nothing to do), False on any failure.
-    """
+    """提交托管的公开脱敏产物并推送到 origin/main。"""
     print("🚀 启动 GitOps 自动化提交流水线...")
     try:
-        # 1. Dirty-worktree guard: refuse to touch the repo when unrelated changes exist
         status_res = subprocess.run(
             ["git", "-C", str(BASE_DIR), "status", "--porcelain"],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
         )
         if status_res.returncode != 0:
             print(f"❌ 无法读取 Git 状态，已中止: {status_res.stderr.strip()}")
             return False
+
         foreign = []
         for line in status_res.stdout.splitlines():
             if not line.strip():
@@ -466,17 +371,15 @@ def gitops_push():
             print("   请先手动整理工作区（commit 或 stash）后再执行同步。")
             return False
 
-        # 2. Stage only managed files
         subprocess.run(
             ["git", "-C", str(BASE_DIR), "add"] + GITOPS_FILES,
-            check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
         )
 
-        # 3. Commit — failure MUST stop the pipeline (no push on broken state)
         now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
         commit_res = subprocess.run(
             ["git", "-C", str(BASE_DIR), "commit", "-m", f"chore: sync ops status [{now_str}]"],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
         )
         if commit_res.returncode != 0:
             if "nothing to commit" in commit_res.stdout:
@@ -486,17 +389,21 @@ def gitops_push():
                 print(f"❌ Git 提交失败，已中止推送: {detail}")
                 return False
         else:
-            print(f"✅ 本地已提交: {commit_res.stdout.strip().splitlines()[0] if commit_res.stdout.strip() else now_str}")
+            summary = commit_res.stdout.strip().splitlines()[0] if commit_res.stdout.strip() else now_str
+            print(f"✅ 本地已提交: {summary}")
 
-        # 4. Push
-        remotes = subprocess.run(["git", "-C", str(BASE_DIR), "remote", "-v"], stdout=subprocess.PIPE, text=True).stdout
+        remotes = subprocess.run(
+            ["git", "-C", str(BASE_DIR), "remote", "-v"],
+            stdout=subprocess.PIPE, text=True,
+        ).stdout
         if "origin" not in remotes:
             print("ℹ️ 未配置 origin 远端，跳过推送。")
             return True
+
         print("📡 正在推送到 GitHub 远端...")
         push_res = subprocess.run(
             ["git", "-C", str(BASE_DIR), "push", "origin", "main"],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=15
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=15,
         )
         if push_res.returncode == 0:
             print("🎉 成功推送到 GitHub 远端！GitHub Pages 即将刷新。")
@@ -506,31 +413,27 @@ def gitops_push():
     except subprocess.TimeoutExpired:
         print("⚠️ Git 推送超时（15s），本地已提交，网络恢复后可再次同步。")
         return False
-    except Exception as e:
-        print(f"❌ GitOps 流水线失败: {e}")
+    except Exception as exc:
+        print(f"❌ GitOps 流水线失败: {exc}")
         return False
 
+
 def run_pipeline(push=False):
-    """
-    Full pipeline under advisory lock: collect -> (optional) gitops push.
-    Returns True when fully successful, False otherwise.
-    """
+    """加锁执行采集（及可选 GitOps 推送）。"""
     try:
         with ops_lock():
             collect_all()
-            if push:
-                return gitops_push()
-            return True
-    except RuntimeError as e:
-        print(f"⚠️ {e}")
+            return gitops_push() if push else True
+    except RuntimeError as exc:
+        print(f"⚠️ {exc}")
         return False
-    except Exception as e:
-        print(f"❌ 数据采集失败: {e}")
+    except Exception as exc:
+        print(f"❌ 数据采集失败: {exc}")
         return False
 
+
 if __name__ == "__main__":
-    push_flag = "--push" in sys.argv
-    ok = run_pipeline(push=push_flag)
+    ok = run_pipeline(push="--push" in sys.argv)
     if ok:
         print(f"✅ 全量数据采集完毕（JSON + JS 双模防卡死）: {DATA_DIR / 'status.json'}")
     sys.exit(0 if ok else 1)

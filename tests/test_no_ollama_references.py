@@ -15,6 +15,8 @@ OPERATIONAL_FILES = (
     "index.html",
     "ops",
     "js/app.js",
+    "scripts/ops_common.py",
+    "scripts/cli_commands.py",
     "scripts/probe.py",
     "data/device_allocation.json",
     "data/memory_rules.json",
@@ -22,7 +24,6 @@ OPERATIONAL_FILES = (
     "data/status.json",
     "data/status.js",
     "docs/PRD.md",
-    "docs/PRD_REVIEW.md",
 )
 
 

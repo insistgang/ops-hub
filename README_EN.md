@@ -1,4 +1,4 @@
-<!-- README_SYNC: source=working-tree; updated=2026-11-15 -->
+<!-- README_SYNC: source=working-tree; updated=2026-11-18 -->
 
 <p align="center">
   <a href="./README.md">简体中文</a> · English
@@ -70,7 +70,7 @@ The page itself requires no installation. You only need Python 3 / Node.js for t
 ops status                      # Terminal summary: compute, career, projects, daily checks
 ops dispatch "run YOLOv11"      # Task routing: which machine should take this job
 ops sync --push                 # Full collection + sanitized snapshots + GitOps commit & push
-ops career list                 # Career ledger (also: add / update)
+ops career list                 # View current projection; add/update only if upstream is absent
 ops check 动了                   # Daily check-in: 起了/动了/写了/关了
 ops weight 99.5                 # Log weight; omit the value to view history
 ops memory                      # Personal memory & order baseline
@@ -88,7 +88,7 @@ Run `ops <command> --help` for full options. Check-in items are Chinese literals
 index.html          # Single-page console (tabbed, dark default + four visual styles)
 js/  css/           # Frontend logic & styles (all innerHTML injection passes esc())
 ops                 # Python 3 stdlib CLI entry point
-scripts/            # Probes, collector, sanitizer, publisher, launchd plist
+scripts/            # Probes, collector, sanitizer, Aliyun & ledger publishers, local bridge
 data/               # Local sources of truth + public/ sanitized artifacts (private data git-ignored)
 vitaflow/           # Schedule & energy workspace source and sync service
 weight-tracker/     # Weight module source
@@ -98,7 +98,8 @@ docs/               # PRD, finance access notes, cloud sync notes, and more
 ```
 
 - Collaboration contract & module boundaries: [AGENTS.md](./AGENTS.md)
-- Requirements & reviews: [docs/PRD.md](./docs/PRD.md), [docs/PRD_REVIEW.md](./docs/PRD_REVIEW.md)
+- Product & architecture spec: [docs/PRD.md](./docs/PRD.md)
+- Career-Copilot overview, one-way career data flow, and local hosting boundary (Chinese): [docs/career-copilot-integration.md](./docs/career-copilot-integration.md)
 - Finance access boundaries: [docs/finance-access.md](./docs/finance-access.md)
 - VitaFlow cloud sync: [docs/aliyun-vita-sync.md](./docs/aliyun-vita-sync.md)
 - Current progress & verification log: [ROADMAP.md](./ROADMAP.md)

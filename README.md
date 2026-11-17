@@ -1,4 +1,4 @@
-<!-- README_SYNC: source=working-tree; updated=2026-11-15 -->
+<!-- README_SYNC: source=working-tree; updated=2026-11-18 -->
 
 <p align="center">
   简体中文 · <a href="./README_EN.md">English</a>
@@ -70,7 +70,7 @@ cd ops-hub
 ops status                      # Terminal summary: compute, career, projects, daily checks
 ops dispatch "run YOLOv11"      # Task routing: which machine should take this job
 ops sync --push                 # Full collection + sanitized snapshots + GitOps commit & push
-ops career list                 # Career ledger (also: add / update)
+ops career list                 # View current projection; add/update only if upstream is absent
 ops check 动了                   # Daily check-in: 起了/动了/写了/关了
 ops weight 99.5                 # Log weight; omit the value to view history
 ops memory                      # Personal memory & order baseline
@@ -88,7 +88,7 @@ ops schedule install            # Install launchd auto-sync (09:00 / 21:00)
 index.html          # 单页总台（Tab 切换，暗色默认 + 四套风格）
 js/  css/           # 前端逻辑与样式（所有 innerHTML 注入过 esc() 转义）
 ops                 # Python 3 标准库 CLI 入口
-scripts/            # 探针、采集、脱敏、发布、launchd 描述文件
+scripts/            # 探针、采集、脱敏、阿里云与账本发布、本机同步桥接
 data/               # 本地真源 + public/ 脱敏产物（私有真源已 git-ignore）
 vitaflow/           # 日程与精力工作区源码与同步服务
 weight-tracker/     # 体重模块源码
@@ -98,7 +98,8 @@ docs/               # PRD、财务访问说明、云同步说明等
 ```
 
 - 协作契约与模块边界：[AGENTS.md](./AGENTS.md)
-- 需求与审阅：[docs/PRD.md](./docs/PRD.md)、[docs/PRD_REVIEW.md](./docs/PRD_REVIEW.md)
+- 产品与架构规格：[docs/PRD.md](./docs/PRD.md)
+- Career-Copilot 项目概况、单向求职数据流与本机托管边界：[docs/career-copilot-integration.md](./docs/career-copilot-integration.md)
 - 财务访问边界：[docs/finance-access.md](./docs/finance-access.md)
 - VitaFlow 云同步：[docs/aliyun-vita-sync.md](./docs/aliyun-vita-sync.md)
 - 当前进度与验证记录：[ROADMAP.md](./ROADMAP.md)

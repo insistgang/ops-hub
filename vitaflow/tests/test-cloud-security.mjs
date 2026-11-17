@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { createLocalSyncServer } from './local-sync-server.mjs';
+import { createLocalSyncServer } from '../local-sync-server.mjs';
 
 const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vitaflow-cloud-security-'));
 const dataPath = path.join(rootDir, 'private.json');
@@ -239,7 +239,7 @@ try {
 
   const dataDir = path.join(rootDir, 'writable-data');
   fs.mkdirSync(dataDir);
-  const serverPath = fileURLToPath(new URL('./local-sync-server.mjs', import.meta.url));
+  const serverPath = fileURLToPath(new URL('../local-sync-server.mjs', import.meta.url));
   const env = {
     ...process.env,
     VITAFLOW_CLOUD_MODE: '1', VITAFLOW_PUBLIC_READ: '1', VITAFLOW_ALLOWED_ORIGINS: origin,

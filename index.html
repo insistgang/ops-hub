@@ -11,8 +11,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons (version pinned) -->
   <script src="https://cdn.jsdelivr.net/npm/lucide@1.37.0/dist/umd/lucide.min.js"></script>
-  <link rel="stylesheet" href="css/custom.css?v=1.9.3">
-  <link rel="stylesheet" href="vitaflow/native-workspace.css?v=1.0.0">
+  <link rel="stylesheet" href="css/custom.css?v=1.9.4">
+  <link rel="stylesheet" href="vitaflow/native-workspace.css?v=1.1.0">
   <link rel="stylesheet" href="weight-tracker/native-workspace.css?v=1.1.1">
   <link rel="stylesheet" href="finance/native-workspace.css?v=1.1.0">
   <link rel="stylesheet" href="css/site-styles.css?v=1.3.0">
@@ -66,7 +66,7 @@
         <div>
           <div class="flex items-center gap-2">
             <h1 class="text-base font-extrabold tracking-tight text-white whitespace-nowrap">OPS-HUB</h1>
-            <span class="hidden sm:inline text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-400 border border-indigo-800/50">v1.8.0</span>
+            <span class="hidden sm:inline text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-400 border border-indigo-800/50">v2.0.0</span>
           </div>
           <p class="text-[11px] text-zinc-400 hidden sm:block">Leo 的数字化运营工作总台 // 设备分工与算力中枢</p>
         </div>
@@ -81,7 +81,7 @@
         </div>
 
         <!-- Dynamic Sync Age Pill (Updates in real time) -->
-        <button type="button" onclick="manualRefresh()" class="hidden sm:flex cursor-pointer group items-center gap-1.5 min-w-0 px-2.5 py-1 rounded-full text-xs font-mono bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 hover:text-slate-200 border border-zinc-800 transition-all" title="重新读取已有快照">
+        <button id="sync-refresh-btn" type="button" class="hidden sm:flex cursor-pointer group items-center gap-1.5 min-w-0 px-2.5 py-1 rounded-full text-xs font-mono bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 hover:text-slate-200 border border-zinc-800 transition-all" title="重新读取已有快照">
           <i data-lucide="refresh-cw" id="sync-refresh-icon" class="w-3 h-3 text-zinc-500 group-hover:text-indigo-400 transition-transform"></i>
           <span id="sync-age-text" class="truncate hidden sm:inline">正在读取快照</span>
         </button>
@@ -106,7 +106,7 @@
         </div>
         <span id="site-style-status" class="sr-only" role="status" aria-live="polite"></span>
 
-        <button id="theme-toggle" onclick="toggleTheme()" title="切换日间/夜间主题" class="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800/80 transition-all">
+        <button id="theme-toggle" type="button" title="切换日间/夜间主题" class="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800/80 transition-all">
           <i data-lucide="sun" class="w-4 h-4"></i>
         </button>
 
@@ -284,12 +284,15 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
           <h3 class="text-lg font-bold text-white">求职投递管道与状态跟进</h3>
-          <p class="text-xs text-zinc-400">来自 Ops-Hub 自己的投递记录快照，与 Career-Copilot 未自动同步。</p>
+          <p class="text-xs text-zinc-400">单向同步自 Career-Copilot 投递台账快照（推进中自动置顶；公开版不含备注与简历文件）。</p>
         </div>
-        <div class="flex items-center gap-1 bg-zinc-900/90 p-1 rounded-xl border border-zinc-800 text-xs">
-          <button data-filter="all" class="career-filter-btn px-3 py-1.5 rounded-lg font-medium bg-indigo-600 text-white transition-all">全部</button>
-          <button data-filter="screening" class="career-filter-btn px-3 py-1.5 rounded-lg font-medium text-zinc-400 hover:text-white transition-all">初筛</button>
-          <button data-filter="applied" class="career-filter-btn px-3 py-1.5 rounded-lg font-medium text-zinc-400 hover:text-white transition-all">已投递</button>
+        <div class="flex items-center gap-1 bg-zinc-900/90 p-1 rounded-xl border border-zinc-800 text-xs overflow-x-auto">
+          <button data-filter="all" class="career-filter-btn px-3 py-1.5 rounded-lg font-medium bg-indigo-600 text-white transition-all shrink-0">全部</button>
+          <button data-filter="interview" class="career-filter-btn px-3 py-1.5 rounded-lg font-medium text-zinc-400 hover:text-white transition-all shrink-0">面试中</button>
+          <button data-filter="test" class="career-filter-btn px-3 py-1.5 rounded-lg font-medium text-zinc-400 hover:text-white transition-all shrink-0">笔试中</button>
+          <button data-filter="offer" class="career-filter-btn px-3 py-1.5 rounded-lg font-medium text-zinc-400 hover:text-white transition-all shrink-0">已录用</button>
+          <button data-filter="screening" class="career-filter-btn px-3 py-1.5 rounded-lg font-medium text-zinc-400 hover:text-white transition-all shrink-0">初筛</button>
+          <button data-filter="applied" class="career-filter-btn px-3 py-1.5 rounded-lg font-medium text-zinc-400 hover:text-white transition-all shrink-0">已投递</button>
         </div>
       </div>
 
@@ -313,7 +316,7 @@
         <div class="mb-3 flex flex-wrap items-end justify-between gap-2">
           <div>
             <h3 class="text-lg font-bold text-white">知识库项目台账</h3>
-            <p class="text-xs text-zinc-400">只读投影自知识库 03-Projects，不写回；公开站不显示此区</p>
+            <p class="text-xs text-zinc-400">只读投影自知识库 03-Projects（人物与路径已脱敏），不写回真源</p>
           </div>
           <p id="knowledge-projects-meta" class="text-xs text-zinc-500"></p>
         </div>
@@ -379,7 +382,7 @@
       <div id="knowledge-finance" class="glass-panel p-4 rounded-xl" hidden>
         <div class="flex flex-wrap items-baseline justify-between gap-2 mb-1">
           <h3 id="knowledge-finance-head" class="text-sm font-semibold text-white">知识库月度财务</h3>
-          <span class="text-[11px] text-zinc-500">只读投影 · 公开站不显示</span>
+          <span class="text-[11px] text-zinc-500">只读投影自知识库月度复盘 · 不替代实时账本</span>
         </div>
         <p id="knowledge-finance-asof" class="text-[11px] text-zinc-500 leading-snug mb-2" hidden></p>
         <div id="knowledge-finance-rows"></div>
@@ -441,18 +444,18 @@
         <div class="flex items-center gap-2">
           <div class="relative flex-1">
             <i data-lucide="search" class="w-4 h-4 text-zinc-400 absolute left-3.5 top-3"></i>
-            <input id="task-route-input" oninput="handleTaskRoute()" placeholder="输入任务关键词 (如: 论文正文, YOLO训练, 简历投递, 批量构建, 机器人感知...)" class="w-full pl-10 pr-4 py-2 rounded-xl bg-zinc-900/90 border border-zinc-700 text-xs text-slate-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 transition-all font-mono">
+            <input id="task-route-input" placeholder="输入任务关键词 (如: 论文正文, YOLO训练, 简历投递, 批量构建, 机器人感知...)" class="w-full pl-10 pr-4 py-2 rounded-xl bg-zinc-900/90 border border-zinc-700 text-xs text-slate-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 transition-all font-mono">
           </div>
         </div>
 
         <!-- Quick Filter Pills -->
         <div class="flex items-center gap-2 mt-2.5 flex-wrap text-xs">
           <span class="text-[11px] text-zinc-500">快捷预设:</span>
-          <button onclick="handleTaskRoute('写毕业小论文')" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition-all font-mono text-[11px]">✍️ 写毕业小论文</button>
-          <button onclick="handleTaskRoute('跑 YOLOv11 训练')" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition-all font-mono text-[11px]">⚡ 跑 YOLOv11 训练</button>
-          <button onclick="handleTaskRoute('求职投递与定制简历')" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition-all font-mono text-[11px]">🎯 求职与定制简历</button>
-          <button onclick="handleTaskRoute('Windows 批量构建与依赖测试')" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition-all font-mono text-[11px]">🧱 Windows 批量构建</button>
-          <button onclick="handleTaskRoute('Jetson 机器人与传感器')" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition-all font-mono text-[11px]">🦾 Jetson 机器人感知</button>
+          <button type="button" data-route-preset="写毕业小论文" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition-all font-mono text-[11px]">✍️ 写毕业小论文</button>
+          <button type="button" data-route-preset="跑 YOLOv11 训练" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition-all font-mono text-[11px]">⚡ 跑 YOLOv11 训练</button>
+          <button type="button" data-route-preset="求职投递与定制简历" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition-all font-mono text-[11px]">🎯 求职与定制简历</button>
+          <button type="button" data-route-preset="Windows 批量构建与依赖测试" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition-all font-mono text-[11px]">🧱 Windows 批量构建</button>
+          <button type="button" data-route-preset="Jetson 机器人与传感器" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition-all font-mono text-[11px]">🦾 Jetson 机器人感知</button>
         </div>
 
         <!-- Result Box -->
@@ -541,20 +544,20 @@
         <h4 class="text-base font-bold text-white mb-3">三端快捷分流工具箱</h4>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           
-          <button onclick="copySSH('地址已隐藏')" class="p-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-left transition-all group">
+          <button type="button" data-ssh-device="windows" class="p-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-left transition-all group">
             <div class="flex items-center justify-between text-zinc-400 mb-1">
               <span class="text-xs font-mono font-medium text-slate-200">Win 4070S SSH</span>
               <i data-lucide="copy" class="w-3.5 h-3.5 group-hover:text-indigo-400"></i>
             </div>
-            <p class="text-[11px] font-mono text-zinc-500 truncate">地址已隐藏</p>
+            <p id="win-ssh-cmd-text" class="text-[11px] font-mono text-zinc-500 truncate">地址已隐藏</p>
           </button>
 
-          <button onclick="copySSH('地址已隐藏')" class="p-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-left transition-all group">
+          <button type="button" data-ssh-device="jetson" class="p-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-left transition-all group">
             <div class="flex items-center justify-between text-zinc-400 mb-1">
               <span class="text-xs font-mono font-medium text-slate-200">Jetson 边缘 SSH</span>
               <i data-lucide="copy" class="w-3.5 h-3.5 group-hover:text-emerald-400"></i>
             </div>
-            <p class="text-[11px] font-mono text-zinc-500 truncate">地址已隐藏</p>
+            <p id="jetson-ssh-cmd-text" class="text-[11px] font-mono text-zinc-500 truncate">地址已隐藏</p>
           </button>
 
           <div class="p-3 rounded-xl bg-zinc-900/80 border border-zinc-800 text-left">
@@ -574,19 +577,21 @@
     已复制到剪贴板
   </div>
 
+  <script src="js/core.js?v=1.0.0"></script>
   <script src="js/site-style.js?v=1.2.0"></script>
-  <script src="vitaflow/native-workspace.js?v=1.5.0"></script>
+  <script src="vitaflow/native-workspace.js?v=1.6.0"></script>
   <script src="js/vitaflow.js?v=2.2.2"></script>
   <script src="js/vitaflow-public.js?v=1.0.0"></script>
   <script src="weight-tracker/native-workspace.js?v=1.0.2"></script>
   <script src="finance/native-workspace.js?v=1.1.0"></script>
-  <script src="js/app.js?v=1.9.1"></script>
+  <script src="js/compute.js?v=1.0.0"></script>
+  <script src="js/app.js?v=2.0.0"></script>
   <script src="js/today.js?v=1.1.0"></script>
   <script src="js/vitaflow-today.js?v=1.0.1"></script>
   <script src="js/life-today.js?v=1.0.2"></script>
-  <script src="js/knowledge-today.js?v=1.2.0"></script>
-  <script src="js/knowledge-projects.js?v=1.1.0"></script>
-  <script src="js/knowledge-finance.js?v=1.0.0"></script>
+  <script src="js/knowledge-today.js?v=1.3.0"></script>
+  <script src="js/knowledge-projects.js?v=1.2.0"></script>
+  <script src="js/knowledge-finance.js?v=1.1.0"></script>
   <script src="data/public/energy.js?v=1.0.0"></script>
   <script src="js/knowledge-energy.js?v=1.3.0"></script>
   <script src="data/public/diary-todos.js?v=1.0.0"></script>

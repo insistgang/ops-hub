@@ -17,6 +17,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 import urllib.error
@@ -36,20 +37,33 @@ LIVE_LINK = "/var/www/finance/data/financial_data.json"
 REMOTE_SCRIPT = r"""#!/bin/bash
 set -euo pipefail
 SHA="$1"
-TS=$(date -u +%Y%m%dT%H%M%SZ)
 DIR="$2"
+LIVE="$3"
+ROOT="$4"
 if [ ! -e "$DIR" ]; then
   mkdir -p "$DIR/data"
-  cp /tmp/financial_data-$SHA.json "$DIR/data/financial_data.json"
+  cp "/tmp/financial_data-$SHA.json" "$DIR/data/financial_data.json"
   chown -R root:root "$DIR"
 fi
-# 旧目标留档，便于回滚
-if [ -e "$3" ]; then
-  cp -a "$3" "/root/financial_data.json.before-$SHA.bak" 2>/dev/null || true
+# 旧目标留档（只保留最近 5 份回滚备份）
+if [ -e "$LIVE" ]; then
+  cp -a "$LIVE" "/root/financial_data.json.before-$SHA.bak" 2>/dev/null || true
 fi
-ln -sfn "$DIR/data/financial_data.json" "$3"
-echo "LINK $(readlink -f "$3")"
-rm -f /tmp/financial_data-$SHA.json
+ln -sfn "$DIR/data/financial_data.json" "$LIVE"
+LIVE_TARGET=$(readlink -f "$LIVE")
+echo "LINK $LIVE_TARGET"
+
+ls -1t /root/financial_data.json.before-*.bak 2>/dev/null | tail -n +6 | xargs -r rm -f
+if [ -d "$ROOT" ]; then
+  LIVE_REL_DIR=$(dirname "$(dirname "$LIVE_TARGET")")
+  ls -1dt "$ROOT"/release-* 2>/dev/null | tail -n +11 | while read -r old; do
+    [ "$old" = "$LIVE_REL_DIR" ] && continue
+    [ "$old" = "$DIR" ] && continue
+    rm -rf "$old"
+    echo "PRUNED_FINANCE $(basename "$old")"
+  done
+fi
+rm -f "/tmp/financial_data-$SHA.json"
 """
 
 
@@ -94,7 +108,7 @@ def sync_from_diary(ledger, knowledge_dir=None):
         parsed = finance_sync.parse_day(path.read_text(encoding="utf-8"), 0)
         if parsed is None:
             continue
-        match = __import__("re").search(r"(\d{4})-(\d{2})-(\d{2})", path.name)
+        match = re.search(r"(\d{4})-(\d{2})-(\d{2})", path.name)
         if not match:
             continue
         parsed["day"] = int(match.group(3))
@@ -129,7 +143,7 @@ def publish(ledger, dry_run=False):
         return False
     result = subprocess.run(
         ["ssh", "-o", "BatchMode=yes", SSH_HOST, "bash", "-s", "--", sha,
-         f"{RELEASE_ROOT}/release-{digest}", LIVE_LINK],
+         f"{RELEASE_ROOT}/release-{digest}", LIVE_LINK, RELEASE_ROOT],
         input=REMOTE_SCRIPT, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         text=True, timeout=300)
     if result.returncode != 0:

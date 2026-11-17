@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
-import { createLocalSyncServer, loadOrCreateToken } from './local-sync-server.mjs';
+import { createLocalSyncServer, loadOrCreateToken } from '../local-sync-server.mjs';
 
 const tokenDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vitaflow-token-'));
 try {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import { buildHtml } from './build-html.mjs';
+import { buildHtml } from '../build-html.mjs';
 
 process.env.TZ = 'Asia/Taipei';
 

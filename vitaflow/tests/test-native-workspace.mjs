@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import { buildNative, scopeCss } from './build-native.mjs';
+import { buildNative, scopeCss } from '../build-native.mjs';
 
 const scoped = scopeCss(':root {--x:red} body {margin:0} .a, :is(.b,.c) {color:red} @media (max-width:600px) {body.ops-hub-embed .a {display:block}} @keyframes fadeIn {from {opacity:0} to {opacity:1}} .a {animation:fadeIn 1s}');
 assert.match(scoped, /#vitaflow-native\s*\{/);

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { stripEmbeddedData } from './strip-embedded-data.mjs';
+import { stripEmbeddedData } from '../strip-embedded-data.mjs';
 
 const html = fs.readFileSync('schedule-system-2.0.html', 'utf8');
 assert.ok(stripEmbeddedData(html) === html,

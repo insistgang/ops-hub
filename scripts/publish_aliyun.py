@@ -84,6 +84,11 @@ if [ "$COUNT" -gt "$KEEP" ]; then
     echo "PRUNED $(basename "$old")"
   done
 fi
+
+# nginx 历史备份每个站点只保留最近 5 份，防止 /root 无限堆积
+ls -1t /root/ops-nginx-before-*.conf 2>/dev/null | tail -n +6 | xargs -r rm -f
+ls -1t /root/finance-nginx-before-*.conf 2>/dev/null | tail -n +6 | xargs -r rm -f
+
 rm -f "/tmp/ops-hub-$SHA-public.tar" "/tmp/ops-checksums-$SHA.txt"
 """
 

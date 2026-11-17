@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
-import { buildHtml } from './build-html.mjs';
+import { buildHtml } from '../build-html.mjs';
 
 const html = buildHtml();
 const start = html.indexOf('// 数据备份 / 单文件携带 / 跨设备迁移 系统');

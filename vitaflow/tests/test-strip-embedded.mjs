@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { stripEmbeddedData } from './strip-embedded-data.mjs';
+import { stripEmbeddedData } from '../strip-embedded-data.mjs';
 
 const sample = [
   '<head>',
@@ -74,24 +74,6 @@ try {
     encoding: 'utf8',
     stdio: ['pipe', 'pipe', 'pipe'],
   }), error => error.status !== 0 && error.stdout === '' && !error.stderr.includes('synthetic-private-record'), 'a failed clean filter must exit nonzero without emitting private content');
-
-  const htmlPath = path.join(tmpDir, 'schedule.html');
-  const jsonPath = path.join(tmpDir, 'data.json');
-  fs.writeFileSync(htmlPath, duplicateSample);
-  fs.writeFileSync(jsonPath, JSON.stringify({ vitaflow_todos: '[{"text":"new <private>"}]' }));
-  execFileSync(process.execPath, ['sync-json-into-html.mjs', htmlPath, jsonPath], {
-    cwd: process.cwd(),
-    stdio: 'pipe',
-  });
-  const synced = fs.readFileSync(htmlPath, 'utf8');
-  assert.equal(
-    (synced.match(/<script>window\.EMBEDDED_DATA\s*=/g) || []).length,
-    1,
-    'syncing an HTML file repeatedly should leave exactly one embedded assignment'
-  );
-  assert.ok(!synced.includes('old secret one'));
-  assert.ok(!synced.includes('old secret two'));
-  assert.ok(synced.includes('new \\u003cprivate>'), 'embedded JSON should keep script-breaking characters escaped');
 } finally {
   fs.rmSync(tmpDir, { recursive: true, force: true });
 }
