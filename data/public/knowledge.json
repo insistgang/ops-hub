@@ -1,14 +1,13 @@
 {
   "available": true,
-  "generated_at": "2026-11-17T21:00:14+08:00",
-  "today": "2026-11-17",
+  "generated_at": "2026-11-18T02:06:18+08:00",
+  "today": "2026-11-18",
   "warnings": [
-    "2026-11 财务：无法解析金额「未核实」（广义总资产）",
-    "2026-11 财务：无法解析金额「未核实」（账面净资产）"
+    "缺少 2026-11-18 的今日计划，已回退到 2026-11-17"
   ],
   "today_plan": {
     "date": "2026-11-17",
-    "is_today": true,
+    "is_today": false,
     "file": "2026-11-17.md",
     "headline": "今日计划 -- 2026 年 11 月 17 日 周二 09:18",
     "direction": "昨天晚上你已经把力气收回小论文了——19:03 到 22:57 落了五份产物，23 点后还在归档论文文件。今天不要开新战场，把昨天那 3 项\"需要你决定\"变成一个书面口径，其余按硬时钟走。",
@@ -45,7 +44,9 @@
         "note": "06-Growth/Education/六级考试/CET6_第5周计划_2026-11-16至11-22.md 第三节 11/17 行（阅读 Section A 选词填空 Q p3--p4，26--35 题）· 第五节执行表 11/16--11/17 两行实测空。[事实]"
       }
     ],
-    "warnings": []
+    "warnings": [
+      "缺少 2026-11-18 的今日计划，已回退到 2026-11-17"
+    ]
   },
   "wip": {
     "file": "TODO.md",
@@ -84,9 +85,9 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2026-10-27",
-        "days_left": -21,
+        "days_left": -22,
         "impact": "原 64 刀档「10/24 决定暂不开会员」口径作废；扣费走同事 C账户余额（本人说明该账户已充较多）；自动续费开关与下次扣费日待本人确认",
-        "overdue_days": 21,
+        "overdue_days": 22,
         "needs_confirm": true
       },
       {
@@ -99,7 +100,7 @@
         "day_basis": "区间截止",
         "date_precision": "day",
         "effective_date": "2026-11-20",
-        "days_left": 3,
+        "days_left": 2,
         "impact": "19 日 09:00--13:00 万豪万枫酒店报到注册、下午开幕式/主旨报告/标杆企业美高电气参观/欢迎晚宴；20 日全天专题报告；需提前协调实习排期与科研推进"
       },
       {
@@ -112,7 +113,7 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2026-11-22",
-        "days_left": 5,
+        "days_left": 4,
         "impact": "10/15 记录的 1,500 TRY 可覆盖 10/22、11/22、12/22；本人 10/27 未单独说明此账户余额，按原口径保留"
       },
       {
@@ -125,7 +126,7 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2026-12-01",
-        "days_left": 14,
+        "days_left": 13,
         "impact": "费用与归属待补"
       },
       {
@@ -138,7 +139,7 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2026-12-12",
-        "days_left": 25,
+        "days_left": 24,
         "impact": "准考证与考场通知 12 月初"
       },
       {
@@ -151,7 +152,7 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2026-12-15",
-        "days_left": 28,
+        "days_left": 27,
         "impact": "导师 10/10 明确：全文初稿截止 12 月 15 日，1 月按学院通知提交"
       },
       {
@@ -164,7 +165,7 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2026-12-15",
-        "days_left": 28,
+        "days_left": 27,
         "impact": "—"
       },
       {
@@ -236,6 +237,16 @@
   "projects": {
     "file": "03-Projects",
     "items": [
+      {
+        "name": "共感LinkAble",
+        "kind": "file",
+        "relative": "03-Projects/共感LinkAble.md",
+        "updated": "2026-11-17T21:31+08:00",
+        "updated_source": "file",
+        "date_hint": null,
+        "file_count": 1,
+        "summary": null
+      },
       {
         "name": "卓繁信息",
         "kind": "dir",
@@ -387,16 +398,6 @@
         "summary": null
       },
       {
-        "name": "共感LinkAble",
-        "kind": "file",
-        "relative": "03-Projects/共感LinkAble.md",
-        "updated": "2026-07-23T20:47+08:00",
-        "updated_source": "file",
-        "date_hint": null,
-        "file_count": 1,
-        "summary": null
-      },
-      {
         "name": "项目管理skill",
         "kind": "file",
         "relative": "03-Projects/项目管理skill.md",
@@ -485,7 +486,7 @@
         "label": "确认收入合计",
         "amount": 2600.0,
         "amount_raw": "2,600.00",
-        "note": "已登记家庭支持2,500元与劳务收入100元；收款账户及本月完整收入待核"
+        "note": "已到账生活费 2,500 元与外快劳务 100 元；工资预计 11 月 25 日后发，未到账不预记；本月非整月结算"
       },
       {
         "label": "家庭支持",
@@ -497,7 +498,7 @@
         "label": "劳务收入",
         "amount": 100.0,
         "amount_raw": "100.00",
-        "note": "11/14 师兄任务本人所得，账户未记录；家人另得50元不计本人收入"
+        "note": "11/14 外快：师兄任务本人已到账 100 元，账户未记录；家人另得 50 元不计本人收入"
       },
       {
         "label": "已记录支出合计",
@@ -533,19 +534,19 @@
         "label": "负债",
         "amount": 3000.0,
         "amount_raw": "3,000.00",
-        "note": "仅已登记花呗：11/17 本人确认尚未还款，已还 0 期、剩余 12 期；每月 10 日还 250 元，共 12 期；其他负债未核全，不代表完整负债总额"
+        "note": "11/17 本人确认仅花呗、无其他负债，尚未还款；已还 0 期、剩余 12 期，每月 10 日还 250 元，首期 2026-12-10"
       },
       {
         "label": "广义总资产",
-        "amount": null,
-        "amount_raw": "未核实",
-        "note": "用户自报账户及基金约52,571元，不含待核应收；港币折算及其他资产待核"
+        "amount": 63571.0,
+        "amount_raw": "63,571.00",
+        "note": "11/14 自报账户及基金 52,571 元 + 已登记应收 11,000 元；11/17 本人确认无漏记资产，混合日期暂估，非实时核验"
       },
       {
         "label": "账面净资产",
-        "amount": null,
-        "amount_raw": "未核实",
-        "note": "当前资产和负债均未完整核实；原 60,214 元仅为历史混合日期估算"
+        "amount": 60571.0,
+        "amount_raw": "60,571.00",
+        "note": "账面总资产 63,571 元 - 本人确认全部负债 3,000 元；账户日期 11/14、负债确认 11/17，非实时净值"
       }
     ],
     "expenses": [
@@ -580,9 +581,6 @@
         "note": "与截至 11/17 19:00 的 51 笔实付流水一致；花呗信用购置和未偿本金另列"
       }
     ],
-    "warnings": [
-      "2026-11 财务：无法解析金额「未核实」（广义总资产）",
-      "2026-11 财务：无法解析金额「未核实」（账面净资产）"
-    ]
+    "warnings": []
   }
 }

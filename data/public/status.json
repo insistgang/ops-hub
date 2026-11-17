@@ -2,23 +2,23 @@
   "meta": {
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
-    "version": "1.2.1",
-    "last_synced": "2026-11-17 21:00:14",
+    "version": "2.0.0",
+    "last_synced": "2026-11-18 02:06:18",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub",
     "sanitized": true,
-    "sanitized_at": "2026-11-17 21:00:14",
-    "sanitize_note": "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址、本地路径与私人挑战数据。"
+    "sanitized_at": "2026-11-18 02:06:18",
+    "sanitize_note": "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址与本地路径。"
   },
   "topology": {
-    "timestamp": "2026-11-17 21:00:14",
+    "timestamp": "2026-11-18 02:06:18",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.x.x",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "95%",
-      "power_state": "Charging",
-      "load_avg": "1.90 2.90 3.80",
+      "battery": "55%",
+      "power_state": "Discharging (Battery)",
+      "load_avg": "3.70 3.64 4.32",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -31,10 +31,10 @@
       "ip": "100.98.x.x",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
       "status": "Online",
-      "latency_ms": 779.4,
-      "via": "",
-      "control_online": false,
-      "last_seen": "",
+      "latency_ms": 680.1,
+      "via": "DERP · nue",
+      "control_online": true,
+      "last_seen": "0001-01-01T00:00:00Z",
       "ssh_port": 22,
       "ssh_active": true,
       "smb_port": 445,
@@ -53,7 +53,7 @@
       "role": "边缘感知节点 // 端侧视觉与机器人感知部署",
       "network_type": "局域网 (LAN Only)",
       "status": "Online",
-      "latency_ms": 697.1,
+      "latency_ms": 1.3,
       "via": "",
       "control_online": false,
       "ssh_port": 22,
@@ -65,13 +65,13 @@
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": 779.4,
-    "tailscale_checked": false
+    "mesh_latency_ms": 680.1,
+    "tailscale_checked": true
   },
   "career_summary": {
     "stats": {
       "total": 47,
-      "interviewing": 0,
+      "interviewing": 1,
       "tests": 0,
       "screening": 3,
       "applied": 24,
@@ -79,25 +79,39 @@
     },
     "records": [
       {
-        "company": "施耐德电气 (Schneider Electric)",
-        "position": "AI 应用顾问 (2027新星计划)",
-        "status": "准备中",
-        "apply_date": "2026-08-27",
+        "company": "上海良信电器股份有限公司 (良信集团)",
+        "position": "2027WIN计划校园招聘 - 技术型销售",
+        "status": "面试中",
+        "apply_date": "2026-11-05",
+        "priority": "low"
+      },
+      {
+        "company": "卓繁信息",
+        "position": "后端开发 / AI 应用落地实习",
+        "status": "已录用",
+        "apply_date": "2026-08-30",
         "priority": "high"
       },
       {
-        "company": "为恒智能科技股份有限公司",
-        "position": "AI Agent 工程师",
-        "status": "准备中",
-        "apply_date": "2026-08-27",
+        "company": "合合信息",
+        "position": "Agent开发工程师（J14436，2027届校招）",
+        "status": "初筛",
+        "apply_date": "2026-11-05",
         "priority": "high"
       },
       {
-        "company": "振石控股集团有限公司",
-        "position": "智能体研发工程师",
-        "status": "准备中",
-        "apply_date": "2026-08-27",
-        "priority": "medium"
+        "company": "合合信息",
+        "position": "AI全栈开发工程师（J14388，2027届校招）",
+        "status": "初筛",
+        "apply_date": "2026-11-05",
+        "priority": "high"
+      },
+      {
+        "company": "合合信息",
+        "position": "FDE工程师（J14378，2027届校招）",
+        "status": "初筛",
+        "apply_date": "2026-11-05",
+        "priority": "high"
       },
       {
         "company": "上海芯圣电子股份有限公司",
@@ -121,60 +135,11 @@
         "priority": "low"
       },
       {
-        "company": "英特尔中国 (Intel)",
-        "position": "2027 中国校招 · Agentic AI / 分布式 LLM 推理 / AI 框架",
-        "status": "准备中",
-        "apply_date": "2026-08-30",
-        "priority": "high"
-      },
-      {
-        "company": "海尔集团",
-        "position": "AI 算法工程师（变频）",
-        "status": "准备中",
-        "apply_date": "2026-08-30",
-        "priority": "high"
-      },
-      {
-        "company": "吉利控股集团",
-        "position": "G-TOP 计划 · 人工智能 / 智能驾驶等",
-        "status": "准备中",
-        "apply_date": "2026-08-30",
-        "priority": "medium"
-      },
-      {
-        "company": "拼多多集团 (PDD)",
-        "position": "AI Agent 研发工程师 / 云弧计划",
-        "status": "准备中",
-        "apply_date": "2026-08-30",
-        "priority": "medium"
-      },
-      {
-        "company": "字节跳动 Seed",
-        "position": "AI 搜索 Agent 算法工程师（2027 Seed 校招）",
-        "status": "准备中",
-        "apply_date": "2026-08-30",
-        "priority": "medium"
-      },
-      {
-        "company": "神州信息 (000555.SZ)",
-        "position": "27届提前批 AI Agent 工程师（上海）",
-        "status": "准备中",
-        "apply_date": "2026-08-30",
-        "priority": "high"
-      },
-      {
         "company": "上海人工智能实验室",
         "position": "星启计划 / 日常实习（大模型部署、Agent 相关）",
         "status": "已投递",
         "apply_date": "2026-11-05",
         "priority": "medium"
-      },
-      {
-        "company": "卓繁信息",
-        "position": "后端开发 / AI 应用落地实习",
-        "status": "已录用",
-        "apply_date": "2026-08-30",
-        "priority": "high"
       },
       {
         "company": "思源电气股份有限公司",
@@ -205,13 +170,6 @@
         "priority": "high"
       },
       {
-        "company": "上海吉祥航空股份有限公司",
-        "position": "IT 信息技术岗 (AI开发/AI产品方向, 2027校招)",
-        "status": "准备中",
-        "apply_date": "2026-09-28",
-        "priority": "high"
-      },
-      {
         "company": "长鑫存储技术有限公司",
         "position": "IT服务AI开发 (J21014, 2027校招)",
         "status": "已投递",
@@ -233,13 +191,6 @@
         "priority": "high"
       },
       {
-        "company": "中国石化·茂名石化",
-        "position": "信息化管理储备岗 (2027校招, 硕士)",
-        "status": "暂停",
-        "apply_date": "2026-10-19",
-        "priority": "high"
-      },
-      {
         "company": "上海集成电路研发中心有限公司（ICRD）",
         "position": "算法工程师 / 软件开发工程师 (2027校招, 待选岗)",
         "status": "已投递",
@@ -250,34 +201,6 @@
         "company": "海康机器人",
         "position": "技术工程师（视觉技术，2027届国内营销上海专场）",
         "status": "已投递",
-        "apply_date": "2026-11-05",
-        "priority": "high"
-      },
-      {
-        "company": "大华股份",
-        "position": "【研发中心】2027届AI应用开发工程师(J24400)",
-        "status": "准备中",
-        "apply_date": "2026-10-19",
-        "priority": "high"
-      },
-      {
-        "company": "合合信息",
-        "position": "Agent开发工程师（J14436，2027届校招）",
-        "status": "初筛",
-        "apply_date": "2026-11-05",
-        "priority": "high"
-      },
-      {
-        "company": "合合信息",
-        "position": "AI全栈开发工程师（J14388，2027届校招）",
-        "status": "初筛",
-        "apply_date": "2026-11-05",
-        "priority": "high"
-      },
-      {
-        "company": "合合信息",
-        "position": "FDE工程师（J14378，2027届校招）",
-        "status": "初筛",
         "apply_date": "2026-11-05",
         "priority": "high"
       },
@@ -308,13 +231,6 @@
         "status": "已投递",
         "apply_date": "2026-11-05",
         "priority": "medium"
-      },
-      {
-        "company": "上海良信电器股份有限公司 (良信集团)",
-        "position": "2027WIN计划校园招聘 - 技术型销售",
-        "status": "准备中",
-        "apply_date": "2026-11-05",
-        "priority": "low"
       },
       {
         "company": "宁德时代 (CATL)",
@@ -363,6 +279,90 @@
         "position": "软件开发工程师（2027届校招·上海/无锡）",
         "status": "已投递",
         "apply_date": "2026-11-05",
+        "priority": "high"
+      },
+      {
+        "company": "施耐德电气 (Schneider Electric)",
+        "position": "AI 应用顾问 (2027新星计划)",
+        "status": "准备中",
+        "apply_date": "2026-08-27",
+        "priority": "high"
+      },
+      {
+        "company": "为恒智能科技股份有限公司",
+        "position": "AI Agent 工程师",
+        "status": "准备中",
+        "apply_date": "2026-08-27",
+        "priority": "high"
+      },
+      {
+        "company": "振石控股集团有限公司",
+        "position": "智能体研发工程师",
+        "status": "准备中",
+        "apply_date": "2026-08-27",
+        "priority": "medium"
+      },
+      {
+        "company": "英特尔中国 (Intel)",
+        "position": "2027 中国校招 · Agentic AI / 分布式 LLM 推理 / AI 框架",
+        "status": "准备中",
+        "apply_date": "2026-08-30",
+        "priority": "high"
+      },
+      {
+        "company": "海尔集团",
+        "position": "AI 算法工程师（变频）",
+        "status": "准备中",
+        "apply_date": "2026-08-30",
+        "priority": "high"
+      },
+      {
+        "company": "吉利控股集团",
+        "position": "G-TOP 计划 · 人工智能 / 智能驾驶等",
+        "status": "准备中",
+        "apply_date": "2026-08-30",
+        "priority": "medium"
+      },
+      {
+        "company": "拼多多集团 (PDD)",
+        "position": "AI Agent 研发工程师 / 云弧计划",
+        "status": "准备中",
+        "apply_date": "2026-08-30",
+        "priority": "medium"
+      },
+      {
+        "company": "字节跳动 Seed",
+        "position": "AI 搜索 Agent 算法工程师（2027 Seed 校招）",
+        "status": "准备中",
+        "apply_date": "2026-08-30",
+        "priority": "medium"
+      },
+      {
+        "company": "神州信息 (000555.SZ)",
+        "position": "27届提前批 AI Agent 工程师（上海）",
+        "status": "准备中",
+        "apply_date": "2026-08-30",
+        "priority": "high"
+      },
+      {
+        "company": "上海吉祥航空股份有限公司",
+        "position": "IT 信息技术岗 (AI开发/AI产品方向, 2027校招)",
+        "status": "准备中",
+        "apply_date": "2026-09-28",
+        "priority": "high"
+      },
+      {
+        "company": "中国石化·茂名石化",
+        "position": "信息化管理储备岗 (2027校招, 硕士)",
+        "status": "暂停",
+        "apply_date": "2026-10-19",
+        "priority": "high"
+      },
+      {
+        "company": "大华股份",
+        "position": "【研发中心】2027届AI应用开发工程师(J24400)",
+        "status": "准备中",
+        "apply_date": "2026-10-19",
         "priority": "high"
       },
       {
@@ -452,8 +452,8 @@
       "priority": "Critical",
       "git_available": false,
       "commit_hash": "LOCAL",
-      "commit_time": "2026-11-17 16:48",
-      "commit_msg": "本地文件活跃 (更新于 2026-11-17 16:48)",
+      "commit_time": "2026-11-18 02:04",
+      "commit_msg": "本地文件活跃 (更新于 2026-11-18 02:04)",
       "branch": "local"
     },
     {
@@ -476,13 +476,13 @@
       "type": "exam",
       "target_date": "2026-12-12",
       "status": "日常积累与听力专项",
-      "next_action": "考前 25 天 · 核心考纲高频词汇与听力真题精听",
+      "next_action": "考前 24 天 · 核心考纲高频词汇与听力真题精听",
       "priority": "Medium",
-      "days_left": 25
+      "days_left": 24
     }
   ],
   "daily_checks": {
-    "date": "2026-11-17",
+    "date": "2026-11-18",
     "checks": {
       "起了": false,
       "动了": false,
@@ -660,6 +660,15 @@
           "写了": false,
           "关了": false
         }
+      },
+      {
+        "date": "2026-11-17",
+        "checks": {
+          "起了": false,
+          "动了": false,
+          "写了": false,
+          "关了": false
+        }
       }
     ]
   },
@@ -726,17 +735,20 @@
       {
         "project": "毕业小论文 (违建识别主线 + E-PAS)",
         "mac_role": "论文正文写作、消融实验图表绘制、文献调研、投递审阅",
-        "win_role": "4070S 显卡跑 YOLOv11 深度训练、大数据集推理与指标评测"
+        "win_role": "4070S 显卡跑 YOLOv11 深度训练、大数据集推理与指标评测",
+        "collab_mode": "Mac 编写训练脚本并 push ➔ Windows pull 后 CUDA 训练 ➔ 结果 tar 归档"
       },
       {
         "project": "求职与自适应简历 (Career-Copilot)",
         "mac_role": "辅导员就业群岗位解析、JD 匹配度诊断、Typst 编译简历、自动邮件代发",
-        "win_role": "不占用算力资源，保持待命"
+        "win_role": "不占用算力资源，保持待命",
+        "collab_mode": "Mac 本地独立极速闭环"
       },
       {
         "project": "外部合作方电商系统 & 端侧硬件小智机器人",
         "mac_role": "Chrome 插件逻辑编写、Web 管理后台界面调试、小智协议对接",
-        "win_role": "大型 Node/Python 依赖环境常驻测试、完整构建与冷备"
+        "win_role": "大型 Node/Python 依赖环境常驻测试、完整构建与冷备",
+        "collab_mode": "Git 仓库统一同步"
       }
     ]
   }
