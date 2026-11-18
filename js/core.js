@@ -56,6 +56,7 @@
   function careerStageRank(status) {
     const label = String(status || '');
     const low = label.toLowerCase();
+    if (label.includes('已结束') || label.includes('放弃') || label.includes('暂停')) return 6;
     if (label.includes('面')) return 0;
     if (label.includes('笔试')) return 1;
     if (low.includes('offer') || label.includes('录用')) return 2;

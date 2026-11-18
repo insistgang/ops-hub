@@ -167,17 +167,21 @@ def calculate_days_left(target_date_str, today=None):
 def career_label(item):
     """将 Career-Copilot 阶段文案映射为总台标准阶段标签。"""
     stage = str(item.get("stage") or "")
-    status = str(item.get("status") or "")
+    status = str(item.get("status") or "").lower()
+    if status in ("rejected", "closed", "withdrawn") or any(
+        kw in stage for kw in ("放弃", "未通过", "不合适", "淘汰", "拒", "已结束")
+    ):
+        return "已结束"
     if status == "offer" or "Offer" in stage or "录用" in stage:
         return "已录用"
-    if "面" in stage or status == "interviewing":
-        return "面试中"
-    if "笔试" in stage or status == "test":
-        return "笔试中"
-    if "初筛" in stage:
-        return "初筛"
     if "暂停" in stage:
         return "暂停"
+    if status == "interviewing" or "面" in stage:
+        return "面试中"
+    if status == "test" or "笔试" in stage:
+        return "笔试中"
+    if status == "screening" or "初筛" in stage:
+        return "初筛"
     if status == "applied" or "已投递" in stage or "邮件已发送" in stage:
         return "已投递"
     return "准备中"

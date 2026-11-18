@@ -3,22 +3,22 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "2.0.0",
-    "last_synced": "2026-11-18 09:00:14",
+    "last_synced": "2026-11-18 13:17:12",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub",
     "sanitized": true,
-    "sanitized_at": "2026-11-18 09:00:14",
+    "sanitized_at": "2026-11-18 13:17:12",
     "sanitize_note": "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址与本地路径。"
   },
   "topology": {
-    "timestamp": "2026-11-18 09:00:14",
+    "timestamp": "2026-11-18 13:17:12",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.x.x",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "15%",
-      "power_state": "Discharging (Battery)",
-      "load_avg": "1.50 1.51 1.58",
+      "battery": "80%",
+      "power_state": "Charging",
+      "load_avg": "6.00 6.45 8.98",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -31,10 +31,10 @@
       "ip": "100.98.x.x",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
       "status": "Online",
-      "latency_ms": 571.5,
-      "via": "",
-      "control_online": false,
-      "last_seen": "",
+      "latency_ms": 16.4,
+      "via": "DERP · nue",
+      "control_online": true,
+      "last_seen": "0001-01-01T00:00:00Z",
       "ssh_port": 22,
       "ssh_active": true,
       "smb_port": 445,
@@ -53,7 +53,7 @@
       "role": "边缘感知节点 // 端侧视觉与机器人感知部署",
       "network_type": "局域网 (LAN Only)",
       "status": "Online",
-      "latency_ms": 1.3,
+      "latency_ms": 8.8,
       "via": "",
       "control_online": false,
       "ssh_port": 22,
@@ -65,26 +65,19 @@
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": 571.5,
-    "tailscale_checked": false
+    "mesh_latency_ms": 16.4,
+    "tailscale_checked": true
   },
   "career_summary": {
     "stats": {
       "total": 47,
-      "interviewing": 1,
+      "interviewing": 0,
       "tests": 0,
       "screening": 3,
       "applied": 24,
       "offer": 1
     },
     "records": [
-      {
-        "company": "上海良信电器股份有限公司 (良信集团)",
-        "position": "2027WIN计划校园招聘 - 技术型销售",
-        "status": "面试中",
-        "apply_date": "2026-11-05",
-        "priority": "low"
-      },
       {
         "company": "卓繁信息",
         "position": "后端开发 / AI 应用落地实习",
@@ -352,13 +345,6 @@
         "priority": "high"
       },
       {
-        "company": "中国石化·茂名石化",
-        "position": "信息化管理储备岗 (2027校招, 硕士)",
-        "status": "暂停",
-        "apply_date": "2026-10-19",
-        "priority": "high"
-      },
-      {
         "company": "大华股份",
         "position": "【研发中心】2027届AI应用开发工程师(J24400)",
         "status": "准备中",
@@ -406,6 +392,20 @@
         "status": "准备中",
         "apply_date": "2026-11-05",
         "priority": "medium"
+      },
+      {
+        "company": "中国石化·茂名石化",
+        "position": "信息化管理储备岗 (2027校招, 硕士)",
+        "status": "暂停",
+        "apply_date": "2026-10-19",
+        "priority": "high"
+      },
+      {
+        "company": "上海良信电器股份有限公司 (良信集团)",
+        "position": "2027WIN计划校园招聘 - 技术型销售",
+        "status": "已结束",
+        "apply_date": "2026-11-05",
+        "priority": "low"
       }
     ]
   },
@@ -452,8 +452,8 @@
       "priority": "Critical",
       "git_available": false,
       "commit_hash": "LOCAL",
-      "commit_time": "2026-11-18 02:53",
-      "commit_msg": "本地文件活跃 (更新于 2026-11-18 02:53)",
+      "commit_time": "2026-11-18 11:54",
+      "commit_msg": "本地文件活跃 (更新于 2026-11-18 11:54)",
       "branch": "local"
     },
     {

@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+import collector
 import finance_publish
 import finance_sync
 import knowledge_source
@@ -20,9 +21,17 @@ class OpsCommonAndSanitizeTests(unittest.TestCase):
         self.assertIsNone(ops_common.route_task("  "))
 
     def test_career_stage_rank_orders_active_stages_first(self):
-        stages = ["准备中", "已投递", "初筛", "已录用", "笔试中", "面试中"]
+        stages = ["已结束", "准备中", "已投递", "初筛", "已录用", "笔试中", "面试中"]
         ordered = sorted(stages, key=ops_common.career_stage_rank)
-        self.assertEqual(ordered, ["面试中", "笔试中", "已录用", "初筛", "已投递", "准备中"])
+        self.assertEqual(ordered, ["面试中", "笔试中", "已录用", "初筛", "已投递", "准备中", "已结束"])
+        # 含「面」字的放弃/拒绝阶段绝不能误标为「面试中」
+        self.assertEqual(
+            collector.career_label({
+                "status": "rejected",
+                "stage": "已放弃（视频面试已结束，因岗位为销售方向主动放弃）",
+            }),
+            "已结束",
+        )
 
     def test_public_status_preserves_scrubbed_workflow_collab_mode_and_strips_network(self):
         aliases = {

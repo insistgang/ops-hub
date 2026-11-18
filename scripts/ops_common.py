@@ -71,9 +71,11 @@ def route_task(query):
 
 
 def career_stage_rank(status):
-    """求职状态置顶权重：面试/笔试 > 录用/Offer > 初筛 > 已投递 > 其他。"""
+    """求职状态置顶权重：面试/笔试 > 录用/Offer > 初筛 > 已投递 > 准备中 > 暂停/已结束。"""
     label = str(status or "")
     low = label.lower()
+    if any(kw in label for kw in ("已结束", "放弃", "暂停")):
+        return 6
     if "面" in label:
         return 0
     if "笔试" in label:
