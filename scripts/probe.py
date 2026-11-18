@@ -69,6 +69,7 @@ def _device_ips(key, env_name, default):
 # Windows 4070S
 WIN_IP = _device("windows", "ip", "OPSHUB_WIN_IP", "已隐藏")
 WIN_NAME = _device("windows", "name", "OPSHUB_WIN_NAME", "windows-host")
+WIN_USER = _device("windows", "user", "OPSHUB_WIN_USER", "user")
 WIN_SSH_PORT = 22
 WIN_SMB_PORT = 445
 
@@ -144,6 +145,8 @@ def probe_tcp(ip, port, timeout=1.5):
 
 TAILSCALE_BINARIES = [
     "tailscale",
+    "/usr/local/bin/tailscale",
+    "/opt/homebrew/bin/tailscale",
     "/Applications/Tailscale.app/Contents/MacOS/Tailscale",
 ]
 
@@ -167,12 +170,13 @@ def tailscale_status():
             continue
         index = {}
         for peer in (payload.get("Peer") or {}).values():
+            raw_seen = str(peer.get("LastSeen") or "")
             entry = {
                 "online": bool(peer.get("Online")),
                 "relay": peer.get("Relay") or "",
                 "direct": bool(peer.get("CurAddr")),
                 "os": peer.get("OS") or "",
-                "last_seen": peer.get("LastSeen") or "",
+                "last_seen": "" if raw_seen.startswith("0001-01-01") else raw_seen,
                 "host": peer.get("HostName") or "",
             }
             for ip in peer.get("TailscaleIPs") or []:
@@ -240,18 +244,31 @@ def probe_first_reachable(ips, timeout=2):
 def probe_all():
     tailscale = tailscale_status()
 
-    # 1. Probe Windows（候选地址逐个尝试；在线判定 = TCP 可达或 ICMP 可达）
-    _, _, win_ip = probe_first_reachable(WIN_IPS, timeout=2)
-    win_ssh_ok, win_ssh_ms = probe_tcp(win_ip, WIN_SSH_PORT, timeout=2.0)
-    win_smb_ok, win_smb_ms = probe_tcp(win_ip, WIN_SMB_PORT, timeout=2.0)
-    win_icmp_ok, win_icmp_ms = probe_ping(win_ip, timeout=2)
+    # 1. Probe Windows（候选地址逐个尝试；任一 TCP 或 ICMP 可达即命中，避免重复 ping）
+    win_ip = WIN_IPS[0] if WIN_IPS else "已隐藏"
+    win_ssh_ok = win_smb_ok = win_icmp_ok = False
+    win_ssh_ms = win_smb_ms = win_icmp_ms = None
+    for candidate in (WIN_IPS or ["已隐藏"]):
+        win_ip = candidate
+        win_ssh_ok, win_ssh_ms = probe_tcp(candidate, WIN_SSH_PORT, timeout=2.0)
+        win_smb_ok, win_smb_ms = probe_tcp(candidate, WIN_SMB_PORT, timeout=2.0)
+        win_icmp_ok, win_icmp_ms = probe_ping(candidate, timeout=2)
+        if win_ssh_ok or win_smb_ok or win_icmp_ok:
+            break
     win_online = win_ssh_ok or win_smb_ok or win_icmp_ok
     win_lat = win_icmp_ms or win_ssh_ms or win_smb_ms
     win_peer = tailscale.get(win_ip) or {}
 
     # 2. Probe Jetson (LAN)
-    jetson_icmp_ok, jetson_icmp_ms, jetson_ip = probe_first_reachable(JETSON_IPS, timeout=1.5)
-    jetson_ssh_ok, jetson_ssh_ms = probe_tcp(jetson_ip, JETSON_SSH_PORT, timeout=1.5)
+    jetson_ip = JETSON_IPS[0] if JETSON_IPS else "已隐藏"
+    jetson_icmp_ok = jetson_ssh_ok = False
+    jetson_icmp_ms = jetson_ssh_ms = None
+    for candidate in (JETSON_IPS or ["已隐藏"]):
+        jetson_ip = candidate
+        jetson_icmp_ok, jetson_icmp_ms = probe_ping(candidate, timeout=1.5)
+        jetson_ssh_ok, jetson_ssh_ms = probe_tcp(candidate, JETSON_SSH_PORT, timeout=1.5)
+        if jetson_icmp_ok or jetson_ssh_ok:
+            break
     jetson_online = jetson_icmp_ok or jetson_ssh_ok
     jetson_lat = jetson_icmp_ms or jetson_ssh_ms
 
@@ -261,6 +278,7 @@ def probe_all():
         "device": "Windows 性能主机 (i5-12600KF, 32GB, RTX 4070S 12GB)",
         "ip": win_ip,
         "name": WIN_NAME,
+        "user": WIN_USER,
         "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
         "status": "Online" if win_online else "Offline",
         "latency_ms": win_lat if win_online else None,
@@ -269,6 +287,7 @@ def probe_all():
         "last_seen": win_peer.get("last_seen") or "",
         "ssh_port": WIN_SSH_PORT,
         "ssh_active": win_ssh_ok,
+        "ssh_cmd": f"ssh {WIN_USER}@{win_ip}",
         "smb_port": WIN_SMB_PORT,
         "smb_active": win_smb_ok,
         "services": [

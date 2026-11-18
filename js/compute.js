@@ -13,12 +13,20 @@
 
   function resolveSshCommand(deviceKey) {
     const dev = latestTopology?.[deviceKey] || {};
-    if (dev.ssh_cmd && !String(dev.ssh_cmd).includes('已隐藏')) {
+    if (dev.ssh_cmd && !String(dev.ssh_cmd).includes('已隐藏') && !String(dev.ssh_cmd).includes('.x')) {
       return String(dev.ssh_cmd);
     }
     if (dev.ip && !String(dev.ip).includes('已隐藏') && !String(dev.ip).includes('.x')) {
       const user = dev.user || (deviceKey === 'jetson' ? 'jetson' : 'user');
       return `ssh ${user}@${dev.ip}`;
+    }
+    return '';
+  }
+
+  function resolveSmbAddress() {
+    const ip = String(latestTopology?.windows?.ip || '');
+    if (ip && !ip.includes('已隐藏') && !ip.includes('.x')) {
+      return `smb://${ip}`;
     }
     return '';
   }
@@ -83,8 +91,10 @@
 
     const winSshCmd = resolveSshCommand('windows');
     const jetSshCmd = resolveSshCommand('jetson');
+    const winSmbUrl = resolveSmbAddress();
     set('win-ssh-cmd-text', winSshCmd || '地址已隐藏（公开脱敏）');
     set('jetson-ssh-cmd-text', jetSshCmd || '地址已隐藏（公开脱敏）');
+    set('win-smb-cmd-text', winSmbUrl || '地址已隐藏（公开脱敏）');
   }
 
   function renderDeviceAllocation(status) {
@@ -213,6 +223,9 @@
     });
     document.querySelectorAll('[data-ssh-device]').forEach(btn => {
       btn.addEventListener('click', () => copySSH(resolveSshCommand(btn.getAttribute('data-ssh-device'))));
+    });
+    document.querySelectorAll('[data-smb-copy]').forEach(btn => {
+      btn.addEventListener('click', () => copySSH(resolveSmbAddress()));
     });
   }
 

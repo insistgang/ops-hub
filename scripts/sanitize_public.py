@@ -182,6 +182,7 @@ def build_public_status(status, aliases):
             dev = topo.get(key)
             if isinstance(dev, dict):
                 dev.pop("name", None)
+                dev.pop("user", None)
                 dev.pop("ssh_cmd", None)
 
     alloc = public.get("device_allocation")

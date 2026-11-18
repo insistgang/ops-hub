@@ -3,22 +3,22 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "2.0.0",
-    "last_synced": "2026-11-18 13:17:12",
+    "last_synced": "2026-11-18 13:27:45",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub",
     "sanitized": true,
-    "sanitized_at": "2026-11-18 13:17:12",
+    "sanitized_at": "2026-11-18 13:27:45",
     "sanitize_note": "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址与本地路径。"
   },
   "topology": {
-    "timestamp": "2026-11-18 13:17:12",
+    "timestamp": "2026-11-18 13:27:45",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.x.x",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
       "battery": "80%",
       "power_state": "Charging",
-      "load_avg": "6.00 6.45 8.98",
+      "load_avg": "5.86 4.46 6.28",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -31,10 +31,10 @@
       "ip": "100.98.x.x",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
       "status": "Online",
-      "latency_ms": 16.4,
+      "latency_ms": 13.6,
       "via": "DERP · nue",
       "control_online": true,
-      "last_seen": "0001-01-01T00:00:00Z",
+      "last_seen": "",
       "ssh_port": 22,
       "ssh_active": true,
       "smb_port": 445,
@@ -49,11 +49,10 @@
     "jetson": {
       "device": "NVIDIA Jetson 边缘计算硬件 (Yahboom 亚博智能, Tegra aarch64)",
       "ip": "10.120.x.x",
-      "user": "jetson",
       "role": "边缘感知节点 // 端侧视觉与机器人感知部署",
       "network_type": "局域网 (LAN Only)",
       "status": "Online",
-      "latency_ms": 8.8,
+      "latency_ms": 10.0,
       "via": "",
       "control_online": false,
       "ssh_port": 22,
@@ -65,7 +64,7 @@
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": 16.4,
+    "mesh_latency_ms": 13.6,
     "tailscale_checked": true
   },
   "career_summary": {

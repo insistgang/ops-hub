@@ -99,7 +99,9 @@ html:not(.dark) .bg-zinc-900\/70 { background-color: #f4f4f5; }
 html:not(.dark) .bg-zinc-900\/80 { background-color: #fafafa; }
 html:not(.dark) .bg-zinc-900\/90 { background-color: #ffffff; }
 html:not(.dark) .bg-zinc-800    { background-color: #e4e4e7; }
+html:not(.dark) .bg-zinc-800\/70 { background-color: rgba(228, 228, 231, 0.75); }
 html:not(.dark) .bg-zinc-800\/80 { background-color: rgba(228, 228, 231, 0.8); }
+html:not(.dark) .bg-zinc-700\/50 { background-color: rgba(203, 213, 225, 0.7); }
 
 /* --- 深色调色板面板（950 系徽章/卡片 → 浅色 50/100 系） --- */
 html:not(.dark) .bg-indigo-950      { background-color: #e0e7ff; }
@@ -139,6 +141,7 @@ html:not(.dark) .text-slate-400  { color: #475569; }
 html:not(.dark) .text-slate-400\/90 { color: rgba(71, 85, 105, 0.9); }
 html:not(.dark) .text-zinc-300   { color: #3f3f46; }
 html:not(.dark) .text-zinc-400   { color: #52525b; }
+html:not(.dark) .text-zinc-500   { color: #64748b; }
 
 /* --- 强调色文字（提升浅底对比度） --- */
 html:not(.dark) .text-indigo-300    { color: #4f46e5; }

@@ -133,7 +133,8 @@ function initVitaFlow() {
   });
   nodes.url.addEventListener('input', cancelAutomaticConnection);
   nodes.key.addEventListener('input', cancelAutomaticConnection);
-  nodes.connect.addEventListener('click', async () => {
+  async function handleManualConnect(event) {
+    event?.preventDefault?.();
     cancelAutomaticConnection();
     let url;
     try { url = validUrl(nodes.url.value.trim()); } catch (_) {
@@ -147,7 +148,10 @@ function initVitaFlow() {
       return;
     }
     await connect(url, key, true);
-  });
+  }
+  const connectionForm = document.getElementById('vitaflow-connection-form');
+  if (connectionForm) connectionForm.addEventListener('submit', handleManualConnect);
+  nodes.connect.addEventListener('click', handleManualConnect);
 
   let savedUrl = null;
   let savedConnection = null;

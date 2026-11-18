@@ -314,13 +314,8 @@ def cmd_memory(_args):
     for fp in rules.get("focus_principles", []):
         print(f"   • {Colors.BOLD}{fp.get('principle')}{Colors.ENDC}: {fp.get('desc')}")
 
-    hs = rules.get("health_supplements") or {}
-    if hs.get("rule"):
-        print(f"\n{Colors.BOLD}3. 健康安排:{Colors.ENDC}")
-        print(f"   {Colors.WARNING}※ {hs['rule']}{Colors.ENDC}")
-        for sch in hs.get("schedule", []):
-            print(f"     - {sch.get('period')}: {sch.get('items')}")
-    print()
+    print(f"\n{Colors.BOLD}3. 健康安排:{Colors.ENDC}")
+    print(f"   {Colors.DIM}旧补剂计划已结束。健康安排以当前确认的计划为准。{Colors.ENDC}\n")
 
 
 def cmd_weight(args):
@@ -435,8 +430,12 @@ def cmd_quota(_args):
         name = str(row.get("name") or key)
         weekly = _remaining(row.get("used_pct"))
         fiveh = _remaining(row.get("fiveh_pct"))
-        reset = row.get("reset") or "未知"
-        fiveh_reset = row.get("fiveh_reset") or "未知"
+        w_str = f"{weekly:.1f}%" if weekly is not None else "未知"
+        f_str = f"{fiveh:.1f}%" if fiveh is not None else "未知"
+        raw_reset = str(row.get("reset") or "").strip()
+        raw_fiveh_reset = str(row.get("fiveh_reset") or "").strip()
+        reset = raw_reset if raw_reset and raw_reset != "?" else "未知"
+        fiveh_reset = raw_fiveh_reset if raw_fiveh_reset and raw_fiveh_reset != "?" else "未知"
         flag = ""
         if weekly is not None and weekly <= 3:
             flag = f" {Colors.FAIL}[周额度已用尽]{Colors.ENDC}"
@@ -444,8 +443,8 @@ def cmd_quota(_args):
         elif weekly is not None and weekly <= 20:
             flag = f" {Colors.WARNING}[偏低]{Colors.ENDC}"
         print(
-            f"  {name:<30} 周剩余 {str(weekly):>6}%  5h剩余 {str(fiveh):>6}%  "
-            f"周重置 {reset}  5h重置 {fiveh_reset}{flag}"
+            f"  {name:<32} 周剩余 {w_str:>7}  5h剩余 {f_str:>7}  "
+            f"周重置 {reset:<12} 5h重置 {fiveh_reset}{flag}"
         )
     print()
     if exhausted:
