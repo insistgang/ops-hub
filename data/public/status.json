@@ -3,22 +3,22 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "2.0.0",
-    "last_synced": "2026-11-19 21:00:13",
+    "last_synced": "2026-11-20 09:00:19",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub",
     "sanitized": true,
-    "sanitized_at": "2026-11-19 21:00:13",
+    "sanitized_at": "2026-11-20 09:00:19",
     "sanitize_note": "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址与本地路径。"
   },
   "topology": {
-    "timestamp": "2026-11-19 21:00:13",
+    "timestamp": "2026-11-20 09:00:19",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.x.x",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "80%",
-      "power_state": "Charging",
-      "load_avg": "2.62 2.49 2.42",
+      "battery": "100%",
+      "power_state": "AC Power",
+      "load_avg": "4.35 7.24 13.74",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -31,8 +31,8 @@
       "ip": "100.98.x.x",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
       "status": "Online",
-      "latency_ms": 455.7,
-      "via": "DERP · lax",
+      "latency_ms": 524.1,
+      "via": "DERP · nue",
       "control_online": true,
       "last_seen": "",
       "ssh_port": 22,
@@ -48,23 +48,23 @@
     },
     "jetson": {
       "device": "NVIDIA Jetson 边缘计算硬件 (Yahboom 亚博智能, Tegra aarch64)",
-      "ip": "10.120.x.x",
+      "ip": "10.8.x.x",
       "role": "边缘感知节点 // 端侧视觉与机器人感知部署",
       "network_type": "局域网 (LAN Only)",
-      "status": "Online",
-      "latency_ms": 0.8,
+      "status": "LAN Standby",
+      "latency_ms": null,
       "via": "",
       "control_online": false,
       "ssh_port": 22,
-      "ssh_active": true,
+      "ssh_active": false,
       "services": [
-        "SSH 访问 (Active :22)",
+        "SSH 访问 (Standby)",
         "NVIDIA JetPack 6 / Tegra R36",
         "CUDA Edge Runtime",
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": 455.7,
+    "mesh_latency_ms": 524.1,
     "tailscale_checked": true
   },
   "career_summary": {
@@ -451,8 +451,8 @@
       "priority": "Critical",
       "git_available": false,
       "commit_hash": "LOCAL",
-      "commit_time": "2026-11-19 17:56",
-      "commit_msg": "本地文件活跃 (更新于 2026-11-19 17:56)",
+      "commit_time": "2026-11-20 00:47",
+      "commit_msg": "本地文件活跃 (更新于 2026-11-20 00:47)",
       "branch": "local"
     },
     {
@@ -475,13 +475,13 @@
       "type": "exam",
       "target_date": "2026-12-12",
       "status": "日常积累与听力专项",
-      "next_action": "考前 23 天 · 核心考纲高频词汇与听力真题精听",
+      "next_action": "考前 22 天 · 核心考纲高频词汇与听力真题精听",
       "priority": "Medium",
-      "days_left": 23
+      "days_left": 22
     }
   ],
   "daily_checks": {
-    "date": "2026-11-19",
+    "date": "2026-11-20",
     "checks": {
       "起了": false,
       "动了": false,
@@ -674,6 +674,15 @@
         "checks": {
           "起了": true,
           "动了": true,
+          "写了": false,
+          "关了": false
+        }
+      },
+      {
+        "date": "2026-11-19",
+        "checks": {
+          "起了": false,
+          "动了": false,
           "写了": false,
           "关了": false
         }

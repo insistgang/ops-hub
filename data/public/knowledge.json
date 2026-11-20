@@ -1,9 +1,9 @@
 {
   "available": true,
-  "generated_at": "2026-11-19T21:00:13+08:00",
-  "today": "2026-11-19",
+  "generated_at": "2026-11-20T09:00:19+08:00",
+  "today": "2026-11-20",
   "warnings": [
-    "缺少 2026-11-19 的今日计划，已回退到 2026-11-18"
+    "缺少 2026-11-20 的今日计划，已回退到 2026-11-18"
   ],
   "today_plan": {
     "date": "2026-11-18",
@@ -45,7 +45,7 @@
       }
     ],
     "warnings": [
-      "缺少 2026-11-19 的今日计划，已回退到 2026-11-18"
+      "缺少 2026-11-20 的今日计划，已回退到 2026-11-18"
     ]
   },
   "wip": {
@@ -85,9 +85,9 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2026-10-27",
-        "days_left": -23,
+        "days_left": -24,
         "impact": "原 64 刀档「10/24 决定暂不开会员」口径作废；扣费走同事 C账户余额（本人说明该账户已充较多）；自动续费开关与下次扣费日待本人确认",
-        "overdue_days": 23,
+        "overdue_days": 24,
         "needs_confirm": true
       },
       {
@@ -100,7 +100,7 @@
         "day_basis": "区间截止",
         "date_precision": "day",
         "effective_date": "2026-11-20",
-        "days_left": 1,
+        "days_left": 0,
         "impact": "19 日 09:00--13:00 万豪万枫酒店报到注册、下午开幕式/主旨报告/标杆企业美高电气参观/欢迎晚宴；20 日全天专题报告；需提前协调实习排期与科研推进"
       },
       {
@@ -113,7 +113,7 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2026-11-22",
-        "days_left": 3,
+        "days_left": 2,
         "impact": "10/15 记录的 1,500 TRY 可覆盖 10/22、11/22、12/22；本人 10/27 未单独说明此账户余额，按原口径保留"
       },
       {
@@ -126,7 +126,7 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2026-12-01",
-        "days_left": 12,
+        "days_left": 11,
         "impact": "费用与归属待补"
       },
       {
@@ -139,7 +139,7 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2026-12-12",
-        "days_left": 23,
+        "days_left": 22,
         "impact": "准考证与考场通知 12 月初"
       },
       {
@@ -152,7 +152,7 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2026-12-15",
-        "days_left": 26,
+        "days_left": 25,
         "impact": "导师 10/10 明确：全文初稿截止 12 月 15 日，1 月按学院通知提交"
       },
       {
@@ -165,7 +165,7 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2026-12-15",
-        "days_left": 26,
+        "days_left": 25,
         "impact": "—"
       },
       {
@@ -178,7 +178,7 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2027-11-17",
-        "days_left": 363,
+        "days_left": 362,
         "impact": "到期后自动续费与否待确认"
       },
       {
