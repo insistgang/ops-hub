@@ -3,22 +3,22 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "2.0.0",
-    "last_synced": "2026-11-20 09:00:19",
+    "last_synced": "2026-11-20 21:00:12",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub",
     "sanitized": true,
-    "sanitized_at": "2026-11-20 09:00:19",
+    "sanitized_at": "2026-11-20 21:00:12",
     "sanitize_note": "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址与本地路径。"
   },
   "topology": {
-    "timestamp": "2026-11-20 09:00:19",
+    "timestamp": "2026-11-20 21:00:11",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.x.x",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "100%",
-      "power_state": "AC Power",
-      "load_avg": "4.35 7.24 13.74",
+      "battery": "71%",
+      "power_state": "Discharging (Battery)",
+      "load_avg": "6.37 7.66 8.17",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -31,40 +31,40 @@
       "ip": "100.98.x.x",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
       "status": "Online",
-      "latency_ms": 524.1,
-      "via": "DERP · nue",
+      "latency_ms": 1036.9,
+      "via": "DERP · hkg",
       "control_online": true,
       "last_seen": "",
       "ssh_port": 22,
       "ssh_active": false,
       "smb_port": 445,
-      "smb_active": true,
+      "smb_active": false,
       "services": [
         "SSH Remote (Standby)",
-        "SMB Storage (Active :445)",
+        "SMB Storage (Standby)",
         "CUDA 12 Compute",
         "Tailscale Mesh"
       ]
     },
     "jetson": {
       "device": "NVIDIA Jetson 边缘计算硬件 (Yahboom 亚博智能, Tegra aarch64)",
-      "ip": "10.8.x.x",
+      "ip": "10.120.x.x",
       "role": "边缘感知节点 // 端侧视觉与机器人感知部署",
       "network_type": "局域网 (LAN Only)",
-      "status": "LAN Standby",
-      "latency_ms": null,
+      "status": "Online",
+      "latency_ms": 1.4,
       "via": "",
       "control_online": false,
       "ssh_port": 22,
-      "ssh_active": false,
+      "ssh_active": true,
       "services": [
-        "SSH 访问 (Standby)",
+        "SSH 访问 (Active :22)",
         "NVIDIA JetPack 6 / Tegra R36",
         "CUDA Edge Runtime",
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": 524.1,
+    "mesh_latency_ms": 1036.9,
     "tailscale_checked": true
   },
   "career_summary": {
@@ -451,8 +451,8 @@
       "priority": "Critical",
       "git_available": false,
       "commit_hash": "LOCAL",
-      "commit_time": "2026-11-20 00:47",
-      "commit_msg": "本地文件活跃 (更新于 2026-11-20 00:47)",
+      "commit_time": "2026-11-20 14:04",
+      "commit_msg": "本地文件活跃 (更新于 2026-11-20 14:04)",
       "branch": "local"
     },
     {

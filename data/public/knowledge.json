@@ -1,6 +1,6 @@
 {
   "available": true,
-  "generated_at": "2026-11-20T09:00:19+08:00",
+  "generated_at": "2026-11-20T21:00:12+08:00",
   "today": "2026-11-20",
   "warnings": [
     "缺少 2026-11-20 的今日计划，已回退到 2026-11-18"
@@ -254,11 +254,11 @@
         "name": "卓繁信息",
         "kind": "dir",
         "relative": "03-Projects/卓繁信息",
-        "updated": "2026-11-18T21:01+08:00",
+        "updated": "2026-11-20T11:09+08:00",
         "updated_source": "file",
         "date_hint": null,
-        "file_count": 26,
-        "summary": "【本周每日工作量明细】"
+        "file_count": 34,
+        "summary": "本清单未注册对方账号、未爬取 App、未做逆向。全部信息来自公开披露：新三板年报（2023 / 2025）的研发支出与软件著作权清单、静安区人大建议答复、上海市房管局案例、公司官网与公众号「立马订AI」。"
       },
       {
         "name": "共感LinkAble",
