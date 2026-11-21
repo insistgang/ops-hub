@@ -3,22 +3,22 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "2.0.0",
-    "last_synced": "2026-11-20 21:00:12",
+    "last_synced": "2026-11-21 09:01:23",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub",
     "sanitized": true,
-    "sanitized_at": "2026-11-20 21:00:12",
+    "sanitized_at": "2026-11-21 09:01:23",
     "sanitize_note": "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址与本地路径。"
   },
   "topology": {
-    "timestamp": "2026-11-20 21:00:11",
+    "timestamp": "2026-11-21 09:01:23",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.x.x",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "71%",
+      "battery": "26%",
       "power_state": "Discharging (Battery)",
-      "load_avg": "6.37 7.66 8.17",
+      "load_avg": "13.62 29.04 20.59",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -31,8 +31,8 @@
       "ip": "100.98.x.x",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
       "status": "Online",
-      "latency_ms": 1036.9,
-      "via": "DERP · hkg",
+      "latency_ms": 1542.0,
+      "via": "DERP · nue",
       "control_online": true,
       "last_seen": "",
       "ssh_port": 22,
@@ -52,7 +52,7 @@
       "role": "边缘感知节点 // 端侧视觉与机器人感知部署",
       "network_type": "局域网 (LAN Only)",
       "status": "Online",
-      "latency_ms": 1.4,
+      "latency_ms": 1.0,
       "via": "",
       "control_online": false,
       "ssh_port": 22,
@@ -64,7 +64,7 @@
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": 1036.9,
+    "mesh_latency_ms": 1542.0,
     "tailscale_checked": true
   },
   "career_summary": {
@@ -475,13 +475,13 @@
       "type": "exam",
       "target_date": "2026-12-12",
       "status": "日常积累与听力专项",
-      "next_action": "考前 22 天 · 核心考纲高频词汇与听力真题精听",
+      "next_action": "考前 21 天 · 核心考纲高频词汇与听力真题精听",
       "priority": "Medium",
-      "days_left": 22
+      "days_left": 21
     }
   ],
   "daily_checks": {
-    "date": "2026-11-20",
+    "date": "2026-11-21",
     "checks": {
       "起了": false,
       "动了": false,
@@ -680,6 +680,15 @@
       },
       {
         "date": "2026-11-19",
+        "checks": {
+          "起了": false,
+          "动了": false,
+          "写了": false,
+          "关了": false
+        }
+      },
+      {
+        "date": "2026-11-20",
         "checks": {
           "起了": false,
           "动了": false,
