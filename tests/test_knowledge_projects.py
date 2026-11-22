@@ -192,3 +192,151 @@ class ParseFinanceTest(unittest.TestCase):
     def test_missing_review_file_raises(self):
         with self.assertRaises(knowledge_source.KnowledgeSourceError):
             knowledge_source.parse_finance(self.root)
+
+
+class ArchivedProjectsTest(unittest.TestCase):
+    """2026-11-22 知识库重构后，项目台账归档到 04-Resources/Archive/项目管理。"""
+
+    LEDGER = """---
+title: 项目管理归档
+---
+
+# 项目管理归档
+
+> 当前 WIP 只以 [[00-Inbox/TODO]] 为准。
+
+## 当前主线
+
+| 项目 | 当前记录 | 来源与入口 |
+|---|---|---|
+| MS-LightCD 小论文 | 保留当前首要位置；11/12 已核对正文与 18 条批注。 | [[02-Thesis/README]] |
+| 卓繁信息实习 | 第 46 周精简周报已发送并归档。 | [[00-Inbox/TODO]] |
+
+## 项目入口与最近状态
+
+| 项目 | 状态记录 | 入口 |
+|---|---|---|
+| 中国电信合作 | 已交付、待外部确认。 | [[04-Resources/Archive/项目管理/项目索引/中国电信合作]] |
+"""
+
+    INDEX_ENTRY = """---
+title: "共感LinkAble"
+状态: completed
+---
+
+# 共感LinkAble
+
+> 项目目录入口。
+
+## 当前状态
+
+- **项目阶段**：竞赛阶段已结束，当前为被动响应/成果复用状态。
+- 唯一重启触发器：出现明确外部请求。
+"""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+        self.archive = self.root / "04-Resources" / "Archive" / "项目管理"
+        self.index = self.archive / "项目索引"
+        self.index.mkdir(parents=True)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_extracts_mainline_rows_and_index_files(self):
+        _touch(self.archive / "03-Projects.md", datetime(2026, 11, 22, 3, 6), self.LEDGER)
+        _touch(self.index / "共感LinkAble.md", datetime(2026, 8, 3, 21, 51), self.INDEX_ENTRY)
+
+        result = knowledge_source.parse_projects(self.root)
+        by_name = {item["name"]: item for item in result["items"]}
+
+        self.assertEqual(result["warnings"], [])
+        self.assertIn("MS-LightCD 小论文", by_name)
+        self.assertIn("卓繁信息实习", by_name)
+        self.assertIn("共感LinkAble", by_name)
+        # 「项目入口与最近状态」表格不是当前主线，不应进入台账
+        self.assertNotIn("中国电信合作", by_name)
+
+        mainline = by_name["MS-LightCD 小论文"]
+        self.assertEqual(mainline["relative"], "04-Resources/Archive/项目管理/03-Projects.md")
+        self.assertIn("11/12 已核对正文", mainline["summary"])
+
+        index_item = by_name["共感LinkAble"]
+        self.assertEqual(index_item["relative"], "04-Resources/Archive/项目管理/项目索引/共感LinkAble.md")
+        self.assertEqual(index_item["summary"], "项目阶段：竞赛阶段已结束，当前为被动响应/成果复用状态。")
+
+    def test_archived_structure_wins_over_legacy_directory(self):
+        _touch(self.archive / "03-Projects.md", datetime(2026, 11, 22, 3, 6), self.LEDGER)
+        _touch(self.index / "共感LinkAble.md", datetime(2026, 8, 3, 21, 51), self.INDEX_ENTRY)
+        legacy = self.root / "03-Projects"
+        _touch(legacy / "旧结构项目" / "README.md", datetime(2026, 10, 4, 9, 0), "# 旧结构项目\n\n正文。\n")
+
+        result = knowledge_source.parse_projects(self.root)
+
+        self.assertEqual(result["file"], "04-Resources/Archive/项目管理")
+        self.assertNotIn("旧结构项目", [item["name"] for item in result["items"]])
+
+    def test_legacy_directory_is_used_when_archive_is_absent(self):
+        legacy = self.root / "03-Projects"
+        _touch(legacy / "旧结构项目" / "README.md", datetime(2026, 10, 4, 9, 0), "# 旧结构项目\n\n正文。\n")
+
+        result = knowledge_source.parse_projects(self.root)
+
+        self.assertEqual(result["file"], "03-Projects")
+        self.assertEqual([item["name"] for item in result["items"]], ["旧结构项目"])
+
+    def test_missing_ledger_is_reported_as_warning(self):
+        _touch(self.index / "共感LinkAble.md", datetime(2026, 8, 3, 21, 51), self.INDEX_ENTRY)
+
+        result = knowledge_source.parse_projects(self.root)
+
+        self.assertEqual(len(result["warnings"]), 1)
+        self.assertIn("03-Projects.md", result["warnings"][0])
+        self.assertEqual(len(result["items"]), 1)
+
+
+class FinanceDirectoryTest(unittest.TestCase):
+    REVIEW = """# 2026-11 财务记录
+
+> 消费截至 2026-11-07；更新于2026-11-07 21:20（北京时间）。
+
+## 一、本月概况（消费截至 2026-11-07）
+
+| 项目 | 金额（元） | 口径与证据 |
+|---|---:|---|
+| 已记录支出合计 | 746.50 | 共12笔 |
+
+## 二、支出结构
+
+| 类别 | 金额（元） | 明细与口径 |
+|---|---:|---|
+| 订阅AI | 468.00 | DeepSeek 充值 |
+"""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_new_growth_finance_directory_is_used(self):
+        finance = self.root / "03-Growth" / "Finance"
+        finance.mkdir(parents=True)
+        (finance / "2026-11-financial-review.md").write_text(self.REVIEW, encoding="utf-8")
+
+        result = knowledge_source.parse_finance(self.root)
+
+        self.assertEqual(result["file"], "03-Growth/Finance/2026-11-financial-review.md")
+        self.assertEqual(result["month"], "2026-11")
+
+    def test_legacy_finance_directory_still_supported(self):
+        finance = self.root / "06-Growth" / "Finance"
+        finance.mkdir(parents=True)
+        (finance / "2026-11-financial-review.md").write_text(self.REVIEW, encoding="utf-8")
+
+        result = knowledge_source.parse_finance(self.root)
+
+        self.assertEqual(result["file"], "06-Growth/Finance/2026-11-financial-review.md")
+        self.assertEqual(result["month"], "2026-11")

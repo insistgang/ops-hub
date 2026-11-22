@@ -1,6 +1,6 @@
 {
   "available": true,
-  "generated_at": "2026-11-22T09:11:05+08:00",
+  "generated_at": "2026-11-22T09:21:50+08:00",
   "today": "2026-11-22",
   "warnings": [],
   "today_plan": {
@@ -243,6 +243,245 @@
     ],
     "warnings": []
   },
-  "projects": null,
-  "finance": null
+  "projects": {
+    "file": "04-Resources/Archive/项目管理",
+    "items": [
+      {
+        "name": "MS-LightCD 小论文",
+        "kind": "file",
+        "relative": "04-Resources/Archive/项目管理/03-Projects.md",
+        "updated": "2026-11-22T03:06+08:00",
+        "updated_source": "file",
+        "date_hint": null,
+        "file_count": 1,
+        "summary": "保留当前首要位置；10/30 导师当面建议改投《北航学报》（低空运行前沿技术专刊）并给出 4 条核心意见。11/12 已核对 MS-LightCD-正文-20261029-该.docx 与 18 条批注；仍待本人定夺第 3 条「修正处理」定性、按新刊须知复验格式并完成终读提交。"
+      },
+      {
+        "name": "违建大论文 T-011",
+        "kind": "file",
+        "relative": "04-Resources/Archive/项目管理/03-Projects.md",
+        "updated": "2026-11-22T03:06+08:00",
+        "updated_source": "file",
+        "date_hint": null,
+        "file_count": 1,
+        "summary": "已有 V04 初稿；11/10 完成 4,151 框逐框审查与剩余 23 段 / 366 张抽检（原「待看」清零）；11/13 本人正式拍板决定 A/B 并回流项目状态（按物理场景重划 split 并微调顺延冻结窗口；266 个红棕屋面框按主色 red 幂等重映射入类 2、非红棕原类 2 归回类 0），11/14 四项脚本已全部落地并通过校验，11/15 冻结签署清单已落盘，仅剩本人签署 v1.…"
+      },
+      {
+        "name": "卓繁信息实习",
+        "kind": "file",
+        "relative": "04-Resources/Archive/项目管理/03-Projects.md",
+        "updated": "2026-11-22T03:06+08:00",
+        "updated_source": "file",
+        "date_hint": null,
+        "file_count": 1,
+        "summary": "第 46 周（11/09--11/13）精简工作周报已发送朱主管并归档：11/10 完成公司 AI Coding 全栈开发分享并推动助教魔方企微 Bot 立项；11/11--11/13 交付金山社团批量检查、试卷排序与题库、完成企微 Bot 核心链路联调及校方数据回传验证 OK，并更新 11/13 版《金山教育项目需求跟踪表》。下阶段评估企微工作台小应用与后台时间范围导出，下周按主管排期切入停车…"
+      },
+      {
+        "name": "10 月竞赛收官",
+        "kind": "file",
+        "relative": "04-Resources/Archive/项目管理/03-Projects.md",
+        "updated": "2026-11-22T03:06+08:00",
+        "updated_source": "file",
+        "date_hint": null,
+        "file_count": 1,
+        "summary": "10/18 第五届网安赛、10/19 第十二届智慧城市国赛完成系统提交，10/24 长三角《LinkCity》完成现场决赛答辩；LinkCity 三等奖证书已归档，其余赛事按各自记录查证。"
+      },
+      {
+        "name": "秋招与就业准备",
+        "kind": "file",
+        "relative": "04-Resources/Archive/项目管理/03-Projects.md",
+        "updated": "2026-11-22T03:06+08:00",
+        "updated_source": "file",
+        "date_hint": null,
+        "file_count": 1,
+        "summary": "11/09 晚依舍友建议对照 STAR 法则与量化指标完成个人简历终稿重构并发送田磊、备份至 focus；11/13 参加多家企业现场面试并获正面认可。10/13--10/26 已投岗位反馈、推荐表签章及后续机会持续跟进。"
+      },
+      {
+        "name": "软件著作权",
+        "kind": "file",
+        "relative": "04-Resources/Archive/项目管理/03-Projects.md",
+        "updated": "2026-11-22T03:06+08:00",
+        "updated_source": "file",
+        "date_hint": null,
+        "file_count": 1,
+        "summary": "当前 14 套材料齐备；最新项目记录记载本人 10/4 确认 14 项申请已提交。9 项是早先批次口径，申请提交不等于获证。"
+      },
+      {
+        "name": "中期检查与就业材料",
+        "kind": "file",
+        "relative": "04-Resources/Archive/项目管理/03-Projects.md",
+        "updated": "2026-11-22T03:06+08:00",
+        "updated_source": "file",
+        "date_hint": null,
+        "file_count": 1,
+        "summary": "10/10 导师系统审核、10/12 现场答辩、10/13 纸质材料签字交接均有记录。本人 2026-10-22 确认全流程已完结；就业推荐表签章仍待核实，详情统一见教育入口。"
+      },
+      {
+        "name": "专硕专业实践材料",
+        "kind": "file",
+        "relative": "04-Resources/Archive/项目管理/03-Projects.md",
+        "updated": "2026-11-22T03:06+08:00",
+        "updated_source": "file",
+        "date_hint": null,
+        "file_count": 1,
+        "summary": "已于 9/13 完成提交闭环，不再显示为待 9/7 交件。"
+      },
+      {
+        "name": "共感LinkAble",
+        "kind": "file",
+        "relative": "04-Resources/Archive/项目管理/项目索引/共感LinkAble.md",
+        "updated": "2026-11-22T03:06+08:00",
+        "updated_source": "file",
+        "date_hint": null,
+        "file_count": 1,
+        "summary": "项目阶段：竞赛阶段已结束，当前为被动响应/成果复用状态。"
+      },
+      {
+        "name": "专利_视频检索",
+        "kind": "file",
+        "relative": "04-Resources/Archive/项目管理/项目索引/专利_视频检索.md",
+        "updated": "2026-11-14T16:47+08:00",
+        "updated_source": "file",
+        "date_hint": null,
+        "file_count": 1,
+        "summary": "下一次推进先定位已提交版本与具体问题，再记录修正范围及下一步；不自动起草新专利、不代为提交或联系代理机构。"
+      },
+      {
+        "name": "understand_mov_v2",
+        "kind": "file",
+        "relative": "04-Resources/Archive/项目管理/项目索引/understand_mov_v2.md",
+        "updated": "2026-08-03T21:51+08:00",
+        "updated_source": "file",
+        "date_hint": null,
+        "file_count": 1,
+        "summary": "暂无库内 Markdown 笔记。"
+      },
+      {
+        "name": "中电科50所",
+        "kind": "file",
+        "relative": "04-Resources/Archive/项目管理/项目索引/中电科50所.md",
+        "updated": "2026-08-03T16:09+08:00",
+        "updated_source": "file",
+        "date_hint": null,
+        "file_count": 1,
+        "summary": "暂无库内 Markdown 笔记。"
+      }
+    ],
+    "total": 12,
+    "truncated": false,
+    "warnings": [],
+    "notes": []
+  },
+  "finance": {
+    "file": "03-Growth/Finance/2026-11-financial-review.md",
+    "month": "2026-11",
+    "as_of": "消费截至 2026-11-21 24:00。11/21 两餐 38 元、节点订阅 30 元、日用个护 28 元；共 96 元。资产余额沿用 11/14 本人快照。",
+    "summary": [
+      {
+        "label": "确认收入合计",
+        "amount": 2600.0,
+        "amount_raw": "2,600.00",
+        "note": "已到账生活费 2,500 元与外快劳务 100 元；工资预计 11 月 25 日后发，未到账不预记；本月非整月结算"
+      },
+      {
+        "label": "家庭支持",
+        "amount": 2500.0,
+        "amount_raw": "2,500.00",
+        "note": "11/10 收到父亲生活费，账户未记录"
+      },
+      {
+        "label": "劳务收入",
+        "amount": 100.0,
+        "amount_raw": "100.00",
+        "note": "11/14 外快：师兄任务本人已到账 100 元，账户未记录；家人另得 50 元不计本人收入"
+      },
+      {
+        "label": "已记录支出合计",
+        "amount": 2321.5,
+        "amount_raw": "2,321.50",
+        "note": "11/01 47.00 + 11/02 232.00 + 11/03 0.00 + 11/04 50.00 + 11/05 418.00 + 11/06 0.00 + 11/07 0.00 + 11/08 44.00 + 11/09 37.00 + 11/10 78.00 + 11/11 72.50 + 11/12 …"
+      },
+      {
+        "label": "一次性/资本性",
+        "amount": 1371.0,
+        "amount_raw": "1,371.00",
+        "note": "11/04 DeepSeek API 充值 50.00 + 11/05 购买 3,000 TRY 土币 418.00 + 11/10 张哥课程 10.00 + 11/12 域名续费 39.00 + 11/16 杭州高铁票 66.00 + 11/17 浙江返沪高铁票 86.00 + CodeBuddy 年费订阅 672…"
+      },
+      {
+        "label": "日常消耗",
+        "amount": 950.5,
+        "amount_raw": "950.50",
+        "note": "截至11/21按21个自然日计算日均45.26元"
+      },
+      {
+        "label": "本月结余",
+        "amount": 278.5,
+        "amount_raw": "278.50",
+        "note": "仅已登记收入减已记录支出的差额；收入尚未完整核实，不代表整月结余，储蓄率不适用"
+      },
+      {
+        "label": "当前可用现金",
+        "amount": 48756.0,
+        "amount_raw": "48,756.00",
+        "note": "按历史现金分类沿用的账面暂估；含汇丰按自报合计反推约9,906元。11/14用户自报，产品及取用条件未核，不保证即时可用；中信、中行、微信及基金未计入"
+      },
+      {
+        "label": "负债",
+        "amount": 3000.0,
+        "amount_raw": "3,000.00",
+        "note": "11/17 本人确认仅花呗、无其他负债，尚未还款；已还 0 期、剩余 12 期，每月 10 日还 250 元，首期 2026-12-10"
+      },
+      {
+        "label": "广义总资产",
+        "amount": 63571.0,
+        "amount_raw": "63,571.00",
+        "note": "11/14 自报账户及基金 52,571 元 + 已登记应收 11,000 元；11/17 本人确认无漏记资产，混合日期暂估，非实时核验"
+      },
+      {
+        "label": "账面净资产",
+        "amount": 60571.0,
+        "amount_raw": "60,571.00",
+        "note": "账面总资产 63,571 元 - 本人确认全部负债 3,000 元；账户日期 11/14、负债确认 11/17，非实时净值"
+      }
+    ],
+    "expenses": [
+      {
+        "label": "日常餐饮及其他",
+        "amount": 950.5,
+        "amount_raw": "950.50",
+        "note": "餐饮736、医疗健康100、日用品55、食品采购31.3、交通27、日常打印1.2"
+      },
+      {
+        "label": "订阅AI",
+        "amount": 1179.0,
+        "amount_raw": "1,179.00",
+        "note": "11/04 DeepSeek API 充值 50.00 元 + 11/05 购买 3,000 TRY 土币（含开通 Google Pro）418.00 元 + 11/12 域名 insistgang.top 续费 1 年 39.00 元 + 11/17 CodeBuddy 年费订阅 672.00 元（WorkBudd…"
+      },
+      {
+        "label": "通讯",
+        "amount": 30.0,
+        "amount_raw": "30.00",
+        "note": "11/21 两个 ikuuu 账号续费 3 个月，一笔预付"
+      },
+      {
+        "label": "学习学业",
+        "amount": 10.0,
+        "amount_raw": "10.00",
+        "note": "11/10 张哥课程 10.00 元（资本性，不摊日常；另 11/13 日常打印 1.20 元已计入日常消耗）"
+      },
+      {
+        "label": "交通",
+        "amount": 152.0,
+        "amount_raw": "152.00",
+        "note": "11/16 杭州高峰论坛高铁票 66.00 元 + 11/17 浙江返沪高铁票 86.00 元，均为一次性差旅交通；日常充电及市内打车已计入「日常餐饮及其他」"
+      },
+      {
+        "label": "合计",
+        "amount": 2321.5,
+        "amount_raw": "2,321.50",
+        "note": "与截至 11/21 24:00 的 61 笔实付流水一致；花呗信用购置和未偿本金另列"
+      }
+    ],
+    "warnings": []
+  }
 }

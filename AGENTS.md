@@ -46,7 +46,7 @@ Desktop/个人工具/ops-hub/
 │   ├── vitaflow-today.js      # 今日首页的共享待办与四账户精力摘要
 │   ├── diary-todos.js         # 日记待办公开投影与按需单向导入 VitaFlow
 │   ├── knowledge-today.js     # 知识库今日必做、WIP 与硬节点雷达渲染
-│   ├── knowledge-projects.js  # 知识库 03-Projects 项目台账渲染
+│   ├── knowledge-projects.js  # 知识库项目台账渲染（归档结构 + 旧结构回退）
 │   ├── knowledge-finance.js   # 知识库月度财务复盘投影渲染
 │   └── knowledge-energy.js    # 日记最近 7 天精力/情绪/专注参考投影
 ├── data/                      # 本地真源（git-ignore）与 public/ 脱敏公开产物
@@ -113,7 +113,7 @@ Desktop/个人工具/ops-hub/
 
 ### 知识库接入边界
 - **单向只读**：`~/Documents/knowledge`（可用 `OPS_KNOWLEDGE_DIR` 覆盖）是唯一写入口，任何回写均视为 bug。
-- **白名单与诚实降级**：仅解析 `01-Daily/今日计划/`、`00-Inbox/硬节点台账.md`、`03-Projects/`、`06-Growth/Finance/*-review.md` 与日记状态/待办复选项；缺失或无法解析时写 `warnings` 或隐藏对应区块，严禁造假或阻断硬件探针。
+- **白名单与诚实降级**：仅解析 `01-Daily/今日计划/`、`00-Inbox/硬节点台账.md`、`04-Resources/Archive/项目管理/`（`项目索引/*.md` 条目 + `03-Projects.md` 的「当前主线」表格，旧结构 `03-Projects/` 回退）、`03-Growth/Finance/*-review.md`（旧 `06-Growth/Finance/` 回退）与日记状态/待办复选项；缺失或无法解析时写 `warnings` 或隐藏对应区块，严禁造假或阻断硬件探针。
 - **公开脱敏授权**：本人已明确选择公开个人计划、WIP、硬节点、项目台账、月度财务复盘摘要、最近 7 天日记精力（含依据）及指定日记待办复选项（仅本人，同事与外部导师一律经 `private_aliases.json` 代号化，本地绝对路径与私网 IP 全部剥离/掩码）。公开产物进入 Git 历史与公网，扩大公开范围前必须经本人明确确认。
 
 ### 体重与财务接入边界

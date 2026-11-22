@@ -558,9 +558,17 @@ def parse_hard_nodes(knowledge_dir: Path = KNOWLEDGE_DIR, today: date | None = N
 
 
 # --------------------------------------------------------------------------
-# 项目台账  03-Projects/<项目名>/ 与顶层 .md
+# 项目台账
+#
+# 2026-11-22 起知识库把项目台账归档到 04-Resources/Archive/项目管理：
+#   - 「项目索引」目录存放项目条目 .md（一条一个项目）
+#   - 「03-Projects.md」是归档总览，其中的「当前主线」表格记录活跃项目与状态
+# 旧结构 03-Projects/<项目名>/ 保留为回退路径。
 # --------------------------------------------------------------------------
 
+PROJECT_ARCHIVE_DIR = Path("04-Resources") / "Archive" / "项目管理"
+PROJECT_INDEX_DIR = PROJECT_ARCHIVE_DIR / "项目索引"
+PROJECT_LEDGER_FILE = PROJECT_ARCHIVE_DIR / "03-Projects.md"
 PROJECTS_DIR = Path("03-Projects")
 PROJECT_SKIP = {"_backups", "Attachments", "node_modules", ".git", ".obsidian"}
 MAX_PROJECTS = 400
@@ -609,6 +617,23 @@ def _first_line_text(path: Path, limit: int = 4000) -> str | None:
     return None
 
 
+def _index_entry_summary(path: Path, limit: int = 4000) -> str | None:
+    """索引条目摘要：取第一条要点（列表项），避免只拿到标题或空摘要。"""
+    try:
+        text = path.read_text(encoding="utf-8")[:limit]
+    except (OSError, UnicodeDecodeError):
+        return None
+    text = FRONTMATTER_BLOCK.sub("", text)
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith(("- ", "* ")):
+            continue
+        body = _strip_md(re.sub(r"^[-*]\s+", "", stripped))
+        if body and not body.startswith("[["):
+            return _clip(body, 120)
+    return None
+
+
 def _iso(ts: float) -> str:
     return datetime.fromtimestamp(ts).astimezone().isoformat(timespec="minutes")
 
@@ -631,9 +656,15 @@ def _bulk_stamps(all_times: list[float]) -> dict[int, int]:
 
 def parse_projects(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
     """抽取项目目录条目。全部取自文件系统事实，不推断进度。"""
-    project_dir = Path("05-Resources/Archive/项目管理")
-    if not (knowledge_dir / project_dir).is_dir():
-        project_dir = PROJECTS_DIR
+    if (knowledge_dir / PROJECT_INDEX_DIR).is_dir():
+        try:
+            return _parse_archived_projects(knowledge_dir)
+        except KnowledgeSourceError:
+            # 归档目录存在但没有可投影条目时，回退旧结构再试一次
+            if not (knowledge_dir / PROJECTS_DIR).is_dir():
+                raise
+
+    project_dir = PROJECTS_DIR
     root = knowledge_dir / project_dir
     if not root.is_dir():
         raise KnowledgeSourceError(f"缺少项目目录：{root}")
@@ -683,6 +714,97 @@ def parse_projects(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
     if not gathered:
         raise KnowledgeSourceError(f"{root} 下没有可投影的项目条目")
 
+    items, notes = _finalize_project_items(gathered)
+    return {
+        "file": str(project_dir),
+        "items": items[:MAX_PROJECTS],
+        "total": len(items),
+        "truncated": len(items) > MAX_PROJECTS,
+        "warnings": warnings,
+        "notes": notes,
+    }
+
+
+def _mainline_rows(text: str) -> list[tuple[str, str]]:
+    """从归档总览里抽取「当前主线」表格的项目名与状态记录。"""
+    rows: list[tuple[str, str]] = []
+    in_section = False
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            in_section = "当前主线" in stripped
+            continue
+        if not in_section or not stripped.startswith("|"):
+            continue
+        cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+        if len(cells) < 2 or _is_separator(cells):
+            continue
+        name = _clip(_strip_md(cells[0]), 80)
+        if not name or name == "项目":
+            continue
+        rows.append((name, _clip(_strip_md(cells[1]), 200)))
+    return rows
+
+
+def _parse_archived_projects(knowledge_dir: Path) -> dict:
+    """抽取归档结构下的项目条目：当前主线表格 + 项目索引文件。"""
+    warnings: list[str] = []
+    gathered: list[dict] = []
+
+    ledger = knowledge_dir / PROJECT_LEDGER_FILE
+    if ledger.is_file():
+        try:
+            text = _read(ledger)
+            stamp = ledger.stat().st_mtime
+        except (OSError, UnicodeDecodeError) as exc:
+            warnings.append(f"{PROJECT_LEDGER_FILE.as_posix()} 读取失败：{exc}")
+        else:
+            for name, status in _mainline_rows(text):
+                gathered.append({
+                    "name": name,
+                    "kind": "file",
+                    "relative": PROJECT_LEDGER_FILE.as_posix(),
+                    "times": [stamp],
+                    "file_count": 1,
+                    "summary": status or None,
+                })
+    else:
+        warnings.append(f"缺少归档总览：{PROJECT_LEDGER_FILE.as_posix()}")
+
+    index_root = knowledge_dir / PROJECT_INDEX_DIR
+    for entry in sorted(index_root.iterdir()):
+        if entry.name.startswith(".") or not entry.is_file():
+            continue
+        if entry.suffix.lower() != ".md":
+            continue
+        try:
+            gathered.append({
+                "name": entry.stem,
+                "kind": "file",
+                "relative": (PROJECT_INDEX_DIR / entry.name).as_posix(),
+                "times": [entry.stat().st_mtime],
+                "file_count": 1,
+                "summary": _index_entry_summary(entry) or _first_line_text(entry),
+            })
+        except OSError as exc:
+            warnings.append(f"{entry.name} 读取失败：{exc}")
+
+    if not gathered:
+        raise KnowledgeSourceError(f"{PROJECT_INDEX_DIR.as_posix()} 下没有可投影的项目条目")
+
+    items, notes = _finalize_project_items(gathered)
+    return {
+        "file": str(PROJECT_ARCHIVE_DIR),
+        "items": items[:MAX_PROJECTS],
+        "total": len(items),
+        "truncated": len(items) > MAX_PROJECTS,
+        "warnings": warnings,
+        "notes": notes,
+    }
+
+
+def _finalize_project_items(gathered: list[dict]) -> tuple[list[dict], list[str]]:
+    """把收集到的原始条目整理成对外条目：剔除批量时间戳、合并同名、按活跃度排序。"""
     all_times = [ts for item in gathered for ts in item["times"]]
     bulk = _bulk_stamps(all_times)
     # 批量时间戳是正常的信息性说明，不是故障；放进 notes，避免污染页面上的故障提示
@@ -732,23 +854,15 @@ def parse_projects(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
         return (1, day, item["updated"] or "")
 
     items.sort(key=activity, reverse=True)
-
-    total = len(items)
-    return {
-        "file": str(project_dir),
-        "items": items[:MAX_PROJECTS],
-        "total": total,
-        "truncated": total > MAX_PROJECTS,
-        "warnings": warnings,
-        "notes": notes,
-    }
+    return items, notes
 
 
 # --------------------------------------------------------------------------
-# 财务月度复盘  06-Growth/Finance/YYYY-MM-financial-review.md
+# 财务月度复盘  03-Growth/Finance/YYYY-MM-financial-review.md
+# 2026-11-22 知识库重构后从 06-Growth/Finance 迁到 03-Growth/Finance，旧路径保留回退。
 # --------------------------------------------------------------------------
 
-FINANCE_DIR = Path("06-Growth") / "Finance"
+FINANCE_DIRS = (Path("03-Growth") / "Finance", Path("06-Growth") / "Finance")
 FINANCE_FILE_RE = re.compile(r"^(\d{4})-(\d{2})-(?:financial?-review|finance-review)")
 FINANCE_ROW_RE = re.compile(r"^\|(.+)\|\s*$")
 FINANCE_SECTIONS = {"本月概况": "summary", "支出结构": "expenses"}
@@ -769,13 +883,18 @@ def _latest_finance_file(finance_dir: Path) -> Path | None:
 
 def parse_finance(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
     """抽取最近一份月度财务复盘的核心数字。只读，不推断、不改写口径。"""
-    finance_dir = knowledge_dir / FINANCE_DIR
-    if not finance_dir.is_dir():
-        raise KnowledgeSourceError(f"缺少财务复盘目录：{finance_dir}")
+    finance_dir = None
+    for candidate in FINANCE_DIRS:
+        if (knowledge_dir / candidate).is_dir():
+            finance_dir = candidate
+            break
+    if finance_dir is None:
+        raise KnowledgeSourceError(f"缺少财务复盘目录：{knowledge_dir / FINANCE_DIRS[0]}")
 
-    path = _latest_finance_file(finance_dir)
+    root = knowledge_dir / finance_dir
+    path = _latest_finance_file(root)
     if path is None:
-        raise KnowledgeSourceError(f"{finance_dir} 下没有 YYYY-MM-*-review.md")
+        raise KnowledgeSourceError(f"{root} 下没有 YYYY-MM-*-review.md")
 
     text = _read(path)
     month = FINANCE_FILE_RE.match(path.name).group(0)[:7]
@@ -836,7 +955,7 @@ def parse_finance(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
         warnings.append(f"{month} 财务复盘未解析到「本月概况」表格")
 
     return {
-        "file": f"{FINANCE_DIR.as_posix()}/{path.name}",
+        "file": f"{finance_dir.as_posix()}/{path.name}",
         "month": month,
         "as_of": as_of,
         "summary": tables["summary"],

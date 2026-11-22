@@ -2,6 +2,11 @@
 
 ## 近期里程碑
 
+- **2026-11-22 09:22 · 知识库目录重构后的知识库投影断链修复**：
+  - **症状**：知识库于 11-22 凌晨重构（项目台账 `03-Projects` → `04-Resources/Archive/项目管理`，财务复盘 `06-Growth/Finance` → `03-Growth/Finance`）后，`scripts/knowledge_source.py` 仍指向旧路径，`data/knowledge.json` 的 `projects`/`finance` 变为 `null`；加上 `fcbe76c` 将 `warnings` 从公开产物剔除，公开站「知识库项目台账」与「月度财务复盘」静默消失。
+  - **修复**：`knowledge_source.py` 新增归档结构解析（`项目索引/*.md` 条目 + `03-Projects.md` 的「当前主线」表格），旧结构 `03-Projects/` 与 `06-Growth/Finance/` 保留回退；归档结构无条目时自动回退旧结构；索引条目摘要改取首条要点；财务目录按 `03-Growth` → `06-Growth` 顺序探测。
+  - **验证**：`projects` 恢复 12 条（8 条当前主线 + 4 条项目索引）、`finance` 恢复 2026-11 月度复盘，`warnings` 为空，公开产物无本地绝对路径泄露；新增 10 项回归测试（归档结构解析、结构优先级、旧结构回退、缺失总览告警、财务目录迁移）。
+
 - **2026-11-18 · v2.0 全栈瘦身与模块化重构**：
   - **清理冗余与体积暴降**：清理 `.tmp/`（17 MB 历史调试残留）、`docs/superpowers/` 一次性计划、`PRD_REVIEW.md`、退役的 `weight_challenge` 死代码及 VitaFlow 12 个旧独立启动/迁移脚本与冗余 `.ttf` 字体；`vitaflow/build-html.mjs` 剥离 FA4/FA5 重复兼容段与 TTF 内联，`vitaflow/native-workspace.css` 从 **3.2 MB 降至 484 KB（-85%）**，`schedule-system-2.0.html` 从 **3.8 MB 降至 1.1 MB（-71%）**；VitaFlow 18 项测试统一收拢至 `vitaflow/tests/`。
   - **前后端同源模块化重构**：新增前端公共底座 `js/core.js` 与算力模块 `js/compute.js`，`js/app.js` 瘦身约 30% 并移除 `index.html` 内联事件；新增后端公共底座 `scripts/ops_common.py` 与 `scripts/cli_commands.py`，`ops` 入口收敛为纯声明式路由，前后端任务分流关键词由单测强制同源对齐。
@@ -14,6 +19,9 @@
 
 ## 最新全量验证基线
 
-- `node build.mjs --check`：VitaFlow 独立版、VitaFlow 原生、体重原生、财务原生四步构建与源码 100% 一致。
-- Python 测试套件：`112` 项单测全部通过（覆盖探针、知识库解析、日记待办/精力/体重/状态脱敏阻断、财务同步与公共分流底座）。
-- Node 与原生工作区测试：`173` 项前端/体重单测（含静态缓存版本守卫与前后端分流关键词同源校验）+ 财务原生套件 + 本机桥接安全套件 + VitaFlow `npm test` 全套通过。
+- 2026-11-22 09:22 · `node build.mjs --check`：VitaFlow 独立版、VitaFlow 原生、体重原生、财务原生四步构建与源码 100% 一致。
+- 2026-11-22 09:22 · Python 测试套件：`122` 项单测全部通过（新增 10 项覆盖知识库归档结构解析与财务目录迁移）。
+- 2026-11-22 09:22 · Node 与原生工作区测试：`173` 项前端/体重单测（含静态缓存版本守卫与前后端分流关键词同源校验）+ 财务原生套件 + 本机桥接安全套件 + VitaFlow `npm test` 全套通过。
+- 2026-11-21 21:00 · `node build.mjs --check`：VitaFlow 独立版、VitaFlow 原生、体重原生、财务原生四步构建与源码 100% 一致。
+- 2026-11-21 21:00 · Python 测试套件：`112` 项单测全部通过（覆盖探针、知识库解析、日记待办/精力/体重/状态脱敏阻断、财务同步与公共分流底座）。
+- 2026-11-21 21:00 · Node 与原生工作区测试：`173` 项前端/体重单测（含静态缓存版本守卫与前后端分流关键词同源校验）+ 财务原生套件 + 本机桥接安全套件 + VitaFlow `npm test` 全套通过。
