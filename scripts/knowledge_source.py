@@ -859,9 +859,13 @@ def _finalize_project_items(gathered: list[dict]) -> tuple[list[dict], list[str]
 
 # --------------------------------------------------------------------------
 # 财务月度复盘  03-Growth/Finance/YYYY-MM-financial-review.md
-# 2026-11-22 知识库重构后从 06-Growth/Finance 迁到 03-Growth/Finance，旧路径保留回退。
+# 2026-11-22 财务材料迁到个人工具项目 ~/Desktop/个人工具/finance（真源），
+# 知识库 03-Growth/Finance 保留软链接，旧编号 06-Growth 作为历史回退。
 # --------------------------------------------------------------------------
 
+FINANCE_HOME = Path(
+    os.environ.get("OPS_FINANCE_DIR") or "~/Desktop/个人工具/finance"
+).expanduser()
 FINANCE_DIRS = (Path("03-Growth") / "Finance", Path("06-Growth") / "Finance")
 FINANCE_FILE_RE = re.compile(r"^(\d{4})-(\d{2})-(?:financial?-review|finance-review)")
 FINANCE_ROW_RE = re.compile(r"^\|(.+)\|\s*$")
@@ -881,17 +885,31 @@ def _latest_finance_file(finance_dir: Path) -> Path | None:
     return candidates[0][1]
 
 
-def parse_finance(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
-    """抽取最近一份月度财务复盘的核心数字。只读，不推断、不改写口径。"""
-    finance_dir = None
+def _finance_root(knowledge_dir: Path) -> tuple[Path | None, str]:
+    """定位财务复盘目录，返回 (目录, 公开输出用的路径前缀)。
+
+    顺序：OPS_FINANCE_DIR → 财务项目真源（仅默认知识库根时启用）→ 知识库
+    03-Growth/Finance 软链接 → 旧编号 06-Growth/Finance。
+    """
+    override = os.environ.get("OPS_FINANCE_DIR")
+    if override:
+        candidate = Path(override).expanduser()
+        if candidate.is_dir():
+            return candidate, "finance"
+    if knowledge_dir == KNOWLEDGE_DIR and FINANCE_HOME.is_dir():
+        return FINANCE_HOME, "finance"
     for candidate in FINANCE_DIRS:
         if (knowledge_dir / candidate).is_dir():
-            finance_dir = candidate
-            break
-    if finance_dir is None:
+            return knowledge_dir / candidate, candidate.as_posix()
+    return None, ""
+
+
+def parse_finance(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
+    """抽取最近一份月度财务复盘的核心数字。只读，不推断、不改写口径。"""
+    root, label_prefix = _finance_root(knowledge_dir)
+    if root is None:
         raise KnowledgeSourceError(f"缺少财务复盘目录：{knowledge_dir / FINANCE_DIRS[0]}")
 
-    root = knowledge_dir / finance_dir
     path = _latest_finance_file(root)
     if path is None:
         raise KnowledgeSourceError(f"{root} 下没有 YYYY-MM-*-review.md")
@@ -955,7 +973,7 @@ def parse_finance(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
         warnings.append(f"{month} 财务复盘未解析到「本月概况」表格")
 
     return {
-        "file": f"{finance_dir.as_posix()}/{path.name}",
+        "file": f"{label_prefix}/{path.name}",
         "month": month,
         "as_of": as_of,
         "summary": tables["summary"],

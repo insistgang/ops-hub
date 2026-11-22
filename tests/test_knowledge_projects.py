@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from datetime import datetime
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import knowledge_source
@@ -339,4 +340,16 @@ class FinanceDirectoryTest(unittest.TestCase):
         result = knowledge_source.parse_finance(self.root)
 
         self.assertEqual(result["file"], "06-Growth/Finance/2026-11-financial-review.md")
+        self.assertEqual(result["month"], "2026-11")
+
+    def test_standalone_finance_home_is_preferred(self):
+        """财务材料 2026-11-22 迁到个人工具项目，OPS_FINANCE_DIR 指向真源时优先使用。"""
+        finance = self.root / "finance-home"
+        finance.mkdir(parents=True)
+        (finance / "2026-11-financial-review.md").write_text(self.REVIEW, encoding="utf-8")
+
+        with patch.dict(os.environ, {"OPS_FINANCE_DIR": str(finance)}):
+            result = knowledge_source.parse_finance(self.root)
+
+        self.assertEqual(result["file"], "finance/2026-11-financial-review.md")
         self.assertEqual(result["month"], "2026-11")
