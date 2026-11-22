@@ -52,6 +52,23 @@ class RepositoryArtifactsTests(unittest.TestCase):
         self.assertTrue(deploy.LOCAL_SERVER.exists())
         self.assertTrue(deploy.LOCAL_UNIT.exists())
 
+    def test_nginx_sources_exist(self):
+        self.assertTrue(deploy.LOCAL_ROUTES.exists())
+        self.assertTrue(deploy.LOCAL_LIMIT.exists())
+
+    def test_routes_snippet_points_at_the_sync_service(self):
+        snippet = deploy.LOCAL_ROUTES.read_text(encoding="utf-8")
+        self.assertIn("location = /api/public {", snippet)
+        self.assertIn("location = /api/data {", snippet)
+        self.assertEqual(snippet.count("proxy_pass http://127.0.0.1:18787;"), 2)
+        self.assertIn("client_max_body_size 32m;", snippet)
+
+    def test_limit_zone_snippet_declares_the_shared_zone(self):
+        limit = deploy.LOCAL_LIMIT.read_text(encoding="utf-8")
+        self.assertIn("limit_req_zone $binary_remote_addr zone=ops_vita_sync_limit:10m rate=60r/m;", limit)
+        self.assertNotIn("htpasswd", limit)
+
+
     def test_unit_keeps_the_server_hardening(self):
         unit = deploy.LOCAL_UNIT.read_text(encoding="utf-8")
         self.assertIn("User=ops-vita", unit)
@@ -79,6 +96,81 @@ class RepositoryArtifactsTests(unittest.TestCase):
 
     def test_md5_helper_matches_hashlib(self):
         self.assertEqual(deploy.md5_bytes(b"ops-hub"), hashlib.md5(b"ops-hub").hexdigest())
+
+class NginxRegionTests(unittest.TestCase):
+    LEGACY_SITE = """server {
+    server_name finance.insistgang.top;
+    root /var/www/finance;
+
+    # OPS-HUB VITAFLOW PUBLIC READ (GET-only enforced by upstream)
+    location = /api/public {
+        auth_basic off;
+        proxy_pass http://127.0.0.1:18787;
+    }
+
+    # OPS-HUB VITAFLOW SYNC (private API only)
+    location = /api/data {
+        auth_basic off;
+        client_max_body_size 32m;
+        proxy_pass http://127.0.0.1:18787;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+"""
+
+    def test_legacy_blocks_are_extracted(self):
+        region = deploy.extract_api_blocks(self.LEGACY_SITE)
+        self.assertIsNotNone(region)
+        self.assertIn("location = /api/public {", region)
+        self.assertIn("location = /api/data {", region)
+        self.assertNotIn("location / {", region)
+
+    def test_marked_region_takes_precedence(self):
+        body = "    location = /api/public {\n        proxy_pass http://127.0.0.1:18787;\n    }"
+        site = deploy.build_region(body)
+        self.assertEqual(deploy.extract_managed_region(site).strip(), body.strip())
+        self.assertIsNone(deploy.extract_managed_region(self.LEGACY_SITE))
+
+    def test_replace_region_keeps_the_rest_of_the_site(self):
+        snippet = deploy.LOCAL_ROUTES.read_text(encoding="utf-8")
+        updated = deploy.replace_region(self.LEGACY_SITE, snippet)
+        self.assertIn("root /var/www/finance;", updated)
+        self.assertIn("try_files $uri $uri/ /index.html;", updated)
+        self.assertIn(deploy.REGION_BEGIN, updated)
+        self.assertIn(deploy.REGION_END, updated)
+        self.assertEqual(updated.count("location = /api/public {"), 1)
+
+    def test_replace_region_is_idempotent(self):
+        snippet = deploy.LOCAL_ROUTES.read_text(encoding="utf-8")
+        once = deploy.replace_region(self.LEGACY_SITE, snippet)
+        twice = deploy.replace_region(once, snippet)
+        self.assertEqual(once, twice)
+
+    def test_replace_region_rejects_sites_without_routes(self):
+        with self.assertRaises(ValueError):
+            deploy.replace_region("server {\n    location / { return 404; }\n}\n", "body")
+
+    def test_diff_is_empty_when_blocks_match(self):
+        snippet = deploy.LOCAL_ROUTES.read_text(encoding="utf-8")
+        region = deploy.extract_api_blocks(self.LEGACY_SITE)
+        self.assertNotEqual(deploy.normalize_block(region), deploy.normalize_block(snippet))
+        self.assertTrue(deploy.unified_diff(region, snippet, "api-routes"))
+
+    def test_normalization_keeps_leading_indentation(self):
+        self.assertNotEqual(
+            deploy.normalize_block("    location = /api/public {"),
+            deploy.normalize_block("location = /api/public {"),
+        )
+
+    def test_normalization_ignores_only_trailing_whitespace(self):
+        self.assertEqual(
+            deploy.normalize_block("    proxy_pass http://127.0.0.1:18787;   \n\n"),
+            deploy.normalize_block("    proxy_pass http://127.0.0.1:18787;"),
+        )
+
 
 
 if __name__ == "__main__":

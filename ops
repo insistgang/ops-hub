@@ -12,7 +12,7 @@ ops: Ops-Hub 个人数字化运营工作总台 CLI 入口（纯 Python 3 标准�
   ops memory                    查看个人场景契约与聚焦防散基线
   ops publish                   发布公开产物到阿里云 ops-hub 站点
   ops finance                   同步日记个人实付消费至财务账本并发布
-  ops sync-service <status|deploy>  核对/部署阿里云 VitaFlow 同步服务
+  ops sync-service <status|deploy|nginx-diff|nginx-install>  核对/部署阿里云 VitaFlow 同步服务与 nginx 路由
   ops quota                     查看 AI 额度快照与早停判定
   ops serve [--port 3000]       启动仅监听 127.0.0.1 的本地 Web 预览
   ops schedule <install|status|uninstall>  管理 macOS launchd 定时同步服务
@@ -71,7 +71,8 @@ def build_parser():
     sub.add_parser("quota", help="查看 AI 额度快照并判定早停")
 
     p_vita = sub.add_parser("sync-service", help="核对/部署阿里云 VitaFlow 同步服务")
-    p_vita.add_argument("sync_action", choices=["status", "deploy"], help="操作")
+    p_vita.add_argument("sync_action",
+                        choices=["status", "deploy", "nginx-diff", "nginx-install"], help="操作")
 
     p_sched = sub.add_parser("schedule", help="管理 macOS 原生 launchd 定时同步")
     p_sched.add_argument("sched_action", choices=["install", "status", "uninstall"], help="操作")
