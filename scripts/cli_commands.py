@@ -406,6 +406,8 @@ def cmd_sync_service(args):
         "deploy": "--deploy",
         "nginx-diff": "--nginx-diff",
         "nginx-install": "--install-nginx",
+        "bridge-status": "--bridge-status",
+        "bridge-install": "--bridge-install",
     }
     if action not in flags:
         print(f"{Colors.FAIL}❌ 未知操作：{action}{Colors.ENDC}")
@@ -415,6 +417,8 @@ def cmd_sync_service(args):
         "deploy": "正在部署阿里云 VitaFlow 同步服务...",
         "nginx-diff": "正在比对 nginx 路由配置差异...",
         "nginx-install": "正在安装 nginx 托管路由区域...",
+        "bridge-status": "正在检查本机桥接部署状态...",
+        "bridge-install": "正在安装本机桥接脚本副本与 launchd 配置...",
     }
     print(titles[action])
     result = subprocess.run([sys.executable, str(script), flags[action]])

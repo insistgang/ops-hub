@@ -97,6 +97,39 @@ class RepositoryArtifactsTests(unittest.TestCase):
     def test_md5_helper_matches_hashlib(self):
         self.assertEqual(deploy.md5_bytes(b"ops-hub"), hashlib.md5(b"ops-hub").hexdigest())
 
+class BridgeArtifactsTests(unittest.TestCase):
+    def test_dropin_source_matches_the_server_contract(self):
+        dropin = deploy.LOCAL_DROPIN.read_text(encoding="utf-8")
+        self.assertIn("Environment=VITAFLOW_PUBLIC_READ=1", dropin)
+        for origin in ("https://insistgang.top", "https://finance.insistgang.top", "https://ops.insistgang.top"):
+            self.assertIn(origin, dropin)
+
+    def test_dropin_is_installed_under_the_service_unit(self):
+        self.assertEqual(deploy.REMOTE_DROPIN_DIR, "/etc/systemd/system/ops-vita-sync.service.d")
+        self.assertEqual(deploy.REMOTE_DROPIN, deploy.REMOTE_DROPIN_DIR + "/public-read.conf")
+
+    def test_bridge_template_has_no_unresolved_placeholders(self):
+        rendered = deploy.render_bridge_plist()
+        self.assertNotIn("__", rendered)
+        self.assertIn("com.insistgang.opshub.vitaflow-bridge", rendered)
+        self.assertIn(str(deploy.BRIDGE_DEPLOYED_SCRIPT), rendered)
+        self.assertIn(f"<string>{deploy.BRIDGE_PORT}</string>", rendered)
+
+    def test_bridge_node_binary_is_absolute(self):
+        self.assertTrue(deploy.node_binary().startswith("/"))
+
+    def test_bridge_status_reports_expected_keys(self):
+        status = deploy.bridge_status()
+        for key in ("copy_match", "plist_present", "plist_match", "token_present", "running"):
+            self.assertIn(key, status)
+
+    def test_bridge_token_is_never_created_by_the_script(self):
+        source = Path(deploy.__file__).read_text(encoding="utf-8")
+        body = source.split("def install_bridge")[1].split("\ndef ")[0]
+        self.assertNotIn("BRIDGE_TOKEN.write", body)
+        self.assertNotIn("BRIDGE_TOKEN.open", body)
+
+
 class NginxRegionTests(unittest.TestCase):
     LEGACY_SITE = """server {
     server_name finance.insistgang.top;

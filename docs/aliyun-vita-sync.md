@@ -23,12 +23,17 @@
 | 核对与部署脚本 | `scripts/deploy_vita_sync.py` | — |
 | nginx 路由片段 | `vitaflow/sync-service/finance-api-routes.nginx` | `/etc/nginx/sites-available/finance.insistgang.top` 的托管区域 |
 | nginx 限流 zone | `vitaflow/sync-service/ops-vita-sync-limit.conf` | `/etc/nginx/conf.d/ops-vita-sync-limit.conf` |
+| systemd drop-in | `vitaflow/sync-service/public-read.conf` | `/etc/systemd/system/ops-vita-sync.service.d/public-read.conf` |
+| 本机桥接 launchd | `vitaflow/sync-service/com.insistgang.opshub.vitaflow-bridge.plist.template` | `~/Library/LaunchAgents/com.insistgang.opshub.vitaflow-bridge.plist` |
+| 本机桥接脚本 | `scripts/vitaflow-local-bridge.mjs` | `~/.local/share/ops-hub/vitaflow-local-bridge.mjs` |
 
 ```bash
 ops sync-service status       # 只读核对：代码、unit、nginx 托管区域、限流 zone、运行状态
 ops sync-service deploy       # 显式部署：备份 → 安装 → daemon-reload → 重启 → 复核
 ops sync-service nginx-diff   # 打印仓库与服务器的 nginx 差异
 ops sync-service nginx-install  # 安装 nginx 托管区域：备份 → nginx -t 门禁 → reload
+ops sync-service bridge-status # 查看本机桥接的脚本副本、launchd 配置、令牌与进程
+ops sync-service bridge-install # 安装本机桥接脚本副本与 launchd 配置（不生成令牌）
 ```
 
-边界：部署脚本只写服务代码、systemd unit 与 nginx 托管区域三处路径，口令（`/etc/ops-vita-sync/sync-token`）与账号数据（`/var/lib/ops-vita-sync/`）永不写入或读取；旧版本各保留最近 5 份备份在 `/root/`。nginx 只改带 `# BEGIN/END ops-hub managed` 标注的区域，站点其余内容（鉴权、TLS、账本路径）原样保留；`nginx -t` 不通过即回滚，绝不 reload 半套配置。09:00 / 21:00 定时流水线只做只读核对（第五步），代码分叉只告警，部署必须显式触发，避免自动重启线上同步服务。
+边界：部署脚本只写服务代码、systemd unit（含 drop-in）与 nginx 托管区域三处路径，口令（`/etc/ops-vita-sync/sync-token`、`~/.config/ops-hub/vitaflow-sync-token`）与账号数据（`/var/lib/ops-vita-sync/`）永不写入或读取；本机桥接安装只刷新脚本副本与 launchd 配置，令牌文件缺失时只告警不生成；旧版本各保留最近 5 份备份在 `/root/`。nginx 只改带 `# BEGIN/END ops-hub managed` 标注的区域，站点其余内容（鉴权、TLS、账本路径）原样保留；`nginx -t` 不通过即回滚，绝不 reload 半套配置。09:00 / 21:00 定时流水线只做只读核对（第五步），代码分叉只告警，部署必须显式触发，避免自动重启线上同步服务。

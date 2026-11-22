@@ -72,7 +72,8 @@ def build_parser():
 
     p_vita = sub.add_parser("sync-service", help="核对/部署阿里云 VitaFlow 同步服务")
     p_vita.add_argument("sync_action",
-                        choices=["status", "deploy", "nginx-diff", "nginx-install"], help="操作")
+                        choices=["status", "deploy", "nginx-diff", "nginx-install",
+                                 "bridge-status", "bridge-install"], help="操作")
 
     p_sched = sub.add_parser("schedule", help="管理 macOS 原生 launchd 定时同步")
     p_sched.add_argument("sched_action", choices=["install", "status", "uninstall"], help="操作")
