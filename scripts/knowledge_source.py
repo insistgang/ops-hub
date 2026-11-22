@@ -630,8 +630,11 @@ def _bulk_stamps(all_times: list[float]) -> dict[int, int]:
 
 
 def parse_projects(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
-    """抽取 03-Projects 的项目条目。全部取自文件系统事实，不推断进度。"""
-    root = knowledge_dir / PROJECTS_DIR
+    """抽取项目目录条目。全部取自文件系统事实，不推断进度。"""
+    project_dir = Path("05-Resources/Archive/项目管理")
+    if not (knowledge_dir / project_dir).is_dir():
+        project_dir = PROJECTS_DIR
+    root = knowledge_dir / project_dir
     if not root.is_dir():
         raise KnowledgeSourceError(f"缺少项目目录：{root}")
 
@@ -644,7 +647,7 @@ def parse_projects(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
         if entry.is_file() and entry.stem.lower() in META_STEMS:
             continue
         try:
-            relative = (PROJECTS_DIR / entry.name).as_posix()
+            relative = (project_dir / entry.name).as_posix()
             if entry.is_dir():
                 times, count, capped = _collect_mtimes(entry)
                 if capped:
@@ -732,7 +735,7 @@ def parse_projects(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
 
     total = len(items)
     return {
-        "file": str(PROJECTS_DIR),
+        "file": str(project_dir),
         "items": items[:MAX_PROJECTS],
         "total": total,
         "truncated": total > MAX_PROJECTS,
