@@ -1,6 +1,6 @@
 {
   "available": true,
-  "generated_at": "2026-11-22T13:10:05+08:00",
+  "generated_at": "2026-11-22T19:34:21+08:00",
   "today": "2026-11-22",
   "warnings": [],
   "today_plan": {
@@ -51,19 +51,19 @@
         "position": "1／首要",
         "title": "MS-LightCD 理解、终读与改投《北航学报》闭环",
         "assignee": "先 AI 起草、后本人终判",
-        "action": "10/20 改稿封板汇报后，10/30 本人取得导师 1 小时当面指导：目标刊已改投《北航学报》（低空运行前沿技术专刊），导师另指三随机种子换表述、修改逻辑重构、修正处理及指标描述 4 条核心意见（骨架见 [[02-Thesis/小论文-计算机工程-MS-LightCD/2026-11-03-导师…"
+        "action": "10/20 改稿封板汇报后，10/30 本人取得导师 1 小时当面指导：目标刊已改投《北航学报》（低空运行前沿技术专刊），导师另指三随机种子换表述、修改逻辑重构、修正处理及指标描述 4 条核心意见（骨架见 [导师 4 条意见改动清单](<file://~/Docum…"
       },
       {
         "position": "2／已补位",
         "title": "大论文自采数据验收",
         "assignee": "必须本人拍板 + AI 可代跑扫描",
-        "action": "10/27--11/01 拍板 657 张全量、三类与「全图复核 + 分层抽检」；11/10 完成 4,151 框逐框审查与剩余 23 段 / 366 张逐帧抽检（原「待看」清零），见 [[02-Thesis/大论文-违建识别/2026-11-10_剩余段抽检与量化复核]]。2026-11-13 …"
+        "action": "10/27--11/01 拍板 657 张全量、三类与「全图复核 + 分层抽检」；11/10 完成 4,151 框逐框审查与剩余 23 段 / 366 张逐帧抽检（原「待看」清零），见 [剩余段抽检与量化复核](<file://~/Documents/%E8%AE%…"
       },
       {
         "position": "3／机动",
         "title": "CET-6 六级备考",
         "assignee": "必须本人",
-        "action": "第 3 周因返家休整专项未执行（0/7 天），词汇自动化在跑。第 4 周（11/09--11/15）已结束，第 5 周计划待生成（见 [[03-Growth/Education/六级考试/CET6_第4周计划_2026-11-09至11-15]]），11/09 已重启背词与早睡早起节奏。坚持每日 …"
+        "action": "第 3 周因返家休整专项未执行（0/7 天），词汇自动化在跑。第 4 周（11/09--11/15）已结束，第 5 周计划待生成（见 [CET6 第 4 周计划](<file://~/Desktop/%E4%B8%AA%E4%BA%BA%E5%B7%A5%E5%85…"
       }
     ],
     "warnings": []
@@ -250,7 +250,7 @@
         "name": "MS-LightCD 小论文",
         "kind": "file",
         "relative": "04-Resources/Archive/项目管理/03-Projects.md",
-        "updated": "2026-11-22T03:06+08:00",
+        "updated": "2026-11-22T15:04+08:00",
         "updated_source": "file",
         "date_hint": null,
         "file_count": 1,
@@ -260,7 +260,7 @@
         "name": "违建大论文 T-011",
         "kind": "file",
         "relative": "04-Resources/Archive/项目管理/03-Projects.md",
-        "updated": "2026-11-22T03:06+08:00",
+        "updated": "2026-11-22T15:04+08:00",
         "updated_source": "file",
         "date_hint": null,
         "file_count": 1,
@@ -270,7 +270,7 @@
         "name": "卓繁信息实习",
         "kind": "file",
         "relative": "04-Resources/Archive/项目管理/03-Projects.md",
-        "updated": "2026-11-22T03:06+08:00",
+        "updated": "2026-11-22T15:04+08:00",
         "updated_source": "file",
         "date_hint": null,
         "file_count": 1,
@@ -280,7 +280,7 @@
         "name": "10 月竞赛收官",
         "kind": "file",
         "relative": "04-Resources/Archive/项目管理/03-Projects.md",
-        "updated": "2026-11-22T03:06+08:00",
+        "updated": "2026-11-22T15:04+08:00",
         "updated_source": "file",
         "date_hint": null,
         "file_count": 1,
@@ -290,7 +290,7 @@
         "name": "秋招与就业准备",
         "kind": "file",
         "relative": "04-Resources/Archive/项目管理/03-Projects.md",
-        "updated": "2026-11-22T03:06+08:00",
+        "updated": "2026-11-22T15:04+08:00",
         "updated_source": "file",
         "date_hint": null,
         "file_count": 1,
@@ -300,7 +300,7 @@
         "name": "软件著作权",
         "kind": "file",
         "relative": "04-Resources/Archive/项目管理/03-Projects.md",
-        "updated": "2026-11-22T03:06+08:00",
+        "updated": "2026-11-22T15:04+08:00",
         "updated_source": "file",
         "date_hint": null,
         "file_count": 1,
@@ -310,7 +310,7 @@
         "name": "中期检查与就业材料",
         "kind": "file",
         "relative": "04-Resources/Archive/项目管理/03-Projects.md",
-        "updated": "2026-11-22T03:06+08:00",
+        "updated": "2026-11-22T15:04+08:00",
         "updated_source": "file",
         "date_hint": null,
         "file_count": 1,
@@ -320,11 +320,21 @@
         "name": "专硕专业实践材料",
         "kind": "file",
         "relative": "04-Resources/Archive/项目管理/03-Projects.md",
-        "updated": "2026-11-22T03:06+08:00",
+        "updated": "2026-11-22T15:04+08:00",
         "updated_source": "file",
         "date_hint": null,
         "file_count": 1,
         "summary": "已于 9/13 完成提交闭环，不再显示为待 9/7 交件。"
+      },
+      {
+        "name": "专利_视频检索",
+        "kind": "file",
+        "relative": "04-Resources/Archive/项目管理/项目索引/专利_视频检索.md",
+        "updated": "2026-11-22T14:56+08:00",
+        "updated_source": "file",
+        "date_hint": null,
+        "file_count": 1,
+        "summary": "下一次推进先定位已提交版本与具体问题，再记录修正范围及下一步；不自动起草新专利、不代为提交或联系代理机构。"
       },
       {
         "name": "共感LinkAble",
@@ -335,16 +345,6 @@
         "date_hint": null,
         "file_count": 1,
         "summary": "项目阶段：竞赛阶段已结束，当前为被动响应/成果复用状态。"
-      },
-      {
-        "name": "专利_视频检索",
-        "kind": "file",
-        "relative": "04-Resources/Archive/项目管理/项目索引/专利_视频检索.md",
-        "updated": "2026-11-14T16:47+08:00",
-        "updated_source": "file",
-        "date_hint": null,
-        "file_count": 1,
-        "summary": "下一次推进先定位已提交版本与具体问题，再记录修正范围及下一步；不自动起草新专利、不代为提交或联系代理机构。"
       },
       {
         "name": "understand_mov_v2",

@@ -6,7 +6,7 @@
 
 **财务站当前为匿名只读。** 2026-11-17 站主已明确授权关闭 Basic Auth，首页与 `/data/financial_data.json` 匿名可读（2026-11-22 实测均返回 200），数据为发布脱敏后的摘要；Ops-Hub 代码仓库保持公开。2026-11-14 的 401 记录属于当时状态，不代表现在。
 
-财务看板的源码、构建与发布流程在独立私有项目 `~/Desktop/个人工具/financial-dashboard`（私有远端 `insistgang/financial-dashboard`），2026-11-22 由知识库 `03-Growth/Finance/Dashboard/` 迁入；Ops-Hub 只消费其发布产物。
+财务看板的源码、构建与发布流程在独立私有项目 `~/Desktop/个人工具/financial-dashboard`（私有远端 `insistgang/financial-dashboard`），财务材料在 `~/Desktop/个人工具/finance`（月度复盘、理财执行计划、订阅盘点），二者均于 2026-11-22 由知识库 `03-Growth/Finance/` 迁入；知识库原地保留软链接，`knowledge_source.py` 的 `03-Growth/Finance` 解析路径继续有效。Ops-Hub 只消费发布产物，不回写财务材料。
 
 - 数据地址：`https://finance.insistgang.top/data/financial_data.json`
 - 账本不进入 Ops-Hub 仓库、公开产物或浏览器持久化存储；不得写入银行卡号、身份证号、密码等凭据。
