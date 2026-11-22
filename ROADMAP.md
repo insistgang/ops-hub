@@ -2,6 +2,8 @@
 
 ## 近期里程碑
 
+- 2026-11-22 19:57，财务目录合并后更新 `docs/finance-access.md` 的看板源码位置为 `finance/app/`；知识库软链接与总台只读接入路径未变，本次未修改或发布总台程序。
+
 - **2026-11-22 09:22 · 知识库目录重构后的知识库投影断链修复**：
   - **症状**：知识库于 11-22 凌晨重构（项目台账 `03-Projects` → `04-Resources/Archive/项目管理`，财务复盘 `06-Growth/Finance` → `03-Growth/Finance`）后，`scripts/knowledge_source.py` 仍指向旧路径，`data/knowledge.json` 的 `projects`/`finance` 变为 `null`；加上 `fcbe76c` 将 `warnings` 从公开产物剔除，公开站「知识库项目台账」与「月度财务复盘」静默消失。
   - **修复**：`knowledge_source.py` 新增归档结构解析（`项目索引/*.md` 条目 + `03-Projects.md` 的「当前主线」表格），旧结构 `03-Projects/` 与 `06-Growth/Finance/` 保留回退；归档结构无条目时自动回退旧结构；索引条目摘要改取首条要点；财务目录按 `03-Growth` → `06-Growth` 顺序探测。
