@@ -1,6 +1,6 @@
 {
   "available": true,
-  "generated_at": "2026-11-22T20:24:47+08:00",
+  "generated_at": "2026-11-22T20:26:29+08:00",
   "today": "2026-11-22",
   "warnings": [],
   "today_plan": {
@@ -373,7 +373,7 @@
     "notes": []
   },
   "finance": {
-    "file": "03-Growth/Finance/2026-11-financial-review.md",
+    "file": "finance/2026-11-financial-review.md",
     "month": "2026-11",
     "as_of": "消费截至 2026-11-21 24:00。11/21 两餐 38 元、节点订阅 30 元、日用个护 28 元；共 96 元。资产余额沿用 11/14 本人快照。",
     "summary": [
