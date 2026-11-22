@@ -6,6 +6,13 @@
   - **症状**：知识库于 11-22 凌晨重构（项目台账 `03-Projects` → `04-Resources/Archive/项目管理`，财务复盘 `06-Growth/Finance` → `03-Growth/Finance`）后，`scripts/knowledge_source.py` 仍指向旧路径，`data/knowledge.json` 的 `projects`/`finance` 变为 `null`；加上 `fcbe76c` 将 `warnings` 从公开产物剔除，公开站「知识库项目台账」与「月度财务复盘」静默消失。
   - **修复**：`knowledge_source.py` 新增归档结构解析（`项目索引/*.md` 条目 + `03-Projects.md` 的「当前主线」表格），旧结构 `03-Projects/` 与 `06-Growth/Finance/` 保留回退；归档结构无条目时自动回退旧结构；索引条目摘要改取首条要点；财务目录按 `03-Growth` → `06-Growth` 顺序探测。
   - **验证**：`projects` 恢复 12 条（8 条当前主线 + 4 条项目索引）、`finance` 恢复 2026-11 月度复盘，`warnings` 为空，公开产物无本地绝对路径泄露；新增 10 项回归测试（归档结构解析、结构优先级、旧结构回退、缺失总览告警、财务目录迁移）。
+  - **发布**：修复提交 `cfb7e0b` 已推送 `origin/main`；`ops sync --all` 全链路成功，阿里云 `9074115` 已发布并通过线上核验 37/37，GitHub Pages 镜像与阿里云主站 `data/public/knowledge.json` 均恢复 `projects: 12 / finance: 2026-11`；账本 asOf 2026-11-21，无新数据无需发布。
+
+## 最新线上验证
+
+- 2026-11-22 09:52 · 阿里云主站 `https://ops.insistgang.top/data/public/knowledge.json`：`generated_at=2026-11-22T09:51:21+08:00`，`projects=12`（`04-Resources/Archive/项目管理`）、`finance=2026-11`、`warnings=[]`，线上核验 37/37 通过。
+- 2026-11-22 09:52 · GitHub Pages 镜像 `https://insistgang.top/ops-hub/data/public/knowledge.json`：`generated_at=2026-11-22T09:51:21+08:00`，`projects=12`、`finance=2026-11`，与阿里云主站一致。
+- 2026-11-22 09:52 · 财务账本 `https://finance.insistgang.top/data/financial_data.json`：`asOf=2026-11-21`，11 月流水已逐日去重，无需发布。
 
 - **2026-11-18 · v2.0 全栈瘦身与模块化重构**：
   - **清理冗余与体积暴降**：清理 `.tmp/`（17 MB 历史调试残留）、`docs/superpowers/` 一次性计划、`PRD_REVIEW.md`、退役的 `weight_challenge` 死代码及 VitaFlow 12 个旧独立启动/迁移脚本与冗余 `.ttf` 字体；`vitaflow/build-html.mjs` 剥离 FA4/FA5 重复兼容段与 TTF 内联，`vitaflow/native-workspace.css` 从 **3.2 MB 降至 484 KB（-85%）**，`schedule-system-2.0.html` 从 **3.8 MB 降至 1.1 MB（-71%）**；VitaFlow 18 项测试统一收拢至 `vitaflow/tests/`。
