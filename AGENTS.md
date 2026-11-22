@@ -134,7 +134,7 @@ Desktop/个人工具/ops-hub/
 纯 Python 3 标准库实现，零第三方 pip 依赖：
 * `ops status`：终端彩色打印三端算力、求职置顶摘要、项目与六级倒计时、知识库必做与硬节点、体重及今日四勾。
 * `ops dispatch [关键词]`：展示三端分工矩阵，或按前后端同源规则给出任务归宿与 SSH 指引。
-* `ops sync [--push] [--all]`：采集刷新快照；`--push` 触发 GitOps（带文件锁与脏工作区保护）；`--all` 执行完整四步流水线（采集+GitHub+阿里云+账本）。
+* `ops sync [--push] [--all]`：采集刷新快照；`--push` 触发 GitOps（带文件锁与脏工作区保护：暂存区含非托管文件时跳过提交并提示整理；仅存在于工作区的未暂存改动不阻断，本次只提交托管产物）；`--all` 执行完整四步流水线（采集+GitHub+阿里云+账本）。
 * `ops career <list|add|update>`：查看求职投影；`add/update` 仅在上游 Career-Copilot 缺失时作为回退维护。
 * `ops check <起了|动了|写了|关了>`：打卡今日四勾（跨天自动归档重置）。
 * `ops weight [数值]` / `ops memory` / `ops quota`：管理个人体重、查看秩序基线、读取 AI 额度快照并判定早停。

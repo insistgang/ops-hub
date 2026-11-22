@@ -351,7 +351,12 @@ def collect_all():
 
 
 def gitops_push():
-    """提交托管的公开脱敏产物并推送到 origin/main。"""
+    """提交托管的公开脱敏产物并推送到 origin/main。
+
+    脏工作区保护只针对暂存区：暂存区里存在非托管文件时跳过提交（`git commit`
+    会连带提交它们）；仅存在于工作区（未暂存）的改动不会被本次提交触及，因为
+    托管产物用显式路径 `git add`，提交也不带 `-a`。
+    """
     print("🚀 启动 GitOps 自动化提交流水线...")
     try:
         status_res = subprocess.run(
@@ -362,18 +367,27 @@ def gitops_push():
             print(f"❌ 无法读取 Git 状态，已中止: {status_res.stderr.strip()}")
             return False
 
-        foreign = []
+        foreign_staged = []
+        foreign_unstaged = []
         for line in status_res.stdout.splitlines():
             if not line.strip():
                 continue
+            index_status = line[0]
             path = line[3:].strip().strip('"').split(" -> ")[-1]
-            if path not in GITOPS_FILES:
-                foreign.append(path)
-        if foreign:
-            shown = ", ".join(foreign[:5]) + (" ..." if len(foreign) > 5 else "")
-            print(f"⚠️ 工作区存在非托管文件变更 ({shown})，为避免误提交，本次 GitOps 已跳过。")
+            if path in GITOPS_FILES:
+                continue
+            if index_status not in (" ", "?"):
+                foreign_staged.append(path)
+            else:
+                foreign_unstaged.append(path)
+        if foreign_staged:
+            shown = ", ".join(foreign_staged[:5]) + (" ..." if len(foreign_staged) > 5 else "")
+            print(f"⚠️ 暂存区存在非托管文件变更 ({shown})，为避免误提交，本次 GitOps 已跳过。")
             print("   请先手动整理工作区（commit 或 stash）后再执行同步。")
             return False
+        if foreign_unstaged:
+            shown = ", ".join(foreign_unstaged[:5]) + (" ..." if len(foreign_unstaged) > 5 else "")
+            print(f"ℹ️ 工作区有非托管的未暂存改动 ({shown})，本次只提交托管产物，不含这些文件。")
 
         subprocess.run(
             ["git", "-C", str(BASE_DIR), "add"] + GITOPS_FILES,
@@ -381,18 +395,22 @@ def gitops_push():
         )
 
         now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
-        commit_res = subprocess.run(
-            ["git", "-C", str(BASE_DIR), "commit", "-m", f"chore: sync ops status [{now_str}]"],
+        # 用暂存区是否为空判断"无变更"，不依赖 git 输出的英文文案（中文 locale 会变）。
+        staged_res = subprocess.run(
+            ["git", "-C", str(BASE_DIR), "diff", "--cached", "--quiet"],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
         )
-        if commit_res.returncode != 0:
-            if "nothing to commit" in commit_res.stdout:
-                print("ℹ️ 本地状态无变更，跳过提交。")
-            else:
+        if staged_res.returncode == 0:
+            print("ℹ️ 本地状态无变更，跳过提交。")
+        else:
+            commit_res = subprocess.run(
+                ["git", "-C", str(BASE_DIR), "commit", "-m", f"chore: sync ops status [{now_str}]"],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+            )
+            if commit_res.returncode != 0:
                 detail = (commit_res.stderr.strip() or commit_res.stdout.strip()).splitlines()[0]
                 print(f"❌ Git 提交失败，已中止推送: {detail}")
                 return False
-        else:
             summary = commit_res.stdout.strip().splitlines()[0] if commit_res.stdout.strip() else now_str
             print(f"✅ 本地已提交: {summary}")
 
