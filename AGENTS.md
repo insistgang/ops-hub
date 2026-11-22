@@ -69,12 +69,14 @@ Desktop/个人工具/ops-hub/
 │   ├── collector.py           # 全量采集、脱敏触发与 GitOps 自动提交推送核心
 │   ├── sanitize_public.py     # 白名单裁剪、姓名/路径/私网 IP 脱敏与泄露阻断器
 │   ├── knowledge_source.py    # 知识库只读解析器（今日计划 + 硬节点 + 项目台账 + 财务复盘 + 日记精力/待办）
-│   ├── sync_all.py            # 四步定时同步总入口：采集+GitOps → 阿里云发布 → 账本同步 → 线上核验
+│   ├── sync_all.py            # 五步定时同步总入口：采集+GitOps → 阿里云发布 → 账本同步 → 线上核验 → 同步服务核对
 │   ├── publish_aliyun.py      # 阿里云独立 release 发布、MD5 复核、nginx 切换与历史滚动清理
+│   ├── deploy_vita_sync.py    # 阿里云 ops-vita-sync 同步服务：只读核对与显式部署（不碰口令与数据目录）
 │   ├── finance_sync.py        # 日记个人实付消费解析与账本合并引擎
 │   ├── finance_publish.py     # 账本远端合并、脱敏发布与历史备份滚动清理
 │   └── vitaflow-local-bridge.mjs # 本机回环免口令安全同步桥接服务
 ├── vitaflow/                  # VitaFlow 原生工作区源码、WOFF2 离线资源、同步服务与 tests/
+│   └── sync-service/ops-vita-sync.service  # 服务器端同步服务的 systemd unit（仓库内唯一真源）
 ├── weight-tracker/            # 通用体重记录源码、原生构建器与 tests/
 ├── finance/                   # 财务原生界面、只读内存运行时与隔离测试
 ├── tests/                     # Python + Node 全量回归测试套件
@@ -110,6 +112,7 @@ Desktop/个人工具/ops-hub/
 - 原生挂载在 `#vitaflow-native`（无 iframe，单实例，Chart.js 在真实 `window` 上初始化），事件函数白名单见 `vitaflow/src/native/ui-handlers.json`（新增交互须同步名单与测试）。
 - 今日与详情共用 `vitaflow_*` 存储；公开只读快照仅存内存，不覆盖访客本机记录。本机回环桥接或私有连接沿用 `revision` 与冲突选择，空口令绝不回退旧凭据。
 - 修改 `vitaflow/` 源码后运行 `node build.mjs` 及 `(cd vitaflow && npm test)`。旧本地 `my-schedule.json` 已于 2026-11-08 退役，以阿里云 `ops-vita-sync` 当前记录为准，严禁从旧副本覆盖云端。
+- **服务端同步服务以仓库为准**：服务代码 `vitaflow/local-sync-server.mjs` 与 unit `vitaflow/sync-service/ops-vita-sync.service` 是唯一真源，服务器 `/opt/ops-vita-sync/` 只是部署副本。`ops sync-service status` 只读核对，`ops sync-service deploy` 显式部署；部署脚本只写服务代码与 unit 两处路径，严禁写入 `/etc/ops-vita-sync/sync-token` 与 `/var/lib/ops-vita-sync/`，定时流水线只做核对不自动部署。
 
 ### 知识库接入边界
 - **单向只读**：`~/Documents/knowledge`（可用 `OPS_KNOWLEDGE_DIR` 覆盖）是唯一写入口，任何回写均视为 bug。
@@ -135,6 +138,7 @@ Desktop/个人工具/ops-hub/
 * `ops check <起了|动了|写了|关了>`：打卡今日四勾（跨天自动归档重置）。
 * `ops weight [数值]` / `ops memory` / `ops quota`：管理个人体重、查看秩序基线、读取 AI 额度快照并判定早停。
 * `ops publish` / `ops finance`：发布公开产物至阿里云（保留最近 10 个 release 与 5 份 nginx 备份）；同步日记实付消费至财务账本（保留最近 10 个 release 与 5 份账本备份）。
+* `ops sync-service <status|deploy>`：只读核对或显式部署阿里云 `ops-vita-sync` 同步服务（部署保留最近 5 份代码与 unit 备份）。
 * `ops serve [--port 3000]`：启动仅监听 `127.0.0.1` 的本地预览服务。
 * `ops schedule <install|status|uninstall>`：管理 macOS `launchd` 早晚（09:00 / 21:00）定时同步服务。
 

@@ -7,6 +7,7 @@
 2. GitOps：提交并推送 GitHub（GitHub Pages 由此刷新）
 3. 阿里云：发布到独立 release 目录并切换 nginx（GitHub 推送不会自动更新它）
 4. 财务：把日记里的个人消费同步进账本并发布
+5. 同步服务：只读核对阿里云 ops-vita-sync 与仓库代码是否一致（不自动部署）
 
 失败策略
 --------
@@ -40,10 +41,12 @@ def main():
     import collector
 
     ok = True
-    ok &= step("1/4 采集 + GitOps 推送", [sys.executable, str(SCRIPTS / "collector.py"), "--push"])
-    ok &= step("2/4 发布阿里云", [sys.executable, str(SCRIPTS / "publish_aliyun.py")])
-    ok &= step("3/4 账本同步与发布", [sys.executable, str(SCRIPTS / "finance_publish.py")])
-    step("4/4 线上核验", [sys.executable, str(SCRIPTS / "publish_aliyun.py"), "--verify"])
+    ok &= step("1/5 采集 + GitOps 推送", [sys.executable, str(SCRIPTS / "collector.py"), "--push"])
+    ok &= step("2/5 发布阿里云", [sys.executable, str(SCRIPTS / "publish_aliyun.py")])
+    ok &= step("3/5 账本同步与发布", [sys.executable, str(SCRIPTS / "finance_publish.py")])
+    step("4/5 线上核验", [sys.executable, str(SCRIPTS / "publish_aliyun.py"), "--verify"])
+    # 只读核对：服务代码若与仓库分叉只告警，部署必须显式触发。
+    step("5/5 同步服务一致性核对", [sys.executable, str(SCRIPTS / "deploy_vita_sync.py"), "--check"])
     return 0 if ok else 1
 
 

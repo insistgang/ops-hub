@@ -1,0 +1,29 @@
+[Unit]
+Description=Ops-Hub private VitaFlow sync
+After=network.target
+
+[Service]
+Type=simple
+User=ops-vita
+Group=ops-vita
+WorkingDirectory=/opt/ops-vita-sync
+Environment=VITAFLOW_CLOUD_MODE=1
+Environment=VITAFLOW_ALLOWED_ORIGINS=https://insistgang.top
+Environment=VITAFLOW_DATA_DIR=/var/lib/ops-vita-sync
+Environment=VITAFLOW_TOKEN_FILE=/etc/ops-vita-sync/sync-token
+Environment=HOST=127.0.0.1
+Environment=PORT=18787
+Environment=VITAFLOW_MAX_REQUEST_BYTES=33554432
+ExecStart=/usr/bin/node /opt/ops-vita-sync/local-sync-server.mjs
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/ops-vita-sync
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

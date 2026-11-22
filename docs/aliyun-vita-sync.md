@@ -11,3 +11,20 @@
 服务由阿里云上的 `ops-vita-sync.service` 运行：非 root 账户、回环地址监听，经 Nginx 提供 HTTPS 接口；数据和轮转备份在 `/var/lib/ops-vita-sync/`，服务器口令在 `/etc/ops-vita-sync/`。本机桥接口令文件位于 `~/.config/ops-hub/`，必须为当前用户所有且权限为 0600。本机桥接允许 `https://insistgang.top`、`https://finance.insistgang.top` 和 `https://ops.insistgang.top` 三个确切来源调用；浏览器按域名而非路径界定来源，这些域名下的脚本都必须可信。
 
 旧版本地 `my-schedule.json` 已于 2026-11-08 按本人要求删除并退役，不得从旧副本或迁移包反向覆盖云端；应为云端当前数据保留独立备份。排查时先查看 `systemctl status ops-vita-sync` 与 `journalctl -u ops-vita-sync`，不要输出口令或个人数据；停用服务不会删除数据文件。设备丢失或口令泄露时需要轮换口令。
+
+## 服务端同步服务的仓库化管理
+
+服务端 `ops-vita-sync` 的代码与部署配置已收进本仓库，服务器只是部署副本：
+
+| 内容 | 仓库位置 | 服务器位置 |
+| --- | --- | --- |
+| 服务代码 | `vitaflow/local-sync-server.mjs` | `/opt/ops-vita-sync/local-sync-server.mjs` |
+| systemd unit | `vitaflow/sync-service/ops-vita-sync.service` | `/etc/systemd/system/ops-vita-sync.service` |
+| 核对与部署脚本 | `scripts/deploy_vita_sync.py` | — |
+
+```bash
+ops sync-service status    # 只读核对：代码、unit、运行状态、nginx 路由
+ops sync-service deploy    # 显式部署：备份 → 安装 → daemon-reload → 重启 → 复核
+```
+
+边界：部署脚本只写服务代码与 systemd unit 两处路径，口令（`/etc/ops-vita-sync/sync-token`）与账号数据（`/var/lib/ops-vita-sync/`）永不写入或读取；旧版本各保留最近 5 份备份在 `/root/`。09:00 / 21:00 定时流水线只做只读核对（第五步），代码分叉只告警，部署必须显式触发，避免自动重启线上同步服务。

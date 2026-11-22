@@ -77,6 +77,7 @@ ops memory                      # Personal memory & order baseline
 ops quota                       # AI quota snapshot and early-stop advice
 ops publish                     # Publish public artifacts to Aliyun (GitOps pushes GitHub only)
 ops finance                     # Sync diary expenses into the finance ledger and publish
+ops sync-service status         # Check the Aliyun VitaFlow sync service against this repo
 ops schedule install            # Install launchd auto-sync (09:00 / 21:00)
 ```
 

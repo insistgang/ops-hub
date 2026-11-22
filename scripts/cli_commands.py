@@ -398,6 +398,21 @@ def cmd_finance(_args):
         sys.exit(1)
 
 
+def cmd_sync_service(args):
+    action = getattr(args, "sync_action", "status")
+    script = BASE_DIR / "scripts" / "deploy_vita_sync.py"
+    command = [sys.executable, str(script), "--deploy" if action == "deploy" else "--check"]
+    if action == "deploy":
+        print("🚀 正在部署阿里云 VitaFlow 同步服务...")
+    else:
+        print("🔎 正在核对阿里云 VitaFlow 同步服务与仓库是否一致...")
+    result = subprocess.run(command)
+    if result.returncode != 0:
+        print(f"{Colors.FAIL}❌ 同步服务{'部署' if action == 'deploy' else '核对'}未通过，请检查上方输出。{Colors.ENDC}")
+        sys.exit(1)
+    print(f"{Colors.GREEN}✅ 同步服务{('部署完成' if action == 'deploy' else '核对完成')}。{Colors.ENDC}")
+
+
 def _remaining(used_pct):
     """快照存的是已用百分比，换算成剩余；缺失返回 None（不换算成 0）。"""
     if used_pct is None:
