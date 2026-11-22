@@ -1,11 +1,8 @@
 {
   "available": true,
-  "generated_at": "2026-11-22T09:07:36+08:00",
+  "generated_at": "2026-11-22T09:11:05+08:00",
   "today": "2026-11-22",
-  "warnings": [
-    "项目台账：缺少项目目录：~/Documents/knowledge/03-Projects",
-    "财务复盘：缺少财务复盘目录：~/Documents/knowledge/06-Growth/Finance"
-  ],
+  "warnings": [],
   "today_plan": {
     "date": "2026-11-22",
     "is_today": true,

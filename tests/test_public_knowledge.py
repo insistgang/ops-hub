@@ -68,6 +68,20 @@ class PublicKnowledgeTests(unittest.TestCase):
         self.assertIsNone(sanitize_public.build_public_knowledge({"available": False}, ALIASES))
         self.assertIsNone(sanitize_public.build_public_knowledge(None, ALIASES))
 
+    def test_missing_source_warnings_stay_local(self):
+        source = knowledge_fixture()
+        source["warnings"] = [
+            "项目台账：缺少项目目录：~/knowledge/03-Projects",
+            "财务复盘：缺少财务复盘目录：~/knowledge/06-Growth/Finance",
+            "今日计划：已回退到最近一份",
+        ]
+        source["projects"] = None
+        source["finance"] = None
+        result = sanitize_public.build_public_knowledge(source, ALIASES)
+        self.assertEqual(result["warnings"], ["今日计划：已回退到最近一份"])
+        self.assertIsNone(result["projects"])
+        self.assertIsNone(result["finance"])
+
     def test_published_block_keeps_the_renderer_shape(self):
         result = sanitize_public.build_public_knowledge(knowledge_fixture(), ALIASES)
         for key in ("available", "today_plan", "wip", "hard_nodes", "projects", "finance"):

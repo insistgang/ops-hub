@@ -423,11 +423,19 @@ def build_public_knowledge(knowledge, aliases):
     if not isinstance(knowledge, dict) or knowledge.get("available") is not True:
         return None
 
+    missing_source_warnings = (
+        "项目台账：缺少项目目录：",
+        "财务复盘：缺少财务复盘目录：",
+    )
+    warnings = [
+        warning for warning in knowledge.get("warnings") or []
+        if not warning.startswith(missing_source_warnings)
+    ]
     public = {
         "available": True,
         "generated_at": knowledge.get("generated_at"),
         "today": knowledge.get("today"),
-        "warnings": knowledge.get("warnings") or [],
+        "warnings": warnings,
         "today_plan": knowledge.get("today_plan"),
         "wip": knowledge.get("wip"),
         "hard_nodes": knowledge.get("hard_nodes"),
