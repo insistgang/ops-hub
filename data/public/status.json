@@ -3,22 +3,22 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "2.0.0",
-    "last_synced": "2026-11-24 09:21:22",
+    "last_synced": "2026-11-24 21:00:09",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub",
     "sanitized": true,
-    "sanitized_at": "2026-11-24 09:21:22",
+    "sanitized_at": "2026-11-24 21:00:09",
     "sanitize_note": "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址与本地路径。"
   },
   "topology": {
-    "timestamp": "2026-11-24 09:21:21",
+    "timestamp": "2026-11-24 21:00:08",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.x.x",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "73%",
-      "power_state": "Discharging (Battery)",
-      "load_avg": "15.87 9.95 6.95",
+      "battery": "100%",
+      "power_state": "AC Power",
+      "load_avg": "7.14 5.46 4.83",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -30,18 +30,18 @@
       "device": "Windows 性能主机 (i5-12600KF, 32GB, RTX 4070S 12GB)",
       "ip": "100.98.x.x",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
-      "status": "Offline",
-      "latency_ms": null,
-      "via": "DERP · nue",
+      "status": "Online",
+      "latency_ms": 12.5,
+      "via": "DERP · hkg",
       "control_online": true,
       "last_seen": "",
       "ssh_port": 22,
-      "ssh_active": false,
+      "ssh_active": true,
       "smb_port": 445,
-      "smb_active": false,
+      "smb_active": true,
       "services": [
-        "SSH Remote (Standby)",
-        "SMB Storage (Standby)",
+        "SSH Remote (Active :22)",
+        "SMB Storage (Active :445)",
         "CUDA 12 Compute",
         "Tailscale Mesh"
       ]
@@ -52,19 +52,19 @@
       "role": "边缘感知节点 // 端侧视觉与机器人感知部署",
       "network_type": "局域网 (LAN Only)",
       "status": "Online",
-      "latency_ms": 1.1,
+      "latency_ms": 10.6,
       "via": "",
       "control_online": false,
       "ssh_port": 22,
-      "ssh_active": true,
+      "ssh_active": false,
       "services": [
-        "SSH 访问 (Active :22)",
+        "SSH 访问 (Standby)",
         "NVIDIA JetPack 6 / Tegra R36",
         "CUDA Edge Runtime",
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": null,
+    "mesh_latency_ms": 12.5,
     "tailscale_checked": true
   },
   "career_summary": {
