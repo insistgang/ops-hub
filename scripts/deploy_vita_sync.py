@@ -33,6 +33,9 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import ops_common
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 SSH_HOST = os.environ.get("OPS_ALIYUN_HOST", "aliyun")
 
@@ -448,9 +451,9 @@ def install_bridge() -> bool:
 
 def public_status_code() -> str:
     try:
-        with urllib.request.urlopen(PUBLIC_URL, timeout=20) as response:
-            return str(response.status)
-    except (urllib.error.URLError, OSError):
+        _, status = ops_common.fetch_with_status(PUBLIC_URL, timeout=20)
+        return str(status)
+    except Exception:  # noqa: BLE001 —— 探测用途，任何失败都记为不可达
         return "000"
 
 

@@ -28,6 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR / "scripts"))
 
 import finance_sync
+import ops_common
 
 LEDGER_URL = "https://finance.insistgang.top/data/financial_data.json"
 SSH_HOST = os.environ.get("OPS_ALIYUN_HOST", "aliyun")
@@ -80,14 +81,21 @@ def scrub_deep(node, aliases):
 
 def fetch_ledger():
     try:
-        with urllib.request.urlopen(LEDGER_URL, timeout=30) as response:
-            return json.loads(response.read().decode("utf-8"))
+        return ops_common.fetch_json(LEDGER_URL, timeout=30)
     except urllib.error.HTTPError as error:
         if error.code in (401, 403):
             cmd = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", SSH_HOST, f"cat {LIVE_LINK}"]
             proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=30)
             if proc.returncode == 0:
                 return json.loads(proc.stdout)
+        raise
+    except Exception:
+        # 网络不可达（代理抖动、Fake-IP 未转发）时回退到阿里云上的账本实体文件，
+        # 避免一次网络抖动让整轮账本同步白跑。
+        cmd = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", SSH_HOST, f"cat {LIVE_LINK}"]
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=30)
+        if proc.returncode == 0 and proc.stdout.strip():
+            return json.loads(proc.stdout)
         raise
 
 

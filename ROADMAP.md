@@ -2,6 +2,13 @@
 
 ## 近期里程碑
 
+- **2026-11-26 20:20 · 定时同步链路 DNS 失败修复（代理不可用时的自愈）**：
+  - **症状**：09:00/21:00 定时任务连续失败，`launchctl list` 显示 `com.insistgang.opshub` 上次退出码 1；日志中 1/5--4/5 各步均报 `nodename nor servname provided, or not known`（`socket.gaierror` → `urllib.error.URLError`），线上核验 37 项全部失败，财务账本快照长期停在 `as_of 2026-11-24`。
+  - **根因**：本机 Clash Verge 以 **TUN 模式**接管流量（`utun5` 持有 `198.18.0.0/15`，`verge-mihomo` 以 root 运行），`finance.insistgang.top` / `ops.insistgang.top` 解析出的均为 **Fake-IP**（`198.18.0.134` / `198.18.0.133`），必须经 mihomo 转发才能真正到达。定时任务触发时若 mihomo 处于短暂不可用状态，直连 Fake-IP 即全部失败。已核实 DNS 解析本身在 shell 与 launchd 两种环境下均正常，故非解析配置问题，而是**代理瞬时不可用未被容错**。
+  - **修复**：`scripts/ops_common.py` 新增统一出站入口 `fetch_bytes` / `fetch_text` / `fetch_json` / `fetch_with_status`——先按有界预算直连重试（`HTTP_RETRY_DELAYS = (0, 2, 5, 10)`，总等待 ≤ 17 秒），仍失败再逐个回退本地代理候选（`http://127.0.0.1:7897` 等，仅接受 http/https scheme），全部失败才抛最后一个异常以保留原始错误语义。`finance_publish.py`、`publish_aliyun.py`、`deploy_vita_sync.py` 三处 `urlopen` 统一改用该入口；账本取数额外增加**回退阿里云实体文件**（`ssh aliyun cat $LIVE_LINK`），避免一次网络抖动让整轮账本同步白跑。
+  - **验证**：新增 `tests/test_http_resilience.py` 7 项回归（直连重试后成功、直连耗尽回退代理、全失败抛最后异常、`fetch_with_status` 保留状态码、JSON 解析、代理 scheme 过滤、重试预算有界）；165 项 Python 测试 + 173 项前端测试 + 4 项财务/桥接测试全部通过。故障注入实测：屏蔽直连后经代理兜底仍取到 `period=2026-11 / expenseTotal=3170.5`，直连可用时同样正常。实跑 `sync_all.py` 全链路成功，**线上核验 37/37 通过、服务一致性核对全部一致**，财务快照同步至 `as_of 2026-11-26`（已记录支出 3,170.50 元、确认收入 7,805.00 元、本月结余 4,634.50 元），与 Finance 看板一致。
+  - **边界**：本次只增强客户端容错，**未改发布配置、鉴权、nginx 路由或脱敏映射**；`knowledge_source.py` 与 `tests/test_knowledge_projects.py` 的工作区改动非本次所为，未纳入提交。
+
 - 2026-11-22 19:57，财务目录合并后更新 `docs/finance-access.md` 的看板源码位置为 `finance/app/`；知识库软链接与总台只读接入路径未变，本次未修改或发布总台程序。
 
 - **2026-11-22 09:22 · 知识库目录重构后的知识库投影断链修复**：

@@ -8,6 +8,8 @@
 import json
 import os
 import tempfile
+import time
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 
@@ -145,3 +147,92 @@ def rollover_daily_checks(data):
     fresh = default_daily_checks_payload(today_str)
     fresh["history"] = history
     return fresh, True
+
+
+# ---------- 出站 HTTP：代理不可用时的重试与兜底 ----------
+
+# 定时任务在 launchd 下运行时，系统代理（Clash Verge TUN/Fake-IP）可能处于
+# 短暂不可用状态。此时解析出的地址是 198.18.0.0/15 的 Fake-IP，只有经代理
+# 才能真正到达；直连会抛 gaierror/URLError。下面统一提供带重试与代理兜底
+# 的取数入口，避免单次网络抖动让整条同步链路失败。
+DEFAULT_HTTP_TIMEOUT = 30
+HTTP_RETRY_DELAYS = (0, 2, 5, 10)
+PROXY_CANDIDATES = ("http://127.0.0.1:7897", "http://127.0.0.1:7890", "socks5://127.0.0.1:7891")
+
+
+def _proxy_opener(proxy):
+    """构造只走指定代理的 opener；不支持的代理类型直接忽略。"""
+    if not proxy.startswith(("http://", "https://")):
+        return None
+    handler = urllib.request.ProxyHandler({"http": proxy, "https": proxy})
+    return urllib.request.build_opener(handler)
+
+
+def _read_once(url, timeout, proxy=None):
+    opener = _proxy_opener(proxy) if proxy else urllib.request.build_opener()
+    with opener.open(url, timeout=timeout) as response:
+        return response.read()
+
+
+def _read_once_with_status(url, timeout, proxy=None):
+    opener = _proxy_opener(proxy) if proxy else urllib.request.build_opener()
+    with opener.open(url, timeout=timeout) as response:
+        return response.read(), response.status
+
+
+def fetch_bytes(url, timeout=DEFAULT_HTTP_TIMEOUT, retries=None, proxies=None):
+    """取回 URL 内容，失败时依次重试并回退到本地代理。
+
+    顺序：直连重试若干次 → 仍失败则逐个尝试候选代理。任何一次成功即返回。
+    全部失败时抛出最后一个异常，保留原始错误语义给上层判断。
+    """
+    delays = HTTP_RETRY_DELAYS if retries is None else retries
+    candidates = PROXY_CANDIDATES if proxies is None else proxies
+    last_error = None
+    for attempt, delay in enumerate(delays):
+        if delay:
+            time.sleep(delay)
+        try:
+            return _read_once(url, timeout)
+        except Exception as error:  # noqa: BLE001 —— 网络异常类型繁多，统一重试
+            last_error = error
+            continue
+    for proxy in candidates:
+        try:
+            return _read_once(url, timeout, proxy=proxy)
+        except Exception as error:  # noqa: BLE001
+            last_error = error
+            continue
+    raise last_error
+
+
+def fetch_with_status(url, timeout=DEFAULT_HTTP_TIMEOUT, retries=None, proxies=None):
+    """取回 URL 内容与 HTTP 状态码，返回 (body_bytes, status)。"""
+    delays = HTTP_RETRY_DELAYS if retries is None else retries
+    candidates = PROXY_CANDIDATES if proxies is None else proxies
+    last_error = None
+    for delay in delays:
+        if delay:
+            time.sleep(delay)
+        try:
+            return _read_once_with_status(url, timeout)
+        except Exception as error:  # noqa: BLE001
+            last_error = error
+            continue
+    for proxy in candidates:
+        try:
+            return _read_once_with_status(url, timeout, proxy=proxy)
+        except Exception as error:  # noqa: BLE001
+            last_error = error
+            continue
+    raise last_error
+
+
+def fetch_text(url, timeout=DEFAULT_HTTP_TIMEOUT, retries=None, proxies=None):
+    """取回 URL 文本内容（UTF-8）。"""
+    return fetch_bytes(url, timeout=timeout, retries=retries, proxies=proxies).decode("utf-8")
+
+
+def fetch_json(url, timeout=DEFAULT_HTTP_TIMEOUT, retries=None, proxies=None):
+    """取回 URL 的 JSON 内容。"""
+    return json.loads(fetch_text(url, timeout=timeout, retries=retries, proxies=proxies))

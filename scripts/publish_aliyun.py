@@ -23,6 +23,9 @@ import sys
 import tempfile
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import ops_common
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 SSH_HOST = os.environ.get("OPS_ALIYUN_HOST", "aliyun")
 RELEASE_ROOT = "/var/www/ops-hub-releases"
@@ -186,8 +189,7 @@ def verify(sha=None):
         for name, digest in expected.items():
             url = f"https://ops.insistgang.top/{name}"
             try:
-                with urllib.request.urlopen(url, timeout=20) as response:
-                    body = response.read()
+                body = ops_common.fetch_bytes(url, timeout=20)
             except Exception as error:
                 print(f"  ❌ {name}: {error}")
                 fail += 1
