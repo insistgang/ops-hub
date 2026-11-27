@@ -3,22 +3,22 @@
     "title": "Ops-Hub // Personal Operations Console",
     "author": "Leo (insistgang)",
     "version": "2.0.0",
-    "last_synced": "2026-11-26 21:00:08",
+    "last_synced": "2026-11-27 09:00:12",
     "sync_mode": "Level 2 Real Probe (Zero Mock)",
     "github_repo": "https://github.com/insistgang/ops-hub",
     "sanitized": true,
-    "sanitized_at": "2026-11-26 21:00:08",
+    "sanitized_at": "2026-11-27 09:00:12",
     "sanitize_note": "公开版保留投递阶段，已移除备注、简历文件名、同事真名、内网地址与本地路径。"
   },
   "topology": {
-    "timestamp": "2026-11-26 21:00:08",
+    "timestamp": "2026-11-27 09:00:12",
     "mac": {
       "device": "MacBook Air (Apple M5, 16GB)",
       "ip": "100.86.x.x",
       "role": "移动生产力中枢 // 图书馆深度工作主场",
-      "battery": "65%",
+      "battery": "81%",
       "power_state": "Discharging (Battery)",
-      "load_avg": "4.03 4.06 4.74",
+      "load_avg": "4.30 5.06 5.18",
       "status": "Online",
       "services": [
         "Ops-Hub Console",
@@ -31,10 +31,10 @@
       "ip": "100.98.x.x",
       "role": "算力后端 // CUDA 训练 // 批量构建 // 冷备仓库",
       "status": "Online",
-      "latency_ms": 17.5,
-      "via": "DERP · hkg",
+      "latency_ms": 688.1,
+      "via": "DERP · tok",
       "control_online": true,
-      "last_seen": "2026-11-26T09:10:00.1Z",
+      "last_seen": "2026-11-26T17:21:38.1Z",
       "ssh_port": 22,
       "ssh_active": true,
       "smb_port": 445,
@@ -52,19 +52,19 @@
       "role": "边缘感知节点 // 端侧视觉与机器人感知部署",
       "network_type": "局域网 (LAN Only)",
       "status": "Online",
-      "latency_ms": 12.3,
+      "latency_ms": 0.7,
       "via": "",
       "control_online": false,
       "ssh_port": 22,
-      "ssh_active": false,
+      "ssh_active": true,
       "services": [
-        "SSH 访问 (Standby)",
+        "SSH 访问 (Active :22)",
         "NVIDIA JetPack 6 / Tegra R36",
         "CUDA Edge Runtime",
         "Edge AI Perception"
       ]
     },
-    "mesh_latency_ms": 17.5,
+    "mesh_latency_ms": 688.1,
     "tailscale_checked": true
   },
   "career_summary": {
@@ -475,13 +475,13 @@
       "type": "exam",
       "target_date": "2026-12-12",
       "status": "日常积累与听力专项",
-      "next_action": "考前 16 天 · 核心考纲高频词汇与听力真题精听",
+      "next_action": "考前 15 天 · 核心考纲高频词汇与听力真题精听",
       "priority": "Medium",
-      "days_left": 16
+      "days_left": 15
     }
   ],
   "daily_checks": {
-    "date": "2026-11-26",
+    "date": "2026-11-27",
     "checks": {
       "起了": false,
       "动了": false,
@@ -734,6 +734,15 @@
       },
       {
         "date": "2026-11-25",
+        "checks": {
+          "起了": false,
+          "动了": false,
+          "写了": false,
+          "关了": false
+        }
+      },
+      {
+        "date": "2026-11-26",
         "checks": {
           "起了": false,
           "动了": false,
