@@ -1,9 +1,9 @@
 {
   "available": true,
-  "generated_at": "2026-11-27T21:00:09+08:00",
-  "today": "2026-11-27",
+  "generated_at": "2026-11-28T09:33:53+08:00",
+  "today": "2026-11-28",
   "warnings": [
-    "缺少 2026-11-27 的今日计划，已回退到 2026-11-22"
+    "缺少 2026-11-28 的今日计划，已回退到 2026-11-22"
   ],
   "today_plan": {
     "date": "2026-11-22",
@@ -45,7 +45,7 @@
       }
     ],
     "warnings": [
-      "缺少 2026-11-27 的今日计划，已回退到 2026-11-22"
+      "缺少 2026-11-28 的今日计划，已回退到 2026-11-22"
     ]
   },
   "wip": {
@@ -85,9 +85,9 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2026-10-27",
-        "days_left": -31,
+        "days_left": -32,
         "impact": "原 64 刀档「10/24 决定暂不开会员」口径作废；扣费走同事 C账户余额（本人说明该账户已充较多）；2026-11-21 本人确认：下次扣费日 2026-11-27、自动续费已开启",
-        "overdue_days": 31,
+        "overdue_days": 32,
         "needs_confirm": true
       },
       {
@@ -100,9 +100,9 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2026-11-22",
-        "days_left": -5,
+        "days_left": -6,
         "impact": "10/15 记录的 1,500 TRY 可覆盖 10/22、11/22、12/22；2026-11-20 本人确认主账号余额现为 3,000 TRY，覆盖后续扣费无压力，本条无需处理",
-        "overdue_days": 5,
+        "overdue_days": 6,
         "needs_confirm": true
       },
       {
@@ -115,8 +115,21 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2026-11-30",
-        "days_left": 3,
+        "days_left": 2,
         "impact": "11/23 13:00--14:00 咨询后定下后续每周一下午 14:00--15:00 固定预约"
+      },
+      {
+        "kind": "node",
+        "date": "2026-11-30 12:00",
+        "type": "学工/填表",
+        "title": "2026 年国内外学术、技术、研究生会议/论坛参会情况统计表",
+        "decision": "2026-11-30 上午",
+        "status": "活跃",
+        "day_basis": "单日",
+        "date_precision": "day",
+        "effective_date": "2026-11-30",
+        "days_left": 2,
+        "impact": "学委朱沙政 11/27 17:38 群发通知：请 2026 年参与过国内外学术、技术、研究生会议/论坛的同学完成群内表格（本人含 11/19--11/20 湖州论坛），下周一 12:00 截止"
       },
       {
         "kind": "node",
@@ -128,7 +141,7 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2026-12-01",
-        "days_left": 4,
+        "days_left": 3,
         "impact": "费用与归属待补"
       },
       {
@@ -141,7 +154,7 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2026-12-02",
-        "days_left": 5,
+        "days_left": 4,
         "impact": "2026-11-26 本人确认：下周三（12/02）需前往另一业务的客户地址谈业务，地址向同事 G的老板从雷问得（尚未取得具体地址）"
       },
       {
@@ -154,7 +167,7 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2026-12-04",
-        "days_left": 7,
+        "days_left": 6,
         "impact": "2026-11-26 本人确认日期为 12/04（此前日记仅记「下周五」，当天未明确）；需提前备好 11/25 与张总谈定的功能改动讲解要点；已与朱道勤沟通金山走外勤卡"
       },
       {
@@ -167,7 +180,7 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2026-12-12",
-        "days_left": 15,
+        "days_left": 14,
         "impact": "准考证与考场通知 12 月初"
       },
       {
@@ -180,7 +193,7 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2026-12-15",
-        "days_left": 18,
+        "days_left": 17,
         "impact": "导师 10/10 明确：全文初稿截止 12 月 15 日，1 月按学院通知提交"
       },
       {
@@ -193,7 +206,7 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2026-12-15",
-        "days_left": 18,
+        "days_left": 17,
         "impact": "—"
       },
       {
@@ -206,7 +219,7 @@
         "day_basis": "区间截止",
         "date_precision": "day",
         "effective_date": "2027-01-01",
-        "days_left": 35,
+        "days_left": 34,
         "impact": "同事 A 11/23 微信确认元旦结婚与行程；需提前预留元旦跨年行程；2026-11-26 本人确认：只随一份份子（1000 元），不担任伴郎、不额外张罗，简单随礼即可"
       },
       {
@@ -219,7 +232,7 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2027-02-21",
-        "days_left": 86,
+        "days_left": 85,
         "impact": "在用账号两个：QQ 邮箱 1809009002、163 邮箱账号；2026-11-21 本人确认两账号均已使用，设备绑定无需再记"
       },
       {
@@ -232,7 +245,7 @@
         "day_basis": "单日",
         "date_precision": "day",
         "effective_date": "2027-11-17",
-        "days_left": 355,
+        "days_left": 354,
         "impact": "2026-11-21 本人确认自动续费已开启"
       },
       {
